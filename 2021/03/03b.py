@@ -65,6 +65,9 @@ def keep_at_col_i(data:list, pos:int, gas:str) -> str:
             return '0'
     
 def main():
+    import time
+    start = time.time()
+    
     data:list = read_file("input.txt")
     if len(data) == 0:
         return 0
@@ -109,6 +112,14 @@ def main():
     print(int(data_co2[0], 2))
     
     print(int(data_oxygen[0], 2) * int(data_co2[0], 2))
+    
+    # record end time
+    end = time.time()
+    
+    # print the difference between start
+    # and end time in milli. secs
+    print("The time of execution of above program is :",
+        (end-start) * 10**3, "ms")
     
 def rec_deleter(numbers: dict, dataset:list):
     """
