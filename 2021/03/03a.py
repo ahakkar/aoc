@@ -3,9 +3,7 @@
 @File    :   03a.py
 @Time    :   07/11/2022, 16:19:55
 @Author  :   Antti Hakkarainen
-@Student :   K79735
-@Contact :   antti.i.hakkarainen@tuni.fi
-@Course  :   COMP.CS.100 Ohjelmointi 1.
+@Task    :   Advent of Code 2021
 @Desc    :   TEMP
 '''
 

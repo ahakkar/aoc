@@ -3,7 +3,6 @@
 @File    :   04a.py
 @Time    :   07/11/2022, 22:08:23
 @Author  :   Antti Hakkarainen
-@Contact :   a.hakkarainen@iki.fi
 @Task    :   Advent of Code 2021
 @Desc    :   Day 4 A : Bingo
 '''

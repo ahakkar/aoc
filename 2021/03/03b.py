@@ -3,8 +3,6 @@
 @File    :   03b.py
 @Time    :   07/11/2022, 17:18:51
 @Author  :   Antti Hakkarainen
-@Student :   K79735
-@Contact :   antti.i.hakkarainen@tuni.fi
 @Task    :   Advent of Code 2021
 @Desc    :   TEMP
 '''
