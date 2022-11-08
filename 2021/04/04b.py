@@ -85,7 +85,7 @@ class Bingo:
             if val[1] == 1:
                 count += 1
             if i == 4:
-                if count == 5:
+                if count == 5:                    
                     return True
                 count = 0
                 i = 0
@@ -102,13 +102,13 @@ class Bingo:
                 if self.cards[card_id][keys[i+5]] == 1 and \
                    self.cards[card_id][keys[i+10]] == 1 and \
                    self.cards[card_id][keys[i+15]] == 1 and \
-                   self.cards[card_id][keys[i+20]] == 1:
+                   self.cards[card_id][keys[i+20]] == 1:                       
                        return True
             i += 1        
                
         return False
      
-    def print_card(self, card_id:int) -> None:
+    def print_card(self, card_id:int, last_num: int) -> None:
         """
         Start by finding the sum of all unmarked numbers on that board; in this
         case, the sum is 188. Then, multiply that sum by the number that was just
@@ -127,7 +127,7 @@ class Bingo:
             if tmp % 5 == 0: print()
         
         # winning number:    
-        print("Winning number:", sum * card_id) 
+        print("Winning number:", sum * last_num) 
 
 def main() -> int:
     # initialize bingo and load the data
@@ -152,10 +152,10 @@ def main() -> int:
                 if i not in won_cards:
                     won_cards.append(i)
                     won_last = i
+                    bingo.print_card(won_last, num)                    
     
     print("card which won last:", won_last)
-    print("amount of won cards:", len(won_cards))
-    bingo.print_card(won_last)      
+    print("amount of won cards:", len(won_cards))         
     
     return 0    
 
