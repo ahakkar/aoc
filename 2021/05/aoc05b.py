@@ -14,10 +14,8 @@ class Lines:
     def __init__(self, filename:str) -> None:        
         self.data: list
         self.lines: list = []
-        # we could use 0 here for max_x and max_y, and inspect all the
-        # numbers in add_lines_to_list, but it doubles the runtime
-        self.max_x:int = 1000
-        self.max_y:int = 1000
+        self.max_x:int = 0
+        self.max_y:int = 0
         
         self.read_file(filename)
         self.add_lines_to_list()          
