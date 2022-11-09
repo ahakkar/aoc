@@ -54,7 +54,7 @@ class Fish:
         param : none
         return: none
         """
-        temp_dict = self.fish.copy()
+        temp_dict = self.fish
         new_fish = 0
         six_day_fish = 0
         
@@ -83,7 +83,7 @@ class Fish:
         temp_dict[6] += six_day_fish
         temp_dict[8] = new_fish
         
-        self.fish = temp_dict.copy()
+        self.fish = temp_dict
         
     def total_fish(self) -> int:
         total:int = 0
@@ -100,16 +100,12 @@ def main():
         school.advance() 
         #print(school.get_fish())     
     
-    print(f"total fish after {days} days", school.total_fish())
+    #print(f"total fish after {days} days", school.total_fish())
+    total_fish = school.total_fish()
     
     return 0
 
 if __name__ == "__main__":
-    from time import time
-    start = time()
-    
-    main()
-
-    # print the difference between start and end time in ms
-    print("The time of execution of above program is:",
-        (time()-start) * 10**3, "ms")  
+    import timeit    
+    time = timeit.timeit(main, number=1000)
+    print(f"{time*1000:.5f}ms")
