@@ -3,22 +3,9 @@
 @File    :   aoc06.py
 @Time    :   09/11/2022, 17:39:32
 @Author  :   Antti Hakkarainen
-@Contact :   a.hakkarainen@iki.fi
 @Task    :   Advent of Code 2021
 @Desc    :   TEMP
 '''
-
-# -*- encoding: utf-8 -*-
-'''
-@File    :   05a.py
-@Time    :   08/11/2022, 14:32:20
-@Author  :   Antti Hakkarainen
-@Task    :   Advent of Code 2021
-@Desc    :   TEMP
-'''
-
-import numpy
-
 class Fish:
     
     def __init__(self, filename:str) -> None: 
@@ -63,7 +50,8 @@ class Fish:
             
     def advance(self) -> None:
         """
-        param : TODO
+        Just use a dict. Seems fastest in case the amount of fish gets big.
+        param : none
         return: none
         """
         temp_dict = self.fish.copy()
