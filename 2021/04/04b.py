@@ -58,8 +58,7 @@ class Bingo:
                 for num in nums:
                     # avoid adding empty keys
                     if not self.cards.get(i):
-                        self.cards[i] = {}
-                        self.cards_not_won[i] = "x"
+                        self.cards[i] = {}                        
                     if num != "":
                         self.cards[i][int(num)] = 0
 
@@ -151,11 +150,11 @@ def main() -> int:
             if bingo.check_card(i):
                 if i not in won_cards:
                     won_cards.append(i)
-                    won_last = i
-                    bingo.print_card(won_last, num)                    
+                    won_last = i                                       
     
     print("card which won last:", won_last)
-    print("amount of won cards:", len(won_cards))         
+    print("amount of won cards:", len(won_cards))  
+    bingo.print_card(won_last, num)        
     
     return 0    
 
