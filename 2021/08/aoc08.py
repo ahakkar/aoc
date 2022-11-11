@@ -48,23 +48,8 @@ class Display:
         return count
     
     def count_hard(self) -> int:
-        """        
-        return: none
-        """
-        count:int = 0
-                       
-        for row in self.data:
-            parts = [x.strip().split(" ") for x in row.split('|')]
-            
-            keys:dict = self.solve_keys(parts[0])
-            print(keys)                
-            
-            break
-     
-        return count
-    
-    def solve_keys(self, row:list) -> dict:
-        """
+        """      
+        
         1 = be
         8 = abcdefg
         4 = bceg
@@ -78,21 +63,48 @@ class Display:
         2/3/5 = abcdf 2?
 
         7 = bde
-        
-         dddd
-        g    b
-        g    b
-        cccc  
-        a    e
-        a    e
-         ffff
+        ***************
+        8 = abcdefg
+        2/3/5 = bcdef
+        0/6/9 = bcdefg
+        4 = bceg
 
+         dddd
+        g	 b
+        g	 b
+         cccc	
+        a	 e
+        a	 e
+         ffff  
+        return: none
+        """
+        count:int = 0
+                       
+        for row in self.data:
+            parts = [x.strip().split(" ") for x in row.split('|')]    
+            keys:dict = self.solve_keys(parts[0] + parts[1])
+            
+            num: str = ""               
+            for decode in parts[1]:
+                decode = "".join([x for x in sorted(decode)])
+                # this is so not optimal..
+                # should have key:value in flipped order
+                for key, val in keys.items():
+                    if decode == val:
+                        num += str(key)  
+            
+            count += int(num) # ..... really            
+       
+        return count
+    
+    def solve_keys(self, row:list) -> dict:
+        """
         :param list row: _description_
         :return dict: _description_
         """
         keys:dict = {}
         set_069 = set()
-        set_235 = set()
+        set_235 = set()            
             
         # sort string letters
         for str in row:
@@ -113,99 +125,84 @@ class Display:
             else:
                 print("!?!?!") 
         
-       # use set() difference() to get diff between 069 and 235
-        print(set_069, set_235)
+        #print("SETS:", set_069, set_235)
+
+        one_ch = {}
+        for ch in keys[1]:
+            one_ch[ch] = 1
+            
+        five_ch = {}
         for val in set_235:
-            print(val)
+            for ch in val:
+                if ch in five_ch:
+                    five_ch[ch] += 1
+                else:
+                    five_ch.update({ch: 1})
+                    
+        six_ch = {}
+        for val in set_069:        
+            for ch in val:            
+                if ch in six_ch:
+                    six_ch[ch] += 1
+                else:
+                    six_ch.update({ch: 1})   
         
-        exit()       
+        # figure out value 5
+        for key, val in five_ch.items():              
+            if val == 1 and key in six_ch:            
+                if six_ch[key] == 3:                
+                    for s in set_235:
+                        if s.find(key) >= 0:                       
+                            keys[5] = s # this is no 5 str                             
+        set_235.remove(keys[5])    
+                   
+        # figure out value 3
+        for val in set_235:
+            hits = 0
+            for ch in val:
+                if ch in one_ch:
+                    hits += 1
+            if hits == 2:
+                keys[3] = val # this is 3           
+        
+        # 2 is the remaining one
+        set_235.remove(keys[3]) 
+        keys[2] = set_235.pop() # pop() returns last item from set
+
+        # find 6 first by looking which one is missing other piece from 1
+        for val in set_069:
+            hits = 0
+            for ch in val:
+                if ch in one_ch:
+                    hits += 1
+            if hits == 1:
+                keys[6] = val # this is 6  
+                
+        set_069.remove(keys[6])
+        
+        # find 9 by comparing it to 3
+        for val in set_069:
+            diff = set(val).difference(set(keys[3]))
+            if len(diff) == 1:
+                keys[9] = val   
+        
+        # 0 is last        
+        set_069.remove(keys[9])      
+        keys[0] = set_069.pop()     
+
         return keys
         
 
 def main():
-    #d = Display("simple.input")
-    #total = d.count_hard()
+    d = Display("task.input")
+    total = d.count_hard()
     """
     if total != 26:
         print(f"wrong amount! ({total})")
     else:
     """
     #print("nums:", total)
-    
-    # {1: 'be', 8: 'abcdefg', '069': 'abdefg', 4: 'bceg', '235': 'abcdf', 7: 'bde'}
-    
-    setti = {'cdefg', 'abcdf', 'bcdef'}
-    setti2 = {'bcdefg', 'abdefg', 'acdefg'}
-    
-    keys = {1: 'be'}
-    
-    one_ch = {}
-    for ch in keys[1]:
-        one_ch[ch] = 1
-    
-    five_ch = {}
-    for val in setti2:
-        for ch in val:
-            if ch in five_ch:
-                five_ch[ch] += 1
-            else:
-                five_ch.update({ch: 1})
-                
-    six_ch = {}
-    for val in setti:
-        for ch in val:
-            if ch in six_ch:
-                six_ch[ch] += 1
-            else:
-                six_ch.update({ch: 1})
-    
-    # Vitosessa on yks sama kun 0/6/9.
-    # Kakkosessa puuttuu toinen joka on ykkösessä, jäljelle jää 3.
-    
-    # figure out value 5
-    for key, val in six_ch.items():              
-        if val == 1 and key in five_ch:            
-            if five_ch[key] == 3:
-                print("jee löytyi 5", key)
-                for s in setti:
-                    if s.find(key) >= 0:                       
-                        keys[5] = s # this is no 5 str                             
-    setti.remove(keys[5]) 
-    
-    # figure out value 3
-    for val in setti:
-        hits = 0
-        for ch in val:
-            if ch in one_ch:
-                hits += 1
-        if hits == 2:
-            keys[3] = val # this is no 3 str            
-    
-    # 2 is the remaining one
-    setti.remove(keys[3]) 
-    keys[2] = setti.pop() # pop() returns last item from set
-    
-    # Nollasta puuttuu yks mikä on 6/9 molemmilla.
-    # Kuutosessa puuttuu toinen mikä on ykkösessä. Ysi jää jäljelle.
-    print(setti2)
-    print(six_ch)
-    
-    diff = set('bcdefg').difference(set("abdefg"))
-    for val in setti2:
-        
-    
-        
-    print(keys)              
 
-            
-    
-    
-    
-
-
-main()
-
-# one run takes 2855ms with 12700K..
-#import timeit    
-#time = timeit.timeit(main, number=1)
-#print(f"{time*1000:.5f}ms")
+import timeit    
+time = timeit.timeit(main, number=1000)
+print(f"{time*1000:.5f}ms")
