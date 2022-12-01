@@ -1,4 +1,6 @@
 *.xlsx
+*.txt
+*.input
 .venv/
 __pycache__/
 .pytest_cache
