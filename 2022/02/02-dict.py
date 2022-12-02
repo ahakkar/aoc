@@ -30,14 +30,14 @@ def read_file(filename:str) -> list:
 
 def silver(data:list):
     total:int = 0
-    scoring:dict = {"BX": 1, "CX": 7, "AX": 4,
-                    "AY": 8, "BY": 5, "CY": 2,
-                    "CZ": 6, "AZ": 3, "BZ": 9}
+    scoring:dict = {"B X": 1, "C X": 7, "A X": 4,
+                    "A Y": 8, "B Y": 5, "C Y": 2,
+                    "C Z": 6, "A Z": 3, "B Z": 9}
     
     for row in data: 
-        total += scoring["".join(row.split())]
+        total += scoring[row]
             
-    print("silver:", total)        
+    #print("silver:", total)        
     
 def gold(data:list):
     """
@@ -45,14 +45,14 @@ def gold(data:list):
     return: none
     """
     total:int = 0
-    scoring:dict = {"BX": 1, "CX": 2, "AX": 3,
-                    "AY": 4, "BY": 5, "CY": 6,
-                    "CZ": 7, "AZ": 8, "BZ": 9}
+    scoring:dict = {"B X": 1, "C X": 2, "A X": 3,
+                    "A Y": 4, "B Y": 5, "C Y": 6,
+                    "C Z": 7, "A Z": 8, "B Z": 9}
     
     for row in data: 
-        total += scoring["".join(row.split())]
+        total += scoring[row]
             
-    print("gold:", total)
+    #print("gold:", total)
 
 def main():
     data:list = read_file("D:\\GDrive\\Prog\\aoc\\2022\\02\\puzzle.input") 
@@ -63,10 +63,6 @@ def main():
     gold(data)
     return 0
 
-main()
-
-"""
 import timeit    
 time = timeit.timeit(main, number=1000)
 print(f"{time*1000:.5f}ms")
-"""
