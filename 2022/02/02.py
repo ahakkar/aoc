@@ -83,7 +83,7 @@ def silver(data:list):
         else:
             print("wrong data!")
             
-    print("silver:", total)
+    #print("silver:", total)
         
     
 def gold(data:list):
@@ -124,7 +124,7 @@ def gold(data:list):
         else:
             print("wrong data!")
             
-    print("gold:", total)
+    #print("gold:", total)
 
 """
 The score for a single round is the score for the shape you selected
@@ -147,5 +147,6 @@ def main():
     gold(data)
     return 0
 
-if __name__ == "__main__":
-    main()
+import timeit    
+time = timeit.timeit(main, number=1000)
+print(f"{time*1000:.5f}ms")
