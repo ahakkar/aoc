@@ -59,17 +59,18 @@ def sol_b(elves:list) -> int:
     return sum(max_three)        
 
 def main():
-    elves:list = calc_calories(read_file("puzzle.input")) 
+    elves:list = calc_calories(read_file("D:\\GDrive\\Prog\\aoc\\2022\\01\\puzzle.input")) 
     
     fattest_elf:int = sol_a(elves)
-    print(fattest_elf)
+    #print(fattest_elf)
     
     sum_three:int = sol_b(elves)
-    print(sum_three)
+    #print(sum_three)
     
     return 0
 
-if __name__ == "__main__":
-    main()
+import timeit    
+time = timeit.timeit(main, number=1000)
+print(f"{time*1000:.5f}ms")
 
 
