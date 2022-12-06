@@ -43,8 +43,8 @@ def silver(crates:dict, commands:list):
 
     for row in commands:        
         # extract numbers from command
-        nums:int = [int(x) for x in row.replace('move', "").replace('from', "").replace('to', "").strip().split('  ')]
- 
+        nums:int = [int(x) for x in row.replace('move', "").replace('from', "")\
+                                       .replace('to', "").strip().split('  ')]
         for i in range(0, nums[0]):
             crates[nums[2]].append(crates[nums[1]].pop())        
 
@@ -57,7 +57,8 @@ def gold(crates:dict, commands:list):
     """
     for row in commands:        
         # extract numbers from command
-        nums:int = [int(x) for x in row.replace('move', "").replace('from', "").replace('to', "").strip().split('  ')]
+        nums:int = [int(x) for x in row.replace('move', "").replace('from', "")\
+                                       .replace('to', "").strip().split('  ')]
         move:list = []
         
         # still move crates one by one, but to a temp list
@@ -69,6 +70,26 @@ def gold(crates:dict, commands:list):
             crates[nums[2]].append(move.pop())     
 
     top(crates)
+    
+def top2(crates:list):
+    print(crates)
+    
+   
+def string_test(crates:str, commands:list):
+    crates:list = crates.split(' ')
+    print(crates)
+    for row in commands: 
+        # extract numbers from command
+        move, fr, to = [int(x) for x in row.replace('move', "")\
+                                           .replace('from', "")\
+                                           .replace('to', "")\
+                                           .strip()\
+                                           .split('  ')]
+        #print(move, fr, to)
+        crates[to] += crates[fr][len(crates[fr])-move:len(crates[fr])]
+        crates[fr] = crates[fr][:len(crates[fr])-move]
+        
+    top2(crates)
 
 # create dict with lists from puzzle crate input
 def fix(crates:list) -> list:
@@ -80,8 +101,7 @@ def fix(crates:list) -> list:
             fixed[i].append(crate)
         i += 1
             
-    return fixed            
-            
+    return fixed              
 
 def main():
     commands:list = read_file("D:\\GDrive\\Prog\\aoc\\2022\\05\\puzzle.input") 
@@ -89,6 +109,7 @@ def main():
     simple:str = "ZN MCD P" 
     puzzle:str = "DHNQTWVB DWB TSQWJC FJRNZTP GPVJMST BWFTN BLDQFHVN HPFR ZSMBLNPH"    
     
+    #string_test(simple, commands) #PSNRGBTFT
     silver(fix(puzzle), commands) #PSNRGBTFT
     gold(fix(puzzle), commands) #BNTZFPMMW
     return 0
