@@ -4,7 +4,8 @@
 @Time    :   07/12/2022, 08:23:00
 @Author  :   Antti Hakkarainen
 @Task    :   Advent of Code 2022
-@Desc    :   This was not easy
+@Desc    :   This was not easy. I wanted to make first child/sibling tree
+             but could not make it this time.
 '''
 
 def read_file(filename:str) -> list:
@@ -52,6 +53,11 @@ class Parser():
         self.dir_sizes:list = []
  
     def parse_data(self, data:list):
+        """parses commands read from row,
+        or directories and files listed with ls
+
+        :param list data: list of commands and dir/file rows
+        """
         for row in data:
             params = row.split(' ')   
              
@@ -92,12 +98,24 @@ class Parser():
                 #print("add file", params[1], params[0])                
 
     def traverse(self):
+        """
+        Just prints the root dir.
+        Calls print_children which prints dirs & calculates their size recursively
+        """
         type:str = ""          
         print("-", self.first.name, "(dir)") 
         self.print_children(self.first, 1)
         
-    # this has indent bug somewhere
+  
     def print_children(self, node:object, depth:int) -> int:
+        """ 
+        This has an indent bug somewhere in print feature.
+
+        :param object node: item object (dir or file)
+        :param int depth: how deep we are in dir tree
+        :return int: current dir's and all subdir's total size
+        """
+        # current directory size must contain current dir files and all subdir's files
         cur_dir_size: int = 0
         for val in node.children:  
             type:str = ""      
@@ -109,16 +127,18 @@ class Parser():
                           
             #print("{}- {} {}".format('  ' * depth, val.name, type))
             
+            # recursively look for subdirs and add their size
             if len(val.children) > 0:
                 depth += 1
                 cur_dir_size += self.print_children(val, depth)           
         
+        # after all subdir sizes are summed up, add current dir's total size to list
         self.dir_sizes.append(cur_dir_size)
         
+        # return the current dir size to parent, so parent can add it to it's total dir size
         return cur_dir_size
     
-    # i can 't think staright anymore so i made this func to find
-    # and return the first value large enough
+    # Finds the largest folder which is enough to get free space above 30 mil
     def find_gold(self, diff:int):
         for val in self.dir_sizes:
             if val > diff:
@@ -128,7 +148,7 @@ class Parser():
         
         self.dir_sizes.sort()
        
-        # for silver, gather dirs below size 100000
+        # for silver, gather dirs below size 100000 to a sum
         total:int = 0               
         for val in self.dir_sizes:
             if val <= 100000:                
@@ -137,11 +157,12 @@ class Parser():
         #silver   1778099     
         print(total)  
         
-        # for gold, find the smallest dir above 70 mil - largest value
-        diff:int = 70000000-max(self.dir_sizes)        
+        # Disk has 70 mil total space. Update needs 30 mil free space.
+        # Figure out how much space total is used, and how much more space
+        # must be required to get to 30 mil free space.   
         
         #gold   1623571     
-        print(self.find_gold(30000000-diff))                             
+        print(self.find_gold(30000000-(70000000-max(self.dir_sizes) )))                             
         
 ############################################        
 
