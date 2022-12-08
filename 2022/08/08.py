@@ -49,12 +49,8 @@ class Solution:
         # add digits to 2D array
         return numpy.array(temp)                
 
-    def silver(self):
-        """
-        param : puzzle input as list
-        return: none
-        """      
-    
+    def silver(self): 
+        # current col and row
         x:int = 0
         y:int = 0
         
@@ -63,14 +59,9 @@ class Solution:
         # iterate through every single number and hope it doesn't take forever
         for row in self.__trees:
             for digit in row:
-                if (y > 0 and x > 0) and (y < self.__size_y and x < self.__size_x):
-                    # [start_row_index:end_row_index, start_column_index:end_column_index]
-                    #print(numpy.max( trees[y:y+1, 0:x] )) # trees left from digit
-                    #print(numpy.max( trees[y:y+1, x+1:size_x+1] )) # trees right from digit
-                    #print(numpy.max( trees[0:y, x:x+1] )) # trees up from digit
-                    #print(numpy.max( trees[y+1:size_y+1, x:x+1] )) # trees down from digit     
-                    
+                if (y > 0 and x > 0) and (y < self.__size_y and x < self.__size_x):                    
                     max_trees_around:list = []
+                    
                     max_trees_around.append(numpy.max( self.__trees[y:y+1, 0:x] )) # trees left from digit
                     max_trees_around.append(numpy.max( self.__trees[y:y+1, x+1:self.__size_x+1] )) # trees right from digit
                     max_trees_around.append(numpy.max( self.__trees[0:y, x:x+1] )) # trees up from digit
@@ -87,13 +78,16 @@ class Solution:
         
         # add edge trees to total
         print(total_visible + self.__size_x*2 + self.__size_y*2) # 1854
+     
+    # how to slice numpy 2D arrays:   
+    # [start_row_index:end_row_index, start_column_index:end_column_index]
+    #print(self.__trees[y:y+1, 0:x] ) # trees left from digit
+    #print(self.__trees[y:y+1, x+1:self.__size_x+1] ) # trees right from digit
+    #print(self.__trees[0:y, x:x+1] ) # trees up from digit
+    #print(self.__trees[y+1:self.__size_y+1, x:x+1] ) # trees down from digit   
             
     def gold(self):
-        """
-        param : puzzle input as list
-        return: none
-        """
-        
+        # current col and row
         x:int = 0
         y:int = 0
         
@@ -103,25 +97,14 @@ class Solution:
         for row in self.__trees:
             for digit in row:
                 if (y > 0 and x > 0) and (y < self.__size_y and x < self.__size_x):
-                    score:int = 0
-                    # [start_row_index:end_row_index, start_column_index:end_column_index]
-                    #print(self.__trees[y:y+1, 0:x] ) # trees left from digit
-                    #print(self.__trees[y:y+1, x+1:self.__size_x+1] ) # trees right from digit
-                    #print(self.__trees[0:y, x:x+1] ) # trees up from digit
-                    #print(self.__trees[y+1:self.__size_y+1, x:x+1] ) # trees down from digit    
+                    score:int = 0 
                     
-                    # need to flip so we can "Look" from the digit's direction to left
-                    score = self.calc_scenic(digit, numpy.flip(self.__trees[y:y+1, 0:x]) ) # trees left from digit
-                    #print(score)
-                    score *= self.calc_scenic(digit, self.__trees[y:y+1, x+1:self.__size_x+1] ) # trees right from digit
-                    #print(score)
-                    # need to flip so we can "Look" from the digit's direction to up
-                    score *= self.calc_scenic(digit, numpy.flip(self.__trees[0:y, x:x+1]) ) # trees up from digit
-                    #print(score)
-                    score *= self.calc_scenic(digit, self.__trees[y+1:self.__size_y+1, x:x+1] ) # trees down from digit     
-                    #print(score)
-                    #print("huoh")
-                    
+                    # need to flip left and up rows so we can "look" from tree digit to right direction
+                    score = self.calc_scenic(digit, numpy.flip(self.__trees[y:y+1, 0:x]) ) # trees left from digit  
+                    score *= self.calc_scenic(digit, self.__trees[y:y+1, x+1:self.__size_x+1] ) # trees right from digit 
+                    score *= self.calc_scenic(digit, numpy.flip(self.__trees[0:y, x:x+1]) ) # trees up from digit    
+                    score *= self.calc_scenic(digit, self.__trees[y+1:self.__size_y+1, x:x+1] ) # trees down from digit    
+
                     scenic_scores.append(score) 
                                                     
                 x += 1
@@ -133,7 +116,6 @@ class Solution:
     
     def calc_scenic(self, digit, arr):
         score:int = 0
-        #print(arr.flatten().tolist())
 
         for num in arr.flatten().tolist():      
             if num >= digit:
@@ -156,6 +138,6 @@ if __name__ == "__main__":
     main()
 
 #1185 ms so ~120ms per run    
-import timeit    
-time = timeit.timeit(main, number=10)
-print(f"{time*1000:.5f}ms")
+#import timeit    
+#time = timeit.timeit(main, number=10)
+#print(f"{time*1000:.5f}ms")
