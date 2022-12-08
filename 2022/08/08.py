@@ -73,6 +73,7 @@ class Solution:
                             break
                                                     
                 x += 1
+            # reset column index and switch to new row index
             x = 0
             y += 1
         
@@ -108,15 +109,17 @@ class Solution:
                     scenic_scores.append(score) 
                                                     
                 x += 1
+            # reset column index and switch to new row index
             x = 0
             y += 1
         
-        print(max(scenic_scores)) # 196 is too low # 2173500 too big
-        # 527340 correct
+        print(max(scenic_scores)) # 196 is too low, 2173500 too big, 527340 correct
     
+    # calculates the scenic value to one direction
     def calc_scenic(self, digit, arr):
         score:int = 0
 
+        # flatten a 2d numpy array and convert it to a python list, so it's easier to iterate
         for num in arr.flatten().tolist():      
             if num >= digit:
                 score += 1
