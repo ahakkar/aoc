@@ -79,11 +79,11 @@ class Solution:
                     time_slices += t1-t0
                     
                     t2 = time.time()
-                    # SILVER                    
-                    max_trees_around.append(numpy.amax( lf_slice )) 
-                    max_trees_around.append(numpy.amax( rg_slice )) 
-                    max_trees_around.append(numpy.amax( up_slice )) 
-                    max_trees_around.append(numpy.amax( dn_slice ))
+                    # SILVER - python's max() is quite a bit faster than any numpy's (a)max()
+                    max_trees_around.append(max(lf_slice.flatten().tolist())) 
+                    max_trees_around.append(max(rg_slice.flatten().tolist())) 
+                    max_trees_around.append(max(up_slice.flatten().tolist())) 
+                    max_trees_around.append(max(dn_slice.flatten().tolist())) 
                     
                     for tree in max_trees_around:
                         if digit > tree:                        
