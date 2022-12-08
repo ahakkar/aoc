@@ -56,7 +56,7 @@ class Solution:
         y:int = 0
         
         total_visible: int = 0      # for silver
-        scenic_scores: list = []    # for gold
+        max_scenic_score: int = 0   # for gold
         
         # iterate through every single number and hope it doesn't take forever
         for row in self.__trees:
@@ -88,8 +88,9 @@ class Solution:
                     score *= self.calc_scenic(digit, rg_slice ) 
                     score *= self.calc_scenic(digit, numpy.flip(up_slice) )  
                     score *= self.calc_scenic(digit, dn_slice )    
-
-                    scenic_scores.append(score)      
+                    
+                    # if score is bigger than current max, update it
+                    if score > max_scenic_score: max_scenic_score = score     
                                                     
                 x += 1
             # reset column index and switch to new row index
@@ -98,7 +99,7 @@ class Solution:
             
         # add edge trees to total
         print("silver:", total_visible + self.__size_x*2 + self.__size_y*2) # 1854
-        print("gold:", max(scenic_scores)) # 196 is too low, 2173500 too big, 527340 correct       
+        print("gold:", max_scenic_score) # 196 is too low, 2173500 too big, 527340 correct       
     
     # calculates the scenic value to one direction
     def calc_scenic(self, digit, arr):
@@ -121,8 +122,8 @@ def main():
 
     return 0
 
-if __name__ == "__main__":
-    main()
+#if __name__ == "__main__":
+#    main()
 
 #1185 ms so ~120ms per run    
 #import timeit    
