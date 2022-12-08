@@ -125,7 +125,7 @@ class Parser():
                 type = f"(file, size={val.size})"  
                 cur_dir_size += int(val.size)
                           
-            #print("{}- {} {}".format('  ' * depth, val.name, type))
+            print("{}- {} {}".format('  ' * depth, val.name, type))
             
             # recursively look for subdirs and add their size
             if len(val.children) > 0:
@@ -175,5 +175,9 @@ def main():
     
     return 0
 
-if __name__ == "__main__":
-    main()
+#if __name__ == "__main__":
+#    main()
+
+import timeit    
+time = timeit.timeit(main, number=1000)
+print(f"{time*1000:.5f}ms")
