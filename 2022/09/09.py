@@ -35,11 +35,14 @@ class Solution:
         self.__data:list = data
         self.__moves = len(self.__data)
         self.__moves_done = 0
-        self.h_pos = (1, 1)
-        self.t_pos = (1, 1)
+        self.h_pos:tuple = (0, 0)
+        self.t_pos:tuple = (0, 0)
         self.h_prev = ()
-        self.t_moves:list = set(self.t_pos)
-       
+        self.t_moves:set = set()
+        self.t_moves.add(self.t_pos)
+        #print(self.t_moves)  
+        
+             
     def walk(self):                      
         while True:
             # return when all moves have been done
@@ -76,14 +79,39 @@ class Solution:
 
                 i += 1
             
-            self.__moves_done += 1       
-
+            self.__moves_done += 1     
+            
+    def print(self):  
+        SIZE = 20
+        mapx = [["." for i in range(SIZE)] for j in range(SIZE)] 
+        
+        for val in self.t_moves:
+            mapx[val[0]][val[1]] = "#"
+        
+        for i in range(len(mapx)-1, -1, -1):            
+            print(''.join(mapx[i])) 
+        
+    def test(self):
+        minimum = min(min(self.t_moves))
+        maximum = max(max(self.t_moves))
+        SIZE = abs(minimum) + maximum
+        print(SIZE)
+        mapx = [["." for i in range(SIZE)] for j in range(SIZE)] 
+        
+        new_set = set()
+        for val in self.t_moves:
+            new_set.add((val[0]+minimum, val[1]+minimum))   
+            
+        print(new_set)    
+        
+        return
 def main():
-    # 9038 too much # 6174 too low
-    data:list = read_file("D:\\GDrive\\Prog\\aoc\\2022\\09\\puzzle.input") 
+    # 9038 too much # 6174 too low #6175 is good, missing one due to a bug
+    data:list = read_file("D:\\GDrive\\Prog\\aoc\\2022\\09\\medium.input") 
     
     sol = Solution(data)  
     sol.walk()  
+    sol.print()
     return 0
 
 if __name__ == "__main__":
