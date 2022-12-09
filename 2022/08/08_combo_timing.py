@@ -79,7 +79,7 @@ class Solution:
                     time_slices += t1-t0
                     
                     t2 = time.time()
-                    # SILVER - python's max() is quite a bit faster than any numpy's (a)max()
+                    # SILVER - python's max() is quite a bit faster than any numpy's (a)max()                                
                     max_trees_around.append(max(lf_slice.flatten().tolist())) 
                     max_trees_around.append(max(rg_slice.flatten().tolist())) 
                     max_trees_around.append(max(up_slice.flatten().tolist())) 
@@ -99,7 +99,7 @@ class Solution:
                     score = self.calc_scenic(digit, numpy.flip(lf_slice) ) 
                     score *= self.calc_scenic(digit, rg_slice ) 
                     score *= self.calc_scenic(digit, numpy.flip(up_slice) )  
-                    score *= self.calc_scenic(digit, dn_slice )    
+                    score *= self.calc_scenic(digit, dn_slice )     
                     
                     # if score is bigger than current max, update it
                     if score > max_scenic_score: max_scenic_score = score    
@@ -123,7 +123,7 @@ class Solution:
     
     # calculates the scenic value to one direction
     def calc_scenic(self, digit, arr):
-        score:int = 0
+        score:int = 0   
 
         # flatten a 2d numpy array and convert it to a python list, so it's easier to iterate
         for num in arr.flatten().tolist():      
@@ -132,6 +132,7 @@ class Solution:
                 break
             if num < digit:
                 score += 1
+  
             
         return score
 
