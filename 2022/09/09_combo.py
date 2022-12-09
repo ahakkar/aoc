@@ -15,8 +15,7 @@ def read_file(filename:str) -> list:
     """
     param : str, filename to read
     return: list, lines
-    """
-    
+    """    
     data:list = []
     
     try:
@@ -32,101 +31,41 @@ def read_file(filename:str) -> list:
         
     return data;
 
-class Silver:    
-    def __init__(self, data:list):
-        self.__data:list = data
-        self.__moves = len(self.__data)
-        self.__moves_done = 0
-        
-        self.h_pos:tuple = (20, 20)
-        self.t_pos:tuple = (20, 20)
-        self.h_prev = ()
-        self.t_moves:set = set()        
-        self.t_moves.add(self.t_pos)       
-             
-    def walk(self):                             
-        while True:
-            # return when all moves have been done
-            if self.__moves_done == self.__moves:
-                print("Final position: H", self.h_pos, "T", self.t_pos)
-                print("silver:", len(self.t_moves)+1) #debug extra +1
-                return 
-
-            self.move()
-    
-    def move(self):
-        if self.__moves_done < self.__moves:
-            dir:str = self.__data[self.__moves_done][0:1]
-            amt:int = int(self.__data[self.__moves_done][2:])
-            
-            i:int = 0
-            while i < amt:  
-                # if tail is more than 1 away from h, move t to h's prev place
-                if abs(self.h_pos[0]-self.t_pos[0]) > 1 or \
-                   abs(self.h_pos[1]-self.t_pos[1]) > 1:
-                    self.t_pos = self.h_prev  
-                    self.t_moves.add(self.t_pos)                    
-                
-                # save previous point
-                self.h_prev = self.h_pos          
-
-                # move Head
-                if   dir == "R":  self.h_pos = (self.h_pos[0],  self.h_pos[1]+1)                            
-                elif dir == "L":  self.h_pos = (self.h_pos[0],  self.h_pos[1]-1)                       
-                elif dir == "U":  self.h_pos = (self.h_pos[0]+1,self.h_pos[1])                              
-                elif dir == "D":  self.h_pos = (self.h_pos[0]-1,self.h_pos[1])
-
-                i += 1
-            
-            self.__moves_done += 1                 
-            
-    def print(self):         
-        mapx = [["." for i in range(SIZE)] for j in range(SIZE)] 
-        
-        for val in self.t_moves:
-            mapx[val[0]][val[1]] = "#"
-        
-        for i in range(len(mapx)-1, -1, -1):            
-            print(''.join(mapx[i])) 
 class Piece:
-    def __init__(self):
-        # current and prev pos
-        self.cur_pos:tuple = (INIT, INIT)
-        self.prev_pos:tuple = None
-               
-        # part number. 0 head, ... 9 tail.
-        self.id_:int = -1
+    """contains a piece of the snake, and methods to set and get the position
+    """
+    def __init__(self):        
+        self.cur_pos:tuple = (INIT, INIT)       
+        self.id_:int = -1 # part number
     
     def set_cur_pos(self, coords:tuple):
-        # save old location
-        self.prev_pos = self.cur_pos
         self.cur_pos = coords
         
     def get_cur_pos(self) -> tuple:
         return self.cur_pos  
-    
 
 # too tired for anything else            
-class Gold:    
-    def __init__(self, data:list):
+class Solution:    
+    def __init__(self, data:list, snake_length:int, color:str):
         self.__data:list = data
         self.__moves = len(self.__data)
         self.__moves_done = 0        
         self.t_moves:set = set()            
-        self.SNAKE_PARTS = 10
+        self.snake_length_ = snake_length
         self.s_pos: list = []
+        self.color_ = color
         
-        # add 10 snake piece objects which know the next part
-        for x in range(0, self.SNAKE_PARTS): 
-            #print(x)           
+        for x in range(0, self.snake_length_):                        
             self.s_pos.append(Piece()) 
-            self.s_pos[x].id_ = x
+            self.s_pos[x].id_ = x    
            
     def walk(self):                             
         while True:
             # return when all moves have been done
             if self.__moves_done == self.__moves:
-                print("gold:", len(self.t_moves)) 
+                total_moves = len(self.t_moves)
+                if self.color_ == "silver" : total_moves += 1 #debug +1 for silver..
+                print(f"{self.color_}:", total_moves) 
                 return 
 
             self.move()
@@ -205,7 +144,9 @@ class Gold:
                         part.set_cur_pos(self.calc_dir(part_pos, prev_part_pos, True))
                             
                     # save tail's pos 
-                    if part.id_ == 9:
+                    if self.color_ == "silver" and part.id_ == 1:
+                        self.t_moves.add(part.get_cur_pos()) 
+                    elif self.color_ == "gold" and part.id_ == 9:
                         self.t_moves.add(part.get_cur_pos())                       
                 
                 # move Head to new location
@@ -235,20 +176,18 @@ class Gold:
         
         for i in range(len(mapx)-1, -1, -1):            
             print(''.join(mapx[i])) 
-            
         
-        
-def main():
-    # 9038 too much # 6174 too low #6175 is good, missing one due to a bug
+def main():    
     data:list = read_file("D:\\GDrive\\Prog\\aoc\\2022\\09\\puzzle.input") 
     
-    silver = Silver(data)  
-    silver.walk() 
+    # 9038 too much # 6174 too low #6175 is good, missing one due to a bug
+    silver = Solution(data, 2, "silver")
+    silver.walk()
     
     # 2579 too high, 2578 correct! debug +1 was not required, it works now perfectly! :v
-    gold = Gold(data)
+    gold = Solution(data, 10, "gold")
     gold.walk() 
-    #gold.print()
+
     return 0
 
 if __name__ == "__main__":
