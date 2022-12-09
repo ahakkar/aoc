@@ -142,10 +142,62 @@ class Gold:
             # return when all moves have been done
             if self.__moves_done == self.__moves:
                 #print("Final position: H", self.h_pos, "T", self.t_pos)
-                print("gold:", len(self.t_moves)+1) #debug extra +1
+                print("gold:", len(self.t_moves)) 
                 return 
 
             self.move()
+         
+    # monster from the dark depths
+    def calc_dir(self, part_pos:tuple, prev_part_pos:tuple, diag:bool) -> tuple:
+        
+        #print("og pos", part_pos)
+        new_pos:list = list(part_pos)
+        #print("TUPLE ERROR!!", new_pos)
+        
+        if diag:
+            # ne
+            if (prev_part_pos[0] > part_pos[0]) and (prev_part_pos[1] > part_pos[1]):
+                new_pos[0] += 1
+                new_pos[1] += 1
+            # nw
+            elif(prev_part_pos[0] > part_pos[0]) and (prev_part_pos[1] < part_pos[1]):
+                new_pos[0] += 1
+                new_pos[1] -= 1
+            # se
+            elif(prev_part_pos[0] < part_pos[0]) and (prev_part_pos[1] > part_pos[1]):
+                new_pos[0] -= 1
+                new_pos[1] += 1
+            # sw
+            elif(prev_part_pos[0] < part_pos[0]) and (prev_part_pos[1] < part_pos[1]):
+                new_pos[0] -= 1
+                new_pos[1] -= 1
+            else:
+                print ("error in diag movement")
+        else:
+            # y direction
+            if prev_part_pos[1] == part_pos[1]:
+                # y up
+                if prev_part_pos[0] > part_pos[0]:
+                    new_pos[0] += 1
+                # y down
+                else:
+                    new_pos[0] -= 1
+            # x direction
+            elif prev_part_pos[0] ==  part_pos[0]:
+                # x right
+                if prev_part_pos[1] > part_pos[1]:
+                    new_pos[1] += 1
+                # x left
+                else:
+                    new_pos[1] -= 1
+            else:
+                print ("error in hor/vert movement")
+        
+        
+        new_pos = tuple(new_pos)
+        #print(new_pos)
+        #exit(0)
+        return new_pos
     
     def move(self):
         if self.__moves_done < self.__moves:
@@ -165,12 +217,21 @@ class Gold:
                     prev_part_pos = self.s_pos[part.id_-1].get_cur_pos()
                     
                     # move other pieces if neccessary  
-                    if abs(prev_part_pos[0] - part_pos[0]) > 1 or abs(prev_part_pos[1] - part_pos[1]) > 1:
-                        part.set_cur_pos(self.s_pos[part.id_-1].get_prev_pos())
-                                
-                        # save tail's pos 
-                        if part.id_ == 9:
-                            self.t_moves.add(part.get_cur_pos())                       
+                    #if abs(prev_part_pos[0] - part_pos[0]) > 1 or abs(prev_part_pos[1] - part_pos[1]) > 1:
+                    
+                    # If the head is ever two steps directly up, down, left, or right from the tail,
+                    # the tail must also move one step in that direction so it remains close enough:"
+                    if ((part_pos[0] == prev_part_pos[0]) and (abs(prev_part_pos[1] - part_pos[1]) > 1)) or \
+                       ((abs(prev_part_pos[0] - part_pos[0]) > 1) and (part_pos[1] == prev_part_pos[1])):
+                        part.set_cur_pos(self.calc_dir(part_pos, prev_part_pos, False))
+                    # Otherwise, if the head and tail aren't touching and aren't in the same row
+                    # or column, the tail always moves one step diagonally to keep up
+                    elif ((abs(prev_part_pos[0] - part_pos[0]) > 1) or (abs(prev_part_pos[1] - part_pos[1]) > 1)):
+                        part.set_cur_pos(self.calc_dir(part_pos, prev_part_pos, True))
+                            
+                    # save tail's pos 
+                    if part.id_ == 9:
+                        self.t_moves.add(part.get_cur_pos())                       
                 
                 # move Head to new location
                 head_pos = self.s_pos[0].get_cur_pos()
@@ -180,8 +241,9 @@ class Gold:
                 elif dir == "D":  self.s_pos[0].set_cur_pos((head_pos[0] -1,head_pos[1]))
 
                 i += 1                
+                #self.print()
+                #time.sleep(1)
             
-            self.print()
             self.__moves_done += 1     
             
     def print(self):  
@@ -202,11 +264,12 @@ class Gold:
         
 def main():
     # 9038 too much # 6174 too low #6175 is good, missing one due to a bug
-    data:list = read_file("D:\\GDrive\\Prog\\aoc\\2022\\09\\med2.input") 
+    data:list = read_file("D:\\GDrive\\Prog\\aoc\\2022\\09\\puzzle.input") 
     
     silver = Silver(data)  
     silver.walk() 
     
+    # 2579 too high, 2578 correct! debug +1 was not required, it works now perfectly! :v
     gold = Gold(data)
     gold.walk() 
     #gold.print()
