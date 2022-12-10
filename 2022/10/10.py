@@ -66,11 +66,9 @@ class Solution:
                 for _ in range(0,1):
                     self.calculate()                 
             
-            # cycle if out of commands
+            # exit if out of commands
             else:
-                self.cycle += 1
-                self.calculate() 
-                if self.cycle >= 220: break            
+                break            
     
         # 14560
         print("Silver:", sum(self.signals))
