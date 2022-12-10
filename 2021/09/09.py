@@ -37,7 +37,7 @@ class Solution:
         self.__size_of_basins:list = []
         self.__basin_coords:set = set()
         
-        # massage input data to 2d grid
+        # massage input data to 2d grid with one digit in each index
         for row in data:
             self.__data.append(list(map(int, row)))
         
@@ -58,61 +58,62 @@ class Solution:
         from operator import mul
         
         # print results:
-        print("silver:", self.__risk_levels)
-        print("gold", reduce(mul, self.__size_of_basins[0:3]))
+        print("silver:", self.__risk_levels) # 425
+        print("gold", reduce(mul, self.__size_of_basins[0:3])) #1135260
             
     def is_index_valid(self, list, index):
+        
         if -1 < index < len(list): 
             return True
         return False
     
-    def depth_first_search(self, y:int, x:int):              
-        if (self.__data[y][x] == 9):
-            return  
+    def depth_first_search(self, y:int, x:int): 
+        """Recursively flood the are around provided point. Initially a
+        lowest point found with find_low_points is provided. Method then 
+        marks the point as visited with setting the value to 9
+        visited/impassable). Collects the value to __basin_coords set, so
+        we can figure out later how many points a single basin has.
         
+        - Checks every surrounding point (left, right, up, down) recursively.
+        - Returns when the current cell is 9.
+        - Recursion is finished when all cells in a basin are marked as 9.        
+        """             
+        if self.__data[y][x] == 9:
+            return
+    
         self.__data[y][x] = 9
         self.__basin_coords.add((y, x))
-        if self.is_index_valid(self.__data[y], x+1):
-            self.depth_first_search(y, x+1)
 
-        if self.is_index_valid(self.__data[y], x-1):
-            self.depth_first_search(y, x-1)           
-
-        if self.is_index_valid(self.__data, y+1):
-            self.depth_first_search(y+1, x)
-
-        if self.is_index_valid(self.__data, y-1):
-            self.depth_first_search(y-1, x)        
+        for i, j in [(0,1), (0,-1), (1,0), (-1,0)]:
+            if self.is_index_valid(self.__data, y+i) and \
+               self.is_index_valid(self.__data[y+i], x+j):
+                   
+                self.depth_first_search(y+i, x+j)     
         
     def find_low_points(self, height:str, x:int, y:int) -> None:
         """Find the low points - the locations that are 
         lower than any of its adjacent locations from a 2D grid.
+        
+        If the current point is lower than all surrounding points, collects
+        the info to __low_points and the risk level to __risk_levels.
         """
 
-        sur:list = []
+        sur:list = [] # list of surrounding points
 
-        if self.is_index_valid(self.__data[y], x+1):
-            sur.append(self.__data[y][x+1])
-
-        if self.is_index_valid(self.__data[y], x-1):
-            sur.append(self.__data[y][x-1])            
-
-        if self.is_index_valid(self.__data, y+1):
-            sur.append(self.__data[y+1][x])
-
-        if self.is_index_valid(self.__data, y-1):
-            sur.append(self.__data[y-1][x])
+        for i, j in [(0,1), (0,-1), (1,0), (-1,0)]:
+            if self.is_index_valid(self.__data, y+i) and \
+               self.is_index_valid(self.__data[y+i], x+j):
+                   
+                sur.append(self.__data[y+i][x+j])
 
         if len(sur) > 0 and height < min(sur):
             self.__low_points.append((y, x))
-            self.__risk_levels += RISK_LEVEL + height        
+            self.__risk_levels += RISK_LEVEL + height      
 
-            #print(height, end= " ")
-            #print(sur)
         
 def main():
     data:list = read_file("D:\\GDrive\\Prog\\aoc\\2021\\09\\puzzle.input") 
-    sol = Solution(data) # 195 too low, 417 too low, 425 correct
+    sol = Solution(data)
 
     return 0
 
