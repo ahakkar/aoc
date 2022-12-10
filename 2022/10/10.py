@@ -16,16 +16,15 @@ def read_file(filename:str) -> list:
     return: list, lines
     """
     
-    data:list = []
+    data = []
     
     try:
         with open (filename, "r") as read_file:
-            data: list = read_file.read().splitlines()
-        read_file.close()
+            data = read_file.read().splitlines()        
     except FileNotFoundError:
         print(f"Bad file name! {filename}")
         exit()
-    except:
+    except Exception:
         print("SOS")
         exit()
         
