@@ -32,6 +32,14 @@ def read_file(filename:str) -> list:
 
 class Solution:
     def __init__(self, data:list):
+        """
+        The function takes a list of commands and creates a deque of commands.
+        It also creates a register, a cycle counter, a draw cycle counter, and 
+        a list of signals
+        
+        :param data: list of commands
+        :type data: list
+        """
         self.cmds:deque = deque(data)
         self.reg:int = 1        
         self.cycle:int = 1
@@ -81,6 +89,11 @@ class Solution:
         self.cycle += 1
     
     def draw(self):
+        """
+        If the draw_cycle is between the register and the register plus 3, 
+        print a #, otherwise print a ., and if the draw_cycle is 40, reset 
+        it to 0 and print a newline
+        """
         if (self.draw_cycle >= self.reg) and (self.draw_cycle < self.reg+3):
             print("#", end="")
         else:

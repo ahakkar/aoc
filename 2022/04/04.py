@@ -53,8 +53,12 @@ def silver_range(data:list):
 
 def silver(data:list):
     """
-    param : puzzle input as list
-    return: none
+    If the first range is completely contained within the second range,
+    or the second range is completely contained within the first range, 
+    then increment the total by 1
+    
+    :param data: list
+    :type data: list
     """
     total:int = 0
     for row in data:
@@ -72,8 +76,11 @@ def silver(data:list):
     
 def gold(data:list):
     """
-    param : puzzle input as list
-    return: none
+    If the first range is within the second range or the second range
+    is within the first range, then add one to the total
+    
+    :param data: list
+    :type data: list
     """
     total:int = 0
     for row in data:

@@ -85,8 +85,7 @@ class Solution:
         self.__basin_coords.add((y, x))
 
         for i, j in [(0,1), (0,-1), (1,0), (-1,0)]:
-            if self.is_index_valid(self.__data, y+i) and \
-               self.is_index_valid(self.__data[y+i], x+j):
+            if self.is_index_valid(self.__data, y+i) and self.is_index_valid(self.__data[y+i], x+j):
                    
                 self.depth_first_search(y+i, x+j)     
         
@@ -101,9 +100,7 @@ class Solution:
         sur:list = [] # list of surrounding points
 
         for i, j in [(0,1), (0,-1), (1,0), (-1,0)]:
-            if self.is_index_valid(self.__data, y+i) and \
-               self.is_index_valid(self.__data[y+i], x+j):
-                   
+            if self.is_index_valid(self.__data, y+i) and self.is_index_valid(self.__data[y+i], x+j):                   
                 sur.append(self.__data[y+i][x+j])
 
         if len(sur) > 0 and height < min(sur):

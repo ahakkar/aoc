@@ -154,7 +154,7 @@ def main():
     #lines.print_matrix() 
     
     overlap = lines.calculate_overlap()
-    print("overlap:", overlap)
+    print("overlap:", overlap) # 16518 correct for gold
     
     #lines.print_matrix()
     
