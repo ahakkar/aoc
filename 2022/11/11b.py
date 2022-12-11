@@ -8,6 +8,13 @@
 '''
 
 import math
+
+# all divisors are CHEN primes
+# 2, 3, 5, 7, 11, 13, 17, 19
+
+MODULO_SIMPLE = 23*19*13*17
+MODULO = 2*3*5*7*11*13*17*19
+
 from collections import deque
 class Jungle(object):
     def __init__(self):
@@ -100,7 +107,7 @@ class Monkey(object):
                 current += int(factor)
             
         #print("item after inspection:", current)        
-        current = math.floor(current/3) # UNCOMMENT THIS TO GET RESULT FOR SILVER
+        current = current % MODULO
         #print("monkey gets bored, divided by 3:", current)            
           
         item.set_worry_level(current)
@@ -222,11 +229,11 @@ class Simulation(object):
             
 def main():
     sim = Simulation()
-    sim.read_file("D:\\GDrive\\Prog\\aoc\\2022\\11\\simple.input") 
+    sim.read_file("D:\\GDrive\\Prog\\aoc\\2022\\11\\puzzle.input") 
     sim.create_jungle()
-    for _ in range(0, 20):
+    for _ in range(0, 10000):
         sim.advance_turn()
-    sim.monkey_status()
+    #sim.monkey_status()
     sim.level_of_monkey_business()    
 
     return 0
