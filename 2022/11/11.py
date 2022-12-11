@@ -6,6 +6,9 @@
 @Task    :   Advent of Code 2022
 @Desc    :   TEMP
 '''
+
+import math
+from collections import deque
 class Jungle(object):
     def __init__(self):
         self.__monkeys:list = []        
@@ -14,27 +17,46 @@ class Jungle(object):
         self.__monkeys.append(Monkey(id))
     
     def add_item(self, selected_monkey:int, item_id:int):
-        self.give_item_to_monkey(selected_monkey, Item(item_id))
-    
-    def give_item_to_monkey(self, selected_monkey:int, item:object):
-        monkey = self.find_monkey(selected_monkey)
-        monkey.catch_item(item)
+        self.give_item_to_monkey((Item(item_id), selected_monkey))
         
-    def turn(self):
-        pass
+    def play_keep_away(self):
+        for monkey in self.__monkeys: 
+            for _ in range(0, len(monkey.items())):         
+                give = monkey.inspect_item()    
+                #print(f"give item {give[0].worry_level()} to monkey {give[1]}")        
+                self.give_item_to_monkey(give)
+                
+    def give_item_to_monkey(self, item_and_monkey_id:tuple):
+        #print(item_and_monkey_id)
+        monkey = self.find_monkey(item_and_monkey_id[1])        
+        monkey.catch_item(item_and_monkey_id[0])
     
     def find_monkey(self, monkey_id) -> object:
+        #print("trying to find monkey", monkey_id, type(monkey_id))
         for monkey in self.__monkeys:
-            if monkey.id == monkey_id:
+            if monkey.id == int(monkey_id):
                 return monkey
+            
+        print("vituiks meni, apinaa ei löytynyt")
+        exit(1)
     
     def list_monkeys(self):
         print("Current list of animals living in the Jungle:\n")
         for monkey in self.__monkeys:
-            print(f"Monkey {monkey.id} has the following items:")
-            monkey.list_items()
+            if len(monkey.items()) > 0:
+                print(f"Monkey {monkey.id} has the following items:")
+                monkey.list_items()
+            else:
+                print(f"Monkey {monkey.id} has no items.")            
             monkey.list_properties()
             print()
+            
+    def list_inspections(self):
+        insp:list = []
+        for monkey in self.__monkeys:
+            insp.append((monkey.id, monkey.inspections()))
+            
+        return insp
             
     def set_monkey_property(self, selected_monkey, oper:str, value:str, pos:int = -1):
         monkey = self.find_monkey(selected_monkey) 
@@ -42,19 +64,59 @@ class Jungle(object):
         
 class Monkey(object):
     def __init__(self, given_id:int) -> None:
-        self.id:int = given_id
-        self.__items: list = []
+        self.id:int = int(given_id)
+        self.__items: deque = deque([])
         self.__operation:str = ""
         self.__test:list = [-1, -1, -1] # 0: divisible, 1: true monkey, 2: false monkey
+        self.__items_inspected:int = 0
         
-    def inspect(self) -> None:
-        pass
+    def catch_item(self, item:object):
+        print("Monkey", self.id, "caught item", item.worry_level())
+        self.__items.append(item)
         
-    def test(self) -> None:
-        pass
+    def items(self):
+        return self.__items
+        
+    def inspect_item(self) -> int:
+        item = self.__items.popleft()
+        #print("Monkey:", self.id)
+        operator = self.__operation[10:11] 
+        factor = self.__operation[12:]
+        
+        #print(operator, factor)
+                
+        current = item.worry_level()
+        #print("item before inspection:", current)
+        
+        if operator == "*":
+            if factor == "old":
+                current *= current
+            else:                
+                current *= int(factor)
+        elif operator == "+":
+            if factor == "old":
+                current += current
+            else:                
+                current += int(factor)
+            
+        #print("item after inspection:", current)
+        current = math.floor(current/3)
+        #print("monkey gets bored, divided by 3:", current)            
+          
+        item.set_worry_level(current)
+        self.__items_inspected += 1        
+
+        return (item, self.test(item))
+            
+    def inspections(self):
+        return self.__items_inspected
     
-    def throw(self) -> None:
-        pass
+    # 0: divisible, 1: true monkey, 2: false monkey    
+    def test(self, item:object) -> None:
+        wl = item.worry_level()        
+        if wl%self.__test[0] == 0:
+            return int(self.__test[1])
+        return int(self.__test[2])            
     
     def catch_item(self, item:object) -> None:
         self.__items.append(item)
@@ -62,7 +124,7 @@ class Monkey(object):
     def list_items(self):
         item_list:str = "  "
         for item in self.__items:            
-            item_list += item.worry_level + ", "
+            item_list += str(item.worry_level()) + ", "
         print(item_list[:-2])              
             
     def list_properties(self):
@@ -80,19 +142,21 @@ class Monkey(object):
 class Item(object):
     def __init__(self, initial_worry_level:int) -> None:
         #self.id:int = -1
-        self.worry_level:int = initial_worry_level
+        self.__worry_level:int = int(initial_worry_level)
+        
+    def set_worry_level(self, worry_level):
+        self.__worry_level = int(worry_level)
+        
+    def worry_level(self):
+        return self.__worry_level
         
 class Simulation(object):
     def __init__(self):
         self.__data:list = []
         self.__sim:object
+        self.__turn:int = 0
     
-    def read_file(self, filename:str) -> list:
-        """
-        param : str, filename to read
-        return: list, lines
-        """
-        
+    def read_file(self, filename:str) -> list:        
         data:list = []
         
         try:
@@ -128,16 +192,37 @@ class Simulation(object):
                 self.__sim.set_monkey_property(selected_monkey, "test", row[29:], 1)
             if row[4:12] == "If false":
                 self.__sim.set_monkey_property(selected_monkey, "test", row[30:], 2)
-             
+        
+        print("Monkey status at turn 0:")     
         self.__sim.list_monkeys()
+        
+    def advance_turn(self):
+        self.__turn += 1
+        print("Simulating turn", self.__turn)
+        self.__sim.play_keep_away()
+        #self.__sim.list_monkeys()
+        
+    def level_of_monkey_business(self):
+        insp = self.__sim.list_inspections()
+        most_active_monkeys:list = []
+        for val in insp:
+            most_active_monkeys.append(val[1])
+        
+        most_active_monkeys.sort(reverse=True)
+        
+        print(f"The level of monkey business after {self.__turn} rounds is:")
+        print(most_active_monkeys[0] * most_active_monkeys[1])
+        
                 
             
 def main():
     sim = Simulation()
-    sim.read_file("D:\\GDrive\\Prog\\aoc\\2022\\11\\simple.input") 
+    sim.read_file("D:\\GDrive\\Prog\\aoc\\2022\\11\\puzzle.input") 
     sim.create_jungle()
-    
-    jungle = Jungle()
+    for _ in range(0, 20):
+        sim.advance_turn()
+    sim.level_of_monkey_business()    
+
     return 0
 
 if __name__ == "__main__":
