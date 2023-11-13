@@ -42,17 +42,23 @@ def main():
     """
     graph = Graph()
     graph.create_graph_from_2d_array("puzzle.input")
-    start = graph.getStartCoord()
     end = graph.getEndCoord()
     
-    #graph.printGraph()
-    
-    # use Coord (0,12) for part B (eyeballed to be the closest a coordinate)
-    path:list = a_star_search(graph.getGraph(), start, end, manhattan_distance)
-    print(f"Path: {len(path)-1}")
-    #print(path)
-    
-    
+
+    all_paths:list = []
+    #print(graph.getStartNodes())
+    for node in graph.getStartNodes():      
+        result = a_star_search(graph.getGraph(), node, end, manhattan_distance)
+        graph.resetGraph()
+        if result is not None:        
+            all_paths.append(result)
+            
+    for path in all_paths:
+        print(f"Path: {len(path)-1}")
+    #print(f"Path: {len(min(all_paths))-1}")
+    #print("start nodes:" , len(graph.getStartNodes()))
+    #print(path)    
+
 
 def manhattan_distance(a:Coord, b:Coord) -> int:
     return abs(a.x - b.x) + abs(a.y - b.y)
@@ -118,7 +124,15 @@ class Graph:
         self._max_width = 0
         self._max_height = 0
         self._graph:dict[Coord, Node] = {}
+        self._start_nodes = []
         
+    def resetGraph(self):
+        for key, value in self._graph.items():
+            value.g = float('inf')
+            value.f = float('inf')
+            value.parent = None
+            value.state = NodeState.UNVISITED
+            #print(key, value)
         
     def printGraph(self):
         """_summary_ prints the graph
@@ -133,6 +147,14 @@ class Graph:
         :return dict[tuple, tuple]: _description_
         """
         return self._graph
+    
+    
+    def getStartNodes(self) -> list:
+        """_summary_ returns the start nodes
+
+        :return list: _description_
+        """
+        return self._start_nodes
     
     
     def getStartCoord(self) -> Coord:
@@ -180,6 +202,8 @@ class Graph:
                 elif char == "E":
                     self._end = Coord(x, y)
                     char = "z"
+                elif char == "a": 
+                    self._start_nodes.append(Coord(x, y))
 
                 coord = Coord(x,y)
                 node = Node(coord,  ord(char) - 96)
@@ -228,18 +252,7 @@ class Graph:
             return True
         if h2 < h1:     # any number of steps down
             return True
-        return False  
-    
-    def isValidEdge2(self, h1: int, h2: int) -> bool:
-        # Allow any number of steps up
-        if h2 >= h1:
-            return True
-        # Allow at most one step down
-        if h1 - h2 == 1:
-            return True
-        # Disallow more than one step down
-        return False
-    
+        return False   
 
 
 if __name__ == "__main__":

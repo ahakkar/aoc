@@ -42,13 +42,12 @@ def main():
     """
     graph = Graph()
     graph.create_graph_from_2d_array("puzzle.input")
-    start = graph.getStartCoord()
+
     end = graph.getEndCoord()
     
     #graph.printGraph()
     
-    # use Coord (0,12) for part B (eyeballed to be the closest a coordinate)
-    path:list = a_star_search(graph.getGraph(), start, end, manhattan_distance)
+    path:list = a_star_search(graph.getGraph(), end)
     print(f"Path: {len(path)-1}")
     #print(path)
     
@@ -58,21 +57,21 @@ def manhattan_distance(a:Coord, b:Coord) -> int:
     return abs(a.x - b.x) + abs(a.y - b.y)
 
 
-def a_star_search(graph, start: Coord, goal: Coord, heuristic) -> list:
+def a_star_search(graph, start: Coord) -> list:
     open_set = []
     # Priority queue, sorted by f score, with start node
     heapq.heappush(open_set, (graph[start].f, start))  
 
     graph[start].g = 0
-    graph[start].f = heuristic(start, goal)
+    graph[start].f = 0
 
     while open_set:
         # Take the node with lowest f score
         current_f, current_coord = heapq.heappop(open_set)
         current_node = graph[current_coord]
         
-        if current_coord == goal:
-            return reconstruct_path(graph, start, goal)
+        if current_node.height == 1:
+            return reconstruct_path(graph, start, current_node)
         
         current_node.state = NodeState.EXPLORED
 
@@ -87,7 +86,7 @@ def a_star_search(graph, start: Coord, goal: Coord, heuristic) -> list:
             if tentative_g_score < neighbor_node.g:
                 neighbor_node.parent = current_coord
                 neighbor_node.g = tentative_g_score
-                neighbor_node.h = heuristic(neighbor_coord, goal)
+                neighbor_node.h = 0
                 neighbor_node.f = neighbor_node.g + neighbor_node.h
 
                 if neighbor_node.state == NodeState.UNVISITED:
