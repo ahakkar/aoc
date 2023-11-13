@@ -2,11 +2,28 @@
 Anew go with A* algorithm learned from Tiraka1 in fall 2023
 """
 
+from enum import Enum, auto
+from collections import namedtuple
+
+# possible states of a node for pathfinding
+class NodeState(Enum):
+    """_summary_ Enum for node states
+
+    :param _type_ Enum: _description_
+    """
+    UNVISITED = auto()
+    VISITED = auto()
+    EXPLORED = auto()
+    
+Coord = namedtuple("Coord", ["x", "y"])
+Node = namedtuple("Node", ["coord", "height", "routes", "g", "h", "f"])
+
 def main():
     """_summary_ runs the program
     """
     graph = Graph()
     graph.create_graph_from_2d_array("simple.input")
+    graph.printGraph()
 
 class Graph:
     """_summary_ Graph class for A* algorithm
@@ -16,6 +33,13 @@ class Graph:
         self._end = None    # Initialize end
         self._max_width = 0
         self._max_height = 0
+        self._graph:dict[tuple, tuple] = {}
+        
+    def printGraph(self):
+        """_summary_ prints the graph
+        """
+        for key, value in self._graph.items():
+            print(key, value)
         
     def read_file(self, filename: str) -> list:
         """
@@ -36,8 +60,7 @@ class Graph:
         """
         data = self.read_file(filename)
         self._max_height = len(data)
-        self._max_width = len(data[0])
-        graph:dict[tuple, tuple] = {}
+        self._max_width = len(data[0])        
 
         for y, row in enumerate(data):
             for x, char in enumerate(row):
@@ -48,17 +71,15 @@ class Graph:
                     self._end = (x, y)
                     char = "z"
 
-                graph[(y, x)] = (ord(char) - 96, [])
+                self._graph[(y, x)] = (ord(char) - 96, [])
        
-        for key, value in graph.items():
+        for key, value in self._graph.items():
             #print(key, value)
             adjacentPositions = self.getAdjacentPositions(key)
             for pos in adjacentPositions:
                 #print(f"height at key{key}: {value[0]}, height at pos {pos} {graph[pos][0]}")
-                if self.isValidEdge(value[0], graph[pos][0]):      
-                    graph[key][1].append(pos)                     
-
-        print(graph)
+                if self.isValidEdge(value[0], self._graph[pos][0]):      
+                    value[1].append(pos)     
 
     def getAdjacentPositions(self, key:tuple) -> list:
         """_summary_
@@ -91,6 +112,9 @@ class Graph:
         if h2 > h1:     # any number of steps down
             return True
         return False
+    
+    def manhattan_distance(self, x1:int, y1:int, x2:int, y2:int) -> int:
+        return abs(x1 - x2) + abs(y1 - y2)
 
 
 if __name__ == "__main__":
