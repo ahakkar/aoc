@@ -16,14 +16,19 @@ class NodeState(Enum):
     EXPLORED = auto()
     
 Coord = namedtuple("Coord", ["x", "y"])
-Node = namedtuple("Node", ["coord", "height", "routes", "g", "h", "f"])
+Node = namedtuple("Node", ["coord", "height", "routes", "state", "h", "f"])
+
 
 def main():
     """_summary_ runs the program
     """
     graph = Graph()
     graph.create_graph_from_2d_array("simple.input")
-    graph.printGraph()
+    #graph.printGraph()
+    
+
+def manhattan_distance(a:Coord, b:Coord) -> int:
+    return abs(a.x - b.x) + abs(a.y - b.y)
 
 class Graph:
     """_summary_ Graph class for A* algorithm
@@ -33,13 +38,23 @@ class Graph:
         self._end = None    # Initialize end
         self._max_width = 0
         self._max_height = 0
-        self._graph:dict[tuple, tuple] = {}
+        self._graph:dict[Coord, Node] = {}
+        
         
     def printGraph(self):
         """_summary_ prints the graph
         """
         for key, value in self._graph.items():
             print(key, value)
+          
+            
+    def getGraph(self) -> dict[tuple, tuple]:
+        """_summary_ returns the graph
+
+        :return dict[tuple, tuple]: _description_
+        """
+        return self._graph
+        
         
     def read_file(self, filename: str) -> list:
         """
@@ -52,6 +67,7 @@ class Graph:
             print(f"Bad file name! {filename}")
 
         return []
+
 
     def create_graph_from_2d_array(self, filename: str):
         """_summary_ creates a graph from a 2d array
@@ -71,17 +87,20 @@ class Graph:
                     self._end = (x, y)
                     char = "z"
 
-                self._graph[(y, x)] = (ord(char) - 96, [])
+                coord = Coord(x,y)
+                node = Node(coord, ord(char) - 96, [], NodeState.UNVISITED, 0, 0)
+                self._graph[coord] = node
        
         for key, value in self._graph.items():
             #print(key, value)
             adjacentPositions = self.getAdjacentPositions(key)
             for pos in adjacentPositions:
                 #print(f"height at key{key}: {value[0]}, height at pos {pos} {graph[pos][0]}")
-                if self.isValidEdge(value[0], self._graph[pos][0]):      
-                    value[1].append(pos)     
+                if self.isValidEdge(value.height, self._graph[pos].height):      
+                    value.routes.append(pos)     
 
-    def getAdjacentPositions(self, key:tuple) -> list:
+
+    def getAdjacentPositions(self, coord:Coord) -> list:
         """_summary_
         Returns a list of valid positions adjacent to the given 
         position, checking for boundaries
@@ -95,14 +114,14 @@ class Graph:
         moves = [(0, -1), (0, 1), (-1, 0), (1, 0)]
         
         for dx, dy in moves:
-            new_x, new_y = key[0] + dx, key[1] + dy
-            
+            newCoord = Coord(coord.x + dx, coord.y + dy)   
             # boundary check
-            if 0 <= new_x < self._max_height and 0 <= new_y < self._max_width:
-                positions.append((new_x, new_y))
+            if 0 <= newCoord.x < self._max_width and 0 <= newCoord.y < self._max_height:
+                positions.append(newCoord)
         
         
         return positions
+
 
     def isValidEdge(self, h1:int, h2:int) -> bool:
         if h1 == h2:    # same height
@@ -111,10 +130,8 @@ class Graph:
             return True
         if h2 > h1:     # any number of steps down
             return True
-        return False
+        return False  
     
-    def manhattan_distance(self, x1:int, y1:int, x2:int, y2:int) -> int:
-        return abs(x1 - x2) + abs(y1 - y2)
 
 
 if __name__ == "__main__":
