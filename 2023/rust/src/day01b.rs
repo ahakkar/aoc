@@ -4,13 +4,17 @@ use std::collections::HashMap;
 use regex::Regex;
 use std::fs::File;
 use std::io::{self, BufRead, BufReader};
+use std::time::Instant;
 
 fn main() {
+    let start = Instant::now();
     let data: Result<Vec<String>, io::Error> = read_file("input/01puzzle.txt");
 
     if let Ok(lines) = data {
         process(&lines);
     }
+    let duration = start.elapsed();
+    println!("Time elapsed in main() is: {:?}", duration);
 }
 
 fn read_file(file_name: &str) -> io::Result<Vec<String>> {
@@ -43,7 +47,7 @@ fn process(data: &[String]) {
     let mut sum:i64 = 0;
 
     for (i, row) in data.iter().enumerate() {
-        print!("{}: {:?}", i, row);
+        //print!("{}: {:?}", i, row);
 
         // NOT SAFE BUT WHATEVER
         let first_str = regex_first.find(row).unwrap().as_str();
@@ -62,10 +66,10 @@ fn process(data: &[String]) {
             second = terms[&original_str.as_str()];
         } 
 
-        print!(" {}, {}", first, second);
+        //print!(" {}, {}", first, second);
 
         let coord = format!("{}{}", first, second).parse::<i64>().unwrap();
-        println!(" = {}", coord);
+        //println!(" = {}", coord);
         sum += coord;
 
     }
