@@ -1,5 +1,7 @@
 #![allow(unused_parens)]
-#![allow(clippy::print_with_newline)]
+#![allow(unused_imports)]
+#![allow(unused_variables)]
+
 use std::collections::HashMap;
 use regex::Regex;
 use std::fs::File;
