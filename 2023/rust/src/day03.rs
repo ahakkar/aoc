@@ -14,7 +14,7 @@ use lazy_static::lazy_static;
 
 lazy_static! {
     static ref RE_ID: regex::Regex = Regex::new(r"\d+").unwrap();
-    static ref RE_SYMBOLS: regex::Regex = Regex::new(r"[*#&+$%/@=]").unwrap();
+    static ref RE_SYMBOLS: regex::Regex = Regex::new(r"[-*#&+$%/@=]").unwrap();
 }
 
 fn main() {
@@ -70,7 +70,7 @@ fn process(data: &[String], twod_grid: &[Vec<char>]) {
         }
     }
     
-    // too low 516060
+    // too low 516060, new guess: 530849
     println!("{}", sum);
 }
 
