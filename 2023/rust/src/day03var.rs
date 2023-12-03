@@ -49,7 +49,7 @@ fn process(data: &[String], twod_grid: &[Vec<char>]) {
     for (y, row) in data.iter().enumerate() {
         let gear_iters = RE_SYMBOL.find_iter(row);   
         for gear in gear_iters {
-            sum += check_neighbours(data, &y, &gear);            
+            sum += check_neighbours(data, &y, &gear.start());            
         }
     }  
     println!("{}", sum); // 84900879
@@ -60,11 +60,8 @@ fn process(data: &[String], twod_grid: &[Vec<char>]) {
  *   8  9 10  * 12 13 14 15 
  *  16 17 18 19 20 21 22 23
  */
-fn check_neighbours(data: &[String], row: &usize, gear_iter: &regex::Match<'_>) -> i64 {
+fn check_neighbours(data: &[String], row: &usize, col: &usize) -> i64 {
     let mut neighbours: String = String::new();    
-    let neighbor_positions = [2,3,4,10,12,18,19,20];    
-    let col = gear_iter.start();
-
     let start = col.saturating_sub(3);
     let end = start + 7;
 
@@ -83,7 +80,7 @@ fn check_neighbours(data: &[String], row: &usize, gear_iter: &regex::Match<'_>) 
         let start = num.start();
         let end = num.end();
 
-        if (start..end).any(|index| neighbor_positions.contains(&index)) {
+        if (start..end).any(|index| [2,3,4,10,12,18,19,20].contains(&index)) {
             let num_value = num.as_str().parse::<i64>().unwrap_or(-1);
             if n1 == 0 {
                 n1 = num_value;
@@ -93,10 +90,5 @@ fn check_neighbours(data: &[String], row: &usize, gear_iter: &regex::Match<'_>) 
         }
     }
 
-    println!("{:?} ({}, {})", neighbours, n1, n2);
-
     return n1*n2;
 }
-
-
-
