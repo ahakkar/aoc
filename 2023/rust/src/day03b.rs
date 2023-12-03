@@ -14,7 +14,7 @@ use std::time::Instant;
 use lazy_static::lazy_static;
 
 lazy_static! {
-    static ref RE_ID: regex::Regex = Regex::new(r"\d+").unwrap();
+    static ref RE_ID: regex::Regex = Regex::new(r"\d{1,3}").unwrap();
     static ref RE_SYMBOL: regex::Regex = Regex::new(r"[*]").unwrap();
 }
 
@@ -67,12 +67,18 @@ fn process(data: &[String], twod_grid: &[Vec<char>]) {
     }    
 
     // 268285485 too high
+    // 82725249 new guess (too low)
     println!("{}", sum);
 }
 
+/**
+ *   0  1  2  3  4  5  6
+ *   7  8  9  * 11 12 13
+ *  14 15 16 17 18 19 20
+ */
 fn check_neighbours(twod_grid: &[Vec<char>], row: &usize, gear_iter: &regex::Match<'_>) -> i64 {
     let mut neighbours: String = String::new();    
-    let neighbor_positions = [9, 11, 3, 17, 2, 4, 16, 18];
+    let neighbor_positions = [2,3,4,9,11,16,17,18];
     
     let grid_height = twod_grid.len();
     let grid_width = twod_grid[0].len();
@@ -98,22 +104,26 @@ fn check_neighbours(twod_grid: &[Vec<char>], row: &usize, gear_iter: &regex::Mat
     let mut n1: i64 = 0;
     let mut n2: i64 = 0;
 
-    for num in RE_ID.find_iter(&neighbours) {
+    for num in RE_ID.find_iter(&neighbours) {        
         let start = num.start();
-        let end = num.end() - 1;
+        let end = num.end();
 
-        if neighbor_positions.contains(&start) || neighbor_positions.contains(&end) {
-            let num_value = num.as_str().parse::<i64>().unwrap_or(0);
+        if (start..end).any(|index| neighbor_positions.contains(&index)) {
+            let num_value = num.as_str().parse::<i64>().unwrap_or(-1);
+            if num_value == -1 {
+                println!("Should not parse to -1");
+            }
             if n1 == 0 {
                 n1 = num_value;
+            } else if n2 == 0 {
+                n2 = num_value;               
             } else {
-                n2 = num_value;
-                break;
+                println!("More than 2 neighbours?!");
             }
         }
     }
 
-    //println!("{:?}", neighbours);
+    //println!("{:?} ({}, {})", neighbours, n1, n2);
 
     return n1*n2;
 }
