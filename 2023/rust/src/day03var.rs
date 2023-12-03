@@ -21,10 +21,9 @@ lazy_static! {
 fn main() {
     let start = Instant::now();
     let data: Result<Vec<String>, io::Error> = read_file("input/03puzzle.txt");
-    let mut twod_grid: Vec<Vec<char>> = vec![];
 
     if let Ok(lines) = data {
-        process(&lines, &twod_grid);
+        process(&lines);
     }
     let duration = start.elapsed();
     println!("Time elapsed in main() is: {:?}", duration);
@@ -44,7 +43,7 @@ fn read_file(file_name: &str) -> io::Result<Vec<String>> {
 }
 
 // find gears and check if they have neighbouring numbers
-fn process(data: &[String], twod_grid: &[Vec<char>]) {    
+fn process(data: &[String]) {    
     let mut sum:i64 = 0;
     for (y, row) in data.iter().enumerate() {
         let gear_iters = RE_SYMBOL.find_iter(row);   
