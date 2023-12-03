@@ -58,27 +58,33 @@ fn conv_to_2d_grid(data: &[String], twod_grid: &mut Vec<Vec<char>>) {
 // find gears and check if they have neighbouring numbers
 fn process(data: &[String], twod_grid: &[Vec<char>]) {    
     let mut sum:i64 = 0;
+    let mut i = 0;
+
     for (y, row) in data.iter().enumerate() {
         let gear_iters = RE_SYMBOL.find_iter(row);
+        
 
         for gear in gear_iters {
+            i += 1;
             sum += check_neighbours(twod_grid, &y, &gear);            
         }
-    }    
+    }  
+    // 376 gears in data, 376 gears found
+    println!("{} gears found", i);  
 
     // 268285485 too high
-    // 82725249 new guess (too low)
+    // 82725249 new guess (too low), finally: 84900879
     println!("{}", sum);
 }
 
 /**
- *   0  1  2  3  4  5  6
- *   7  8  9  * 11 12 13
- *  14 15 16 17 18 19 20
+ *   0  1  2  3  4  5  6  7
+ *   8  9 10  * 12 13 14 15 
+ *  16 17 18 19 20 21 22 23
  */
 fn check_neighbours(twod_grid: &[Vec<char>], row: &usize, gear_iter: &regex::Match<'_>) -> i64 {
     let mut neighbours: String = String::new();    
-    let neighbor_positions = [2,3,4,9,11,16,17,18];
+    let neighbor_positions = [2,3,4,10,12,18,19,20];
     
     let grid_height = twod_grid.len();
     let grid_width = twod_grid[0].len();
@@ -97,6 +103,11 @@ fn check_neighbours(twod_grid: &[Vec<char>], row: &usize, gear_iter: &regex::Mat
                 neighbours.push(*ch);
             }
         }
+        neighbours.push('|');
+    }
+
+    if(neighbours.len() != 21) {
+        println!("Neighbour not at length 21.. should be impossible");
     }
 
     // check if any numbers are next to the gear in the flattened view
@@ -123,7 +134,7 @@ fn check_neighbours(twod_grid: &[Vec<char>], row: &usize, gear_iter: &regex::Mat
         }
     }
 
-    //println!("{:?} ({}, {})", neighbours, n1, n2);
+    println!("{:?} ({}, {})", neighbours, n1, n2);
 
     return n1*n2;
 }
