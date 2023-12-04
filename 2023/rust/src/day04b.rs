@@ -37,7 +37,7 @@ fn process(data: &[&str]) {
         //println!("{}", sum);
     }
 
-    println!("{}", sum);
+    println!("{}", sum); // 5422730, 19.209047185s
 }
 
 fn process_row(row: &str, row_index: &usize, queue: &mut VecDeque<usize>) {

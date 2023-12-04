@@ -43,4 +43,9 @@ path = "src/day04.rs"
 name = "day04b"
 path = "src/day04b.rs"
 
+[[bin]]
+name = "day04opt"
+path = "src/day04opt.rs"
+
+
 
