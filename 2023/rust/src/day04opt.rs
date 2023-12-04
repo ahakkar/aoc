@@ -30,9 +30,20 @@ fn process(data: &[&str]) {
     let mut queue: VecDeque<usize> = VecDeque::new();
     let mut wins: HashMap<usize, usize> = HashMap::new();
 
+    let start = Instant::now();
     process_wins(data, &mut wins);
+    let duration = start.elapsed();
+    println!("Time elapsed in process_wins() is: {:?}", duration);
 
+    let start2 = Instant::now();
     // populate q initially with all rows
+/*     for n in 0..=data.len()-1 {
+        if wins[&n] > 0 {
+            for _ in &n+1..= n + wins[&n] {
+                sum += 1;
+            }    
+        }
+    } */
     (0..=data.len()-1).for_each(|index| queue.push_back(index));
 
     while let Some(row_index) = queue.pop_front() {
@@ -43,6 +54,8 @@ fn process(data: &[&str]) {
         sum += 1;
     }
 
+    let duration2 = start2.elapsed();
+    println!("Time elapsed in process() is: {:?}", duration2);
     println!("{}", sum); // 5422730, 194.71541ms
 }
 
