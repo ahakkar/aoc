@@ -32,8 +32,7 @@ fn process_score(row_str: &str) -> usize {
     let (winning_nums, lottery_nums) = 
         row_str.split_once(": ").unwrap().1.split_once(" | ").unwrap();
 
-    let winning_nums = winning_nums
-        .split(' ')
+    let winning_nums = winning_nums.split(' ')
         .filter_map(|n| n.parse::<usize>().ok())
         .collect::<std::collections::HashSet<_>>();
 
