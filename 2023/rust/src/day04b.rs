@@ -15,7 +15,7 @@ lazy_static! {
 
 fn main() {
     let start = Instant::now();
-    let input = fs::read_to_string("input/04simple.txt").unwrap();
+    let input = fs::read_to_string("input/04puzzle.txt").unwrap();
     let data: Vec<&str> = input.lines().collect();
 
     process(&data);
@@ -34,7 +34,7 @@ fn process(data: &[&str]) {
     while let Some(row_index) = queue.pop_front() {
         process_row(data.get(row_index).unwrap(), &row_index, &mut queue);
         sum += 1;
-        println!("{}", sum);
+        //println!("{}", sum);
     }
 
     println!("{}", sum);
@@ -54,10 +54,10 @@ fn process_row(row: &str, row_index: &usize, queue: &mut VecDeque<usize>) {
         .collect();     
     
     let more_wins = count_matching_numbers(&winning, &other);
-    print!("more wins: {}, ", more_wins);
+    //print!("more wins: {}, ", more_wins);
     if more_wins > 0 {
         let range_start:usize = *row_index;
-        println!("start: {}, end: {} ", range_start+1, range_start + more_wins);
+        //println!("start: {}, end: {} ", range_start+1, range_start + more_wins);
         (range_start+1..= range_start + more_wins).for_each(|index| queue.push_back(index));
     }
 }
