@@ -30,7 +30,7 @@ struct Range {
 
 impl fmt::Debug for Range {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "dest_s: {}, sour_s: {}, range: {}, offset: {}"
+        write!(f, "|dest_s: {}, sour_s: {}, range: {}, offset: {}|"
                 , self.dest_start, self.sour_start, self.range, self.offset)
     }
 }
@@ -67,7 +67,7 @@ fn process(data: &[&str]) {
                 dest_start: ti[0],
                 sour_start: ti[1],
                 range:      ti[2],
-                offset:     ti[1] - ti[0]
+                offset:     ti[0] - ti[1]
              }
         ); 
         i += 1;        
@@ -91,10 +91,10 @@ fn transform_seeds(seeds: &mut [i64], range_vec: &[Range]) {
     }
     /*
     Proper values after each step:
-    [79,14,55,13]
-    [81,14,57,13]
-    [81,53,57,52]
-    [81,49,53,41]
+    [79,14,55,13] ok
+    [81,14,57,13] ok 
+    [81,53,57,52] ok 
+    [81,49,53,41] FAIL
     [74,42,46,34]
     [78,42,82,34]
     */
