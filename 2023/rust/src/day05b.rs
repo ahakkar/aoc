@@ -1,11 +1,3 @@
-#![allow(unused_parens)]
-#![allow(unused_imports)]
-#![allow(unused_variables)]
-#![allow(unused_mut)]
-#![allow(dead_code)]
-#![allow(clippy::needless_return)]
-#![allow(clippy::needless_range_loop)]
-
 use std::fs;
 use std::fmt;
 use std::time::Instant;
@@ -46,18 +38,13 @@ fn process(data: &[&str]) {
         .filter_map(|n| n.parse::<i64>().ok())
         .collect::<Vec<_>>();  
 
-    for i in (0..vec.len()).step_by(2) {
+    for i in (0..vec.len()).step_by(2) { // brute force
         if i + 1 < vec.len() {
             for seed in vec[i]..=(vec[i] + vec[i + 1]) {
                 seeds.push(seed);                
             }
         }
     }
-
-    // println!("Seeds: {:?}", seeds);
-   
-    //println!("og seeds: {:?}", seeds); 
-
     // collect ranges and transform seeds on empty row
     while i < data.len() {
         if data.get(i).unwrap() == &"" {
@@ -68,7 +55,7 @@ fn process(data: &[&str]) {
             continue;
         }
 
-        let mut ti = data[i].split(' ')
+        let ti = data[i].split(' ')
             .filter_map(|n| n.parse::<i64>().ok())
             .collect::<Vec<_>>(); 
 
@@ -82,34 +69,18 @@ fn process(data: &[&str]) {
         ); 
         i += 1;        
     }
-
-    // println!("result: seeds: {:?}", seeds); // [82, 43, 86, 35] with simple data
     println!("answer: {}", seeds.iter().min().unwrap()); // 278755257
 }
 
-
 fn transform_seeds(seeds: &mut [i64], range_vec: &[Range]) {
-    //println!("ranges: {:?}", range_vec); 
     for seed in seeds.iter_mut() {
-        // should probably fix the range comparisons instead of using break;
         for range in range_vec {
             if *seed >= range.sour_start &&
                *seed < (range.sour_start + range.range) {
                *seed += range.offset;
                break;
-            }
-            //println!("{:?}", range);
+            } 
         }
     }
-    /*
-    Proper values after each step:
-    [79,14,55,13] ok
-    [81,14,57,13] ok 
-    [81,53,57,52] ok 
-    [81,49,53,41] FAIL
-    [74,42,46,34]
-    [78,42,82,34]
-    */
-    //println!("seeds: {:?}", seeds); 
 }
 
