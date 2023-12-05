@@ -4,6 +4,7 @@
 #![allow(unused_variables)]
 #![allow(unused_mut)]
 #![allow(clippy::needless_return)]
+#![allow(clippy::needless_range_loop)]
 
 use std::collections::HashMap;
 use regex::Regex;
