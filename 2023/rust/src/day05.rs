@@ -41,15 +41,17 @@ fn process(data: &[&str]) {
     let mut range_vec: Vec<Range> = vec![];
 
     // seeds from 1st row and range data from rest
-    let seeds = data[0]
+    let mut seeds:Vec<i64> = data[0]
         .split_once(": ").unwrap().1.split(' ')
         .filter_map(|n| n.parse::<i64>().ok())
         .collect::<Vec<_>>();   
     
+    println!("og seeds: {:?}", seeds); 
+
     // collect ranges and transform seeds on empty row
     while i < data.len() {
         if data.get(i).unwrap() == &"" {
-            transform_seeds(&seeds, &range_vec);
+            transform_seeds(&mut seeds, &range_vec);
             range_vec.clear();
             i += 2;
             println!("---------------");
@@ -68,16 +70,34 @@ fn process(data: &[&str]) {
                 offset:     ti[1] - ti[0]
              }
         ); 
-        i += 1;
-        
+        i += 1;        
     }
+
+    println!("result: seeds: {:?}", seeds); // 82,43,86,35 with simple data
     println!("answer: {}", sum);
 }
 
 
-fn transform_seeds(seeds: &[i64], range_vec: &[Range]) {
-    for range in range_vec {
-        println!("{:?}", range);
+fn transform_seeds(seeds: &mut [i64], range_vec: &[Range]) {
+    println!("ranges: {:?}", range_vec); 
+    for seed in seeds.iter_mut() {
+        for range in range_vec {
+            if *seed >= range.sour_start &&
+               *seed <= (range.sour_start + range.range) {
+               *seed += range.offset;
+            }
+            //println!("{:?}", range);
+        }
     }
+    /*
+    Proper values after each step:
+    [79,14,55,13]
+    [81,14,57,13]
+    [81,53,57,52]
+    [81,49,53,41]
+    [74,42,46,34]
+    [78,42,82,34]
+    */
+    println!("seeds: {:?}", seeds); 
 }
 
