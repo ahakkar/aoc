@@ -12,7 +12,7 @@ use std::time::Instant;
 
 fn main() {
     let start = Instant::now();
-    let input = fs::read_to_string("input/05simple.txt").unwrap();
+    let input = fs::read_to_string("input/05puzzle.txt").unwrap();
     let data: Vec<&str> = input.lines().collect();
 
     process(&data);
@@ -46,7 +46,7 @@ fn process(data: &[&str]) {
         .filter_map(|n| n.parse::<i64>().ok())
         .collect::<Vec<_>>();   
     
-    println!("og seeds: {:?}", seeds); 
+    //println!("og seeds: {:?}", seeds); 
 
     // collect ranges and transform seeds on empty row
     while i < data.len() {
@@ -54,7 +54,7 @@ fn process(data: &[&str]) {
             transform_seeds(&mut seeds, &range_vec);
             range_vec.clear();
             i += 2;
-            println!("---------------");
+            //println!("---------------");
             continue;
         }
 
@@ -74,17 +74,19 @@ fn process(data: &[&str]) {
     }
 
     println!("result: seeds: {:?}", seeds); // 82,43,86,35 with simple data
-    println!("answer: {}", sum);
+    println!("answer: {}", seeds.iter().min().unwrap()); // 278755257
 }
 
 
 fn transform_seeds(seeds: &mut [i64], range_vec: &[Range]) {
-    println!("ranges: {:?}", range_vec); 
+    //println!("ranges: {:?}", range_vec); 
     for seed in seeds.iter_mut() {
+        // should probably fix the range comparisons instead of using break;
         for range in range_vec {
             if *seed >= range.sour_start &&
                *seed <= (range.sour_start + range.range) {
                *seed += range.offset;
+               break;
             }
             //println!("{:?}", range);
         }
@@ -98,6 +100,6 @@ fn transform_seeds(seeds: &mut [i64], range_vec: &[Range]) {
     [74,42,46,34]
     [78,42,82,34]
     */
-    println!("seeds: {:?}", seeds); 
+    //println!("seeds: {:?}", seeds); 
 }
 
