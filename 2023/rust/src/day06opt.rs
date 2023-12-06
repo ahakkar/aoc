@@ -23,8 +23,5 @@ fn calc_dist(time: i64, limit: i64) -> i64 {
     if x0 == x0.ceil() { x0 += 1.0; } else { x0 = x0.ceil(); }
     if x1 == x1.floor() { x1 -= 1.0 } else { x1 = x1.floor(); }
 
-    x0 = x0.ceil();
-    x1 = x1.floor();
-
     (x1-x0 + 1.0) as i64
 }
