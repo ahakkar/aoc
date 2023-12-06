@@ -1,11 +1,3 @@
-#![allow(unused_parens)]
-#![allow(unused_imports)]
-#![allow(unused_variables)]
-#![allow(unused_mut)]
-#![allow(dead_code)]
-#![allow(clippy::needless_return)]
-#![allow(clippy::needless_range_loop)]
-
 use std::time::Instant;
 
 fn main() {
@@ -16,10 +8,6 @@ fn main() {
 }
 
 fn process() {    
-    let mut sum:i64 = 0;    
-
-    calc_dist(7, 9);
-
     println!("part1 test: {}", calc_dist(7, 9) * calc_dist(15, 40) * calc_dist(30, 200)); 
     println!("part1: {}", 
         calc_dist(62, 553) * calc_dist(64, 1010) * 
@@ -28,21 +16,15 @@ fn process() {
     println!("part2: {}", calc_dist(62649190, 553101014731074));
 }
 
-fn calc_dist(time: i64, limit: i64) -> usize {
-    //println!("time {}, limit: {}", time, limit);
-    let mut possible: Vec<i64> = vec![];
-
+fn calc_dist(time: i64, limit: i64) -> i64 {
+    let mut sum: i64 = 0;
     let mut time_remaining = time;
 
     for speed in 0..time {
         if speed*time_remaining > limit {
-            possible.push(speed*time_remaining);
+            sum += 1;
         }
-        // println!("{}", (speed*time_remaining));
         time_remaining -= 1;  
     }
-
-    //println!("{:?}", possible);
-
-    possible.len()
+    sum
 }
