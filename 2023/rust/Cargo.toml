@@ -67,6 +67,12 @@ path = "src/day06.rs"
 name = "day06opt"
 path = "src/day06opt.rs"
 
+[[bin]]
+name = "day07"
+path = "src/day07.rs"
 
+[[bin]]
+name = "day07b"
+path = "src/day07b.rs"
 
 
