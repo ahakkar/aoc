@@ -132,3 +132,55 @@ fn process(data: &[&str]) {
     println!("sum: {}", sum);
     // 254837398 CORRECT! (on 7th try after fixing hand cmp logic errors)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*; 
+
+    #[test]
+    fn test_hand_types() {
+        assert_eq!(calc_htype(&[1, 1, 1, 1, 1]), 7);
+        assert_eq!(calc_htype(&[2, 2, 3, 4, 5]), 2);
+        assert_eq!(calc_htype(&[2, 3, 4, 5, 6]), 1);
+        assert_eq!(calc_htype(&[2, 2, 3, 3, 5]), 3);
+        assert_eq!(calc_htype(&[3, 3, 3, 4, 5]), 4);
+        assert_eq!(calc_htype(&[2, 2, 4, 4, 4]), 5);
+        assert_eq!(calc_htype(&[12, 12, 12, 12, 9]), 6);
+        assert_eq!(calc_htype(&[6, 6, 6, 6, 6]), 7);
+        assert_eq!(calc_htype(&[1, 2, 3, 4, 5]), 2);
+        assert_eq!(calc_htype(&[2, 2, 1, 4, 5]), 4);
+        assert_eq!(calc_htype(&[1, 1, 1, 4, 5]), 6);
+        assert_eq!(calc_htype(&[1, 2, 2, 4, 4]), 5);
+        assert_eq!(calc_htype(&[5, 5, 5, 4, 1]), 6);
+        assert_eq!(calc_htype(&[2, 2, 3, 3, 1]), 5);
+    }
+
+    #[test]
+    fn test_strtoivec() {
+        assert_eq!(strtoivec("JJJJJ"), [1, 1, 1, 1, 1]);
+        assert_ne!(strtoivec("JJJJJ"), [1, 1, 1, 1, 2]);
+        assert_eq!(strtoivec("2233J"), [2, 2, 3, 3, 1]);
+        assert_eq!(strtoivec("2986K"), [2, 9, 8, 6, 13]);
+        assert_eq!(strtoivec("2233J"), [2, 2, 3, 3, 1]);
+        assert_eq!(strtoivec("AAK9T"), [14, 14, 13, 9, 10]);
+        assert_eq!(strtoivec("AA5Q8"), [14, 14, 5, 12, 8]);
+        assert_eq!(strtoivec("KTJJT"), [13, 10, 1, 1, 10]);
+        assert_eq!(strtoivec("TTTJT"), [10, 10, 10, 1, 10]);
+    }
+
+    #[test]    
+    fn test_hand_ord_impl() {
+        let a = Hand { cards: vec![2, 3, 4, 5, 6], htype: 1, str: String::from("23456"), bid: 806 };
+        let b = Hand { cards: vec![7, 8, 9, 10, 12], htype: 1, str: String::from("789TQ"), bid: 123 };        
+        let c = Hand { cards: vec![2, 2, 1, 4, 5], htype: 4, str: String::from("22J45"), bid: 949 }; 
+        let d = Hand { cards: vec![2, 2, 3, 3, 1], htype: 5, str: String::from("2233J"), bid: 47 };   
+        let d2 = Hand { cards: vec![2, 2, 3, 3, 1], htype: 5, str: String::from("2233J"), bid: 47 };
+        let e = Hand { cards: vec![2, 2, 3, 3, 4], htype: 5, str: String::from("22334"), bid: 200 };         
+
+        assert!(a < b);
+        assert!(c > b);
+        assert!(d == d2);
+        assert!(b != c);
+        assert!(e > d);
+    }
+}
