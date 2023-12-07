@@ -1,5 +1,4 @@
 use std::cmp::Ordering;
-use std::collections::BTreeSet;
 use std::collections::HashMap;
 use std::fs;
 use std::time::Instant;
@@ -108,13 +107,14 @@ fn main() {
 }
 
 fn process(data: &[&str]) {  
-    let mut score: BTreeSet<Hand> = BTreeSet::new();
+    let mut score: Vec<Hand> = Vec::with_capacity(1000);
+
     for row in data {
         let (a, b) = row.split_once(' ').unwrap();
         let hand_str = a.parse::<String>().unwrap();
         let bid = b.parse::<i16>().unwrap();
 
-        score.insert(
+        score.push(
             Hand {     
                 cards: strtoivec(&hand_str),                
                 htype: calc_htype(&strtoivec(&hand_str)),
@@ -123,13 +123,13 @@ fn process(data: &[&str]) {
             });
     }
 
-    let mut sum: usize = 0;
+    score.sort();
 
-    for (i, hand) in score.iter().enumerate() {
-        // println!("{} {}. type: {}, bid: {}", i+1, hand.str, hand.htype, hand.bid);
-        sum += hand.bid as usize * (i + 1);
-    }   
+    let sum: usize = score.iter()
+        .enumerate()
+        .map(|(i, hand)| hand.bid as usize * (i + 1))
+        .sum();
 
-    println!("sum: {}", sum); 
+    println!("sum: {}", sum);
     // 254837398 CORRECT! (on 7th try after fixing hand cmp logic errors)
 }
