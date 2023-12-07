@@ -1,17 +1,9 @@
-#![allow(unused_parens)]
-#![allow(unused_imports)]
-#![allow(unused_variables)]
-#![allow(unused_mut)]
-#![allow(dead_code)]
-#![allow(clippy::needless_return)]
-#![allow(clippy::needless_range_loop)]
 #![allow(clippy::comparison_chain)]
 
 use std::cmp::Ordering;
 use std::collections::BTreeSet;
 use std::collections::HashMap;
 use std::fs;
-use std::fmt;
 use std::time::Instant;
 
 #[derive(Eq, PartialEq)]
@@ -72,7 +64,7 @@ fn cmp_hands(a:&Hand, b:&Hand) -> bool {
                 return false;
             }
         }
-    } else if (a.htype > b.htype) {
+    } else if a.htype > b.htype {
         //println!("rnk cmp: {} > {}", a.str, b.str);
         return true;
     }
@@ -111,7 +103,7 @@ fn main() {
     process(&data);
 
     let duration = start.elapsed();
-    //println!("Time elapsed in main() is: {:?}", duration);
+    println!("Time elapsed in main() is: {:?}", duration);
 }
 
 fn process(data: &[&str]) {  
@@ -133,9 +125,10 @@ fn process(data: &[&str]) {
     let mut sum: usize = 0;
 
     for (i, hand) in score.iter().enumerate() {
+        println!("{} {} {} {}", i, hand.str, hand.htype, hand.bid);
         sum += hand.bid as usize * (i + 1);
     }   
 
-    println!("sum: {}", sum);
+    println!("sum: {}", sum); // 253954294 for part a
 
 }
