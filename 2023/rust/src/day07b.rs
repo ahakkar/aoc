@@ -60,7 +60,7 @@ fn strtoivec(string: &str) -> Vec<i8> {
 }
 
 // count occurencies of each card and match their frequency
-fn calc_rank(cards: &[i8]) -> i8 {
+fn calc_htype(cards: &[i8]) -> i8 {
     let mut counts = HashMap::new();
     let mut joker_count = 0;
 
@@ -117,7 +117,7 @@ fn process(data: &[&str]) {
         score.insert(
             Hand {     
                 cards: strtoivec(&hand_str),                
-                htype: calc_rank(&strtoivec(&hand_str)),
+                htype: calc_htype(&strtoivec(&hand_str)),
                 str: hand_str,
                 bid
             });
