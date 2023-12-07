@@ -17,7 +17,7 @@ use std::time::Instant;
 #[derive(Eq, PartialEq)]
 struct Hand {
     cards: Vec<i8>,    
-    rank: i8,
+    htype: i8,
     str: String,
     bid: i16
 }
@@ -60,14 +60,24 @@ fn strtoivec(string: &str) -> Vec<i8> {
 
 // Actual comparison logic: a > b ? true : false
 fn cmp_hands(a:&Hand, b:&Hand) -> bool {
-    if a.rank == b.rank {
+    //println!("a: {} b: {}", a.str, b.str);
+    if a.htype == b.htype {
         // compare cards from left to right if rank matches
         for i in 0..5 {
-            if a.cards[i] > b.cards[i] { return true }
+            if a.cards[i] > b.cards[i] { 
+                //println!("idx cmp: {} > {}, index at {}: {} vs {}", a.str, b.str, i, a.cards[i], b.cards[i]);
+                return true
+            } else if b.cards[i] > a.cards[i] {
+                //println!("idx cmp: {} > {}, index at {}: {} vs {}", a.str, b.str, i, a.cards[i], b.cards[i]);
+                return false;
+            }
         }
-    } else if (a.rank > b.rank) {
+    } else if (a.htype > b.htype) {
+        //println!("rnk cmp: {} > {}", a.str, b.str);
         return true;
     }
+
+    //println!("a < b");
     false
 }
 
@@ -82,26 +92,26 @@ fn calc_rank(cards: &[i8]) -> i8 {
     freqs.sort_unstable_by(|a, b| b.cmp(a));
 
     match freqs.as_slice() {
-        [5] => 1,                   // Five of a Kind
-        [4, _] => 2,                // Four of a Kind
-        [3, 2] => 3,                // Full House
+        [5] => 7,                   // Five of a Kind
+        [4, _] => 6,                // Four of a Kind
+        [3, 2] => 5,                // Full House
         [3, 1, 1] => 4,             // Three of a Kind
-        [2, 2, 1] => 5,             // Two Pair
-        [2, 1, 1, 1] => 6,          // One Pair
-        [1, 1, 1, 1, 1] => 7,       // High Card
-        _ => i8::MAX,               // No hand (basically error case)
+        [2, 2, 1] => 3,             // Two Pair
+        [2, 1, 1, 1] => 2,          // One Pair
+        [1, 1, 1, 1, 1] => 1,       // High Card
+        _ => i8::MIN,               // No hand (basically error case)
     }
 }
 
 fn main() {
     let start = Instant::now();
-    let input = fs::read_to_string("input/07simple.txt").unwrap();
+    let input = fs::read_to_string("input/07puzzle.txt").unwrap();
     let data: Vec<&str> = input.lines().collect();
 
     process(&data);
 
     let duration = start.elapsed();
-    println!("Time elapsed in main() is: {:?}", duration);
+    //println!("Time elapsed in main() is: {:?}", duration);
 }
 
 fn process(data: &[&str]) {  
@@ -114,13 +124,18 @@ fn process(data: &[&str]) {
         score.insert(
             Hand {     
                 cards: strtoivec(&hand_str),                
-                rank: calc_rank(&strtoivec(&hand_str)),
+                htype: calc_rank(&strtoivec(&hand_str)),
                 str: hand_str,
                 bid
             });
     }
 
-    for hand in score {
-        println!("{}, {} {}", hand.rank, hand.str, hand.bid);
-    }
+    let mut sum: usize = 0;
+
+    for (i, hand) in score.iter().enumerate() {
+        sum += hand.bid as usize * (i + 1);
+    }   
+
+    println!("sum: {}", sum);
+
 }
