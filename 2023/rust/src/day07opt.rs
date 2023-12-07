@@ -3,12 +3,18 @@ use std::collections::HashMap;
 use std::fs;
 use std::time::Instant;
 
-#[derive(Eq, PartialEq)]
+#[derive(Eq, PartialEq, Debug, Clone)]
 struct Hand {
     cards: Vec<i8>,    
     htype: i8,
     str: String,
     bid: usize
+}
+
+impl std::fmt::Display for Hand {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{} {}", self.str, self.bid)
+    }
 }
 
 // With equal cases compare indexes from beginning
@@ -183,4 +189,17 @@ mod tests {
         assert!(b != c);
         assert!(e > d);
     }
+
+    #[test]  
+    fn test_hand_sort_impl() {
+        let a = Hand { cards: vec![2, 3, 4, 5, 6], htype: 1, str: String::from("23456"), bid: 806 };
+        let b = Hand { cards: vec![7, 8, 9, 10, 12], htype: 1, str: String::from("789TQ"), bid: 123 };        
+        let c = Hand { cards: vec![2, 2, 1, 4, 5], htype: 4, str: String::from("22J45"), bid: 949 }; 
+        let d = Hand { cards: vec![2, 2, 3, 3, 1], htype: 5, str: String::from("2233J"), bid: 47 };         
+        let e = Hand { cards: vec![2, 2, 3, 3, 4], htype: 5, str: String::from("22334"), bid: 200 }; 
+
+        let mut vec = vec![c.clone(), d.clone(), a.clone(), b.clone(), e.clone()];
+        vec.sort();
+        assert_eq!(vec, vec![a, b, c, d, e]);
+    }  
 }
