@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+binary-tree = "0.2.0"
 lazy_static = "1.4.0"
 regex = "1"
 
@@ -78,5 +79,9 @@ path = "src/day07b.rs"
 [[bin]]
 name = "day07opt"
 path = "src/day07opt.rs"
+
+[[bin]]
+name = "day08"
+path = "src/day08.rs"
 
 
