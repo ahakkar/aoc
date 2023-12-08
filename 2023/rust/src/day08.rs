@@ -113,6 +113,6 @@ fn process(data: &[&str]) {
     let nodes = build_tree(data, &mut start_nodes);  
 
     println!("Silver: {}", silver(data.first().unwrap(), &nodes)); // 16697
-    println!("Gold: {}", gold(data.first().unwrap(), &nodes, start_nodes)); // 10668805667831
+    println!("Gold: {}", gold(data.first().unwrap(), &nodes, start_nodes)); // 10 668 805 667 831
 
 }
