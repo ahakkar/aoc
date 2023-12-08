@@ -14,23 +14,7 @@ use std::collections::HashMap;
 fn main() {
     let start = Instant::now();
     let input = fs::read_to_string("input/08puzzle.txt").unwrap();
-    let test_input = "RL
-
-    AAA = (BBB, CCC)
-    BBB = (DDD, EEE)
-    CCC = (ZZZ, GGG)
-    DDD = (DDD, DDD)
-    EEE = (EEE, EEE)
-    GGG = (GGG, GGG)
-    ZZZ = (ZZZ, ZZZ)";
-
-    let test_input2 = "LLR
-
-    AAA = (BBB, BBB)
-    BBB = (AAA, ZZZ)
-    ZZZ = (ZZZ, ZZZ)
-    ";
-
+    //let input = fs::read_to_string("test_input/08test.txt").unwrap();
     let data: Vec<&str> = input.lines().collect();
 
     process(&data);
@@ -46,7 +30,8 @@ fn build_tree(data: &[&str], start_nodes: &mut Vec<String>) -> HashMap<String, (
         let (parent, children) = data.get(row).unwrap().split_once(" = ").unwrap();
         let (l, r) = children.split_once(", ").unwrap();   
 
-        if parent.chars().nth(2) == Some('A') {
+        // extract start nodes for gold, saves cpu cycles
+        if check_node(parent, &'A') {
             start_nodes.push(String::from(parent));
         }
 
@@ -61,6 +46,12 @@ fn build_tree(data: &[&str], start_nodes: &mut Vec<String>) -> HashMap<String, (
     nodes
 }
 
+fn check_node(node: &str, char: &char) -> bool {
+    node.chars().nth(2) == Some(*char) 
+}
+
+
+// traverse from start to end, counting iterations
 fn silver(dirs: &str, nodes: &HashMap<String, (String, String)>) -> i64 {
     let mut endless_dir_iter = dirs.chars().cycle();  
     let mut current_node:String = String::from("AAA");
@@ -78,17 +69,54 @@ fn silver(dirs: &str, nodes: &HashMap<String, (String, String)>) -> i64 {
     dist
 }
 
-fn gold(dirs: &str, nodes: &HashMap<String, (String, String)>, start_nodes: &Vec<String>) -> i64 {
+// borrowed from the Internet: https://www.geeksforgeeks.org/program-to-find-lcm-of-two-numbers/
+fn gcd(a: i64, b: i64) -> i64 { if b == 0 { a } else { gcd(b, a % b) } }
+fn lcm(a: i64, b: i64) -> i64 { a / gcd(a, b) * b }
+
+/**
+ * The tree contains repeating paths with specific intervals. For each
+ * tree traversal, find the repeating interval. Their least common multiple
+ * tells the total distance.
+ */
+fn gold(dirs: &str, nodes: &HashMap<String, (String, String)>, start_nodes: Vec<String>) -> i64 {
     let mut endless_dir_iter = dirs.chars().cycle();
-    println!("{:?}", start_nodes);
-    0
+    let mut current_nodes = start_nodes;
+    let mut intervals = vec![0; current_nodes.len()];
+    let mut steps: i64 = 0;
+
+    // Find a repeating interval for every start node.
+    while intervals.iter().any(|&i| i == 0) {
+        // Determine the direction based on the current iteration
+        let dir = endless_dir_iter.next().unwrap();
+
+        for (i, node) in current_nodes.iter_mut().enumerate() {
+            let n = nodes.get(node).unwrap();
+            match dir {
+                'L' => *node = n.0.clone(),
+                'R' => *node = n.1.clone(),
+                 _  => panic!(),
+            }
+
+            if check_node(node.as_str(), &'Z') && intervals[i] == 0 {
+                intervals[i] = steps + 1;
+            }
+        }
+
+        steps += 1;
+    }
+    println!("{:?}", intervals); // [20093, 12169, 13301, 20659, 16697, 17263]
+
+    // Compute the LCM of the intervals
+    intervals.into_iter().fold(1, lcm)
 }
+
 
 fn process(data: &[&str]) {   
     let mut start_nodes: Vec<String> = vec![]; 
     let nodes = build_tree(data, &mut start_nodes);  
+    println!("{:?}", start_nodes);
 
-    println!("Silver: {}", silver(data.first().unwrap(), &nodes)); // 16697
-    println!("Gold: {}", gold(data.first().unwrap(), &nodes, &start_nodes));
+    // println!("Silver: {}", silver(data.first().unwrap(), &nodes)); // 16697
+    println!("Gold: {}", gold(data.first().unwrap(), &nodes, start_nodes)); // 10668805667831
 
 }
