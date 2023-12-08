@@ -1,13 +1,4 @@
-#![allow(unused_parens)]
-#![allow(unused_imports)]
-#![allow(unused_variables)]
-#![allow(unused_mut)]
-#![allow(dead_code)]
-#![allow(clippy::needless_return)]
-#![allow(clippy::needless_range_loop)]
-
 use std::fs;
-use std::fmt;
 use std::time::Instant;
 use std::collections::HashMap;
 
@@ -23,7 +14,11 @@ fn main() {
     println!("Time elapsed in main() is: {:?}", duration);
 }
 
-fn build_tree(data: &[&str], start_nodes: &mut Vec<String>) -> HashMap<String, (String, String)> {
+fn build_tree(
+    data: &[&str], 
+    start_nodes: &mut Vec<String>
+) -> HashMap<String, (String, String)> {
+
     let mut nodes: HashMap<String, (String, String)> = HashMap::new();        
 
     for row in 2..data.len() {
@@ -46,6 +41,7 @@ fn build_tree(data: &[&str], start_nodes: &mut Vec<String>) -> HashMap<String, (
     nodes
 }
 
+// Checks if node's 3rd char is 'char'
 fn check_node(node: &str, char: &char) -> bool {
     node.chars().nth(2) == Some(*char) 
 }
@@ -69,7 +65,8 @@ fn silver(dirs: &str, nodes: &HashMap<String, (String, String)>) -> i64 {
     dist
 }
 
-// borrowed from the Internet: https://www.geeksforgeeks.org/program-to-find-lcm-of-two-numbers/
+// borrowed from the Internet: 
+// https://www.geeksforgeeks.org/program-to-find-lcm-of-two-numbers/
 fn gcd(a: i64, b: i64) -> i64 { if b == 0 { a } else { gcd(b, a % b) } }
 fn lcm(a: i64, b: i64) -> i64 { a / gcd(a, b) * b }
 
@@ -78,7 +75,12 @@ fn lcm(a: i64, b: i64) -> i64 { a / gcd(a, b) * b }
  * tree traversal, find the repeating interval. Their least common multiple
  * tells the total distance.
  */
-fn gold(dirs: &str, nodes: &HashMap<String, (String, String)>, start_nodes: Vec<String>) -> i64 {
+fn gold(
+    dirs: &str,
+    nodes: &HashMap<String, (String, String)>,
+    start_nodes: Vec<String>
+) -> i64 {
+    
     let mut endless_dir_iter = dirs.chars().cycle();
     let mut current_nodes = start_nodes;
     let mut intervals = vec![0; current_nodes.len()];
@@ -114,9 +116,8 @@ fn gold(dirs: &str, nodes: &HashMap<String, (String, String)>, start_nodes: Vec<
 fn process(data: &[&str]) {   
     let mut start_nodes: Vec<String> = vec![]; 
     let nodes = build_tree(data, &mut start_nodes);  
-    println!("{:?}", start_nodes);
 
-    // println!("Silver: {}", silver(data.first().unwrap(), &nodes)); // 16697
+    println!("Silver: {}", silver(data.first().unwrap(), &nodes)); // 16697
     println!("Gold: {}", gold(data.first().unwrap(), &nodes, start_nodes)); // 10668805667831
 
 }
