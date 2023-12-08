@@ -1,6 +1,7 @@
 use std::fs;
 use std::time::Instant;
 use std::collections::HashMap;
+use num::integer::lcm;
 
 fn main() {
     let start = Instant::now();
@@ -46,7 +47,6 @@ fn check_node(node: &str, char: &char) -> bool {
     node.chars().nth(2) == Some(*char) 
 }
 
-
 // traverse from start to end, counting iterations
 fn silver(dirs: &str, nodes: &HashMap<String, (String, String)>) -> i64 {
     let mut endless_dir_iter = dirs.chars().cycle();  
@@ -64,11 +64,6 @@ fn silver(dirs: &str, nodes: &HashMap<String, (String, String)>) -> i64 {
     }
     dist
 }
-
-// borrowed from the Internet: 
-// https://www.geeksforgeeks.org/program-to-find-lcm-of-two-numbers/
-fn gcd(a: i64, b: i64) -> i64 { if b == 0 { a } else { gcd(b, a % b) } }
-fn lcm(a: i64, b: i64) -> i64 { a / gcd(a, b) * b }
 
 /**
  * The tree contains repeating paths with specific intervals. For each
