@@ -23,13 +23,15 @@ fn main() {
     EEE = (EEE, EEE)
     GGG = (GGG, GGG)
     ZZZ = (ZZZ, ZZZ)";
+
     let test_input2 = "LLR
 
     AAA = (BBB, BBB)
     BBB = (AAA, ZZZ)
     ZZZ = (ZZZ, ZZZ)
     ";
-    let data: Vec<&str> = test_input2.lines().collect();
+
+    let data: Vec<&str> = input.lines().collect();
 
     process(&data);
 
@@ -37,12 +39,17 @@ fn main() {
     println!("Time elapsed in main() is: {:?}", duration);
 }
 
-fn build_tree(data: &[&str]) -> HashMap<String, (String, String)> {
-    let mut nodes: HashMap<String, (String, String)> = HashMap::new();    
+fn build_tree(data: &[&str], start_nodes: &mut Vec<String>) -> HashMap<String, (String, String)> {
+    let mut nodes: HashMap<String, (String, String)> = HashMap::new();        
 
     for row in 2..data.len() {
         let (parent, children) = data.get(row).unwrap().split_once(" = ").unwrap();
-        let (l, r) = children.split_once(", ").unwrap();    
+        let (l, r) = children.split_once(", ").unwrap();   
+
+        if parent.chars().nth(2) == Some('A') {
+            start_nodes.push(String::from(parent));
+        }
+
         nodes.insert(
             String::from(parent.trim()),
             (
@@ -54,12 +61,10 @@ fn build_tree(data: &[&str]) -> HashMap<String, (String, String)> {
     nodes
 }
 
-fn process(data: &[&str]) {
-    let mut endless_dir_iter = data.first().unwrap().chars().cycle();  
-    let nodes = build_tree(data);  
+fn silver(dirs: &str, nodes: &HashMap<String, (String, String)>) -> i64 {
+    let mut endless_dir_iter = dirs.chars().cycle();  
     let mut current_node:String = String::from("AAA");
     let mut dist: i64 = 0;
-    println!("{:?}", nodes);
 
     while current_node != *"ZZZ" {        
         let n = nodes.get(&current_node).unwrap();
@@ -70,6 +75,20 @@ fn process(data: &[&str]) {
         };
         dist += 1;
     }
+    dist
+}
 
-    println!("current node: {}, dist: {}", current_node, dist);
+fn gold(dirs: &str, nodes: &HashMap<String, (String, String)>, start_nodes: &Vec<String>) -> i64 {
+    let mut endless_dir_iter = dirs.chars().cycle();
+    println!("{:?}", start_nodes);
+    0
+}
+
+fn process(data: &[&str]) {   
+    let mut start_nodes: Vec<String> = vec![]; 
+    let nodes = build_tree(data, &mut start_nodes);  
+
+    println!("Silver: {}", silver(data.first().unwrap(), &nodes)); // 16697
+    println!("Gold: {}", gold(data.first().unwrap(), &nodes, &start_nodes));
+
 }
