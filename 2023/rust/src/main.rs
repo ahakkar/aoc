@@ -7,26 +7,44 @@
 // List of implemented solutions
 mod day09;
 
-use std::{env, fs, path::Path};
+use std::{fs, path::Path};
+use std::time::Instant;
+use clap::Parser;
+
+/// 2023 Advent of Code with Rust
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+    /// [01..25] day of calendar
+    #[arg(short, long)]
+    day: String,
+
+    /// Run tests
+    #[arg(short, long, action)]
+    test: bool,
+}
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
+    let args = Args::parse();
 
-    if args.len() > 2 {
-        let day = &args[1];
-        let filepath = format!("input/{}/{}.txt", &args[2], day);
+    if args.day.len() == 2 {
+        let folder = if args.test { "test" } else { "real" };
+        let filepath = format!("input/{}/{}.txt", folder, args.day);
 
         if !Path::new(&filepath).is_file() {
-            println!("File input/{}/{}.txt does not exist.", &args[2], &args[1]);
+            println!("File input/{}/{}.txt does not exist.", folder, args.day);
             return;
         }
 
         let execute_with_data = |func: fn(Vec<String>)| {
+            let start = Instant::now();
             func(read_data_from_file(&filepath));
+            let duration = start.elapsed();
+            println!("Time elapsed in day{} is: {:?}", args.day, duration);
         };
 
         // Add new days as they are implemented
-        match day.as_str() {
+        match args.day.as_str() {
             "09" => execute_with_data(day09::solve),
             _ => println!("Unimplemented day"),
         }
