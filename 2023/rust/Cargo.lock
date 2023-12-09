@@ -60,6 +60,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "aoc2023"
+version = "0.2.0"
+dependencies = [
+ "binary-tree",
+ "clap",
+ "lazy_static",
+ "num",
+ "regex",
+]
+
+[[package]]
 name = "autocfg"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -257,17 +268,6 @@ name = "regex-syntax"
 version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c08c74e62047bb2de4ff487b251e4a92e24f48745648451635cec7d591162d9f"
-
-[[package]]
-name = "rust"
-version = "0.1.0"
-dependencies = [
- "binary-tree",
- "clap",
- "lazy_static",
- "num",
- "regex",
-]
 
 [[package]]
 name = "strsim"
