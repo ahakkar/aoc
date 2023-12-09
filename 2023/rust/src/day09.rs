@@ -23,7 +23,7 @@ fn silver(data: &Vec<String>) -> i64 {
         println!("og: {:?}", nums);
 
         series.push(*nums.last().unwrap());
-        while nums.iter().sum::<i64>() > 0 {
+        while nums.iter().sum::<i64>() != 0 {
             let mut new_nums: Vec<i64> = vec!();
             for i in 0..nums.len() - 1 {
                 new_nums.push(nums[i+1] - nums[i]);
@@ -34,15 +34,19 @@ fn silver(data: &Vec<String>) -> i64 {
             println!("{:?}", nums);            
         }     
         
-        println!("{:?}", series);
-
+        println!("series: {:?}\n", series);
+        print!("cum: ");
         for i in (0..series.len()).rev() {
+            print!("{}, ", cum);
             cum += series[i];
         }
         sum += cum;
-        println!();
+        println!("\n");
     }
-    sum // 1889613394 too high
+    sum 
+    // 1887980197
+    // 1889613394 too high
+
 }
 
 /* fn gold(data: &Vec<String>) -> i64 {
