@@ -14,10 +14,13 @@
 #![allow(clippy::needless_range_loop)]
 
 use lazy_static::lazy_static;
+use petgraph::{Graph, Undirected};
 use petgraph::data::Build;
 use petgraph::graph::{UnGraph, NodeIndex};
 use petgraph::visit::{Bfs, IntoNodeReferences, Visitable, VisitMap, DfsPostOrder};
 use std::collections::{HashSet, HashMap, VecDeque};
+use std::fs::File;
+use std::io::{self, Write};
 
 lazy_static! {
     static ref NODE_CHARS: HashSet<char> = 
@@ -33,12 +36,20 @@ struct Coord {
 
 pub fn solve(data: Vec<String>) {
     let mut data_as_chars: Vec<Vec<char>> = vec![];
+    let map_width: i32 = data[0].len().try_into().unwrap();
+    let map_height: i32 = data.len().try_into().unwrap();
+
     for row in data {
         data_as_chars.push(row.chars().collect::<Vec<char>>());
     }
 
-    println!("Silver: {}", silver(&data_as_chars)/2);
-    //println!("Gold: {}", gold(&data));
+    // F: 7702 not correct
+    // L J 7 all the same answer, 7702. 7700 too high also.
+    // 6820 works
+    if let Some(result) = silver(&data_as_chars, map_width, map_height) {
+        println!("Silver: {}", (result.1.len()+1)/2);   
+        gold(&result, map_width, map_height);
+    }    
 }
 
 
@@ -97,46 +108,45 @@ fn is_compatible(current_char: &char, neighbour_char: char, dx: i32, dy: i32) ->
     match (current_char, neighbour_char) {
         // L J 7 F - |
         ('F', '-') if dx == 1 && dy == 0 => true,
-        ('F', '|') if dx == 0 && dy == 1 => true,
-        ('F', 'J') if dx == 1 && dy == 0 => true,
-        ('F', 'J') if dx == 0 && dy == 1 => true,
         ('F', '7') if dx == 1 && dy == 0 => true,
+        ('F', 'J') if dx == 1 && dy == 0 => true,
+        ('F', '|') if dx == 0 && dy == 1 => true,
+        ('F', 'J') if dx == 0 && dy == 1 => true,        
         ('F', 'L') if dx == 0 && dy == 1 => true,
 
         ('L', 'J') if dx == 1 && dy == 0 => true,
         ('L', '7') if dx == 1 && dy == 0 => true,
+        ('L', '-') if dx == 1 && dy == 0 => true,
         ('L', 'F') if dx == 0 && dy == -1 => true,
         ('L', '7') if dx == 0 && dy == -1 => true,
-        ('L', '|') if dx == 0 && dy == -1 => true,
-        ('L', '-') if dx == 1 && dy == 0 => true,
+        ('L', '|') if dx == 0 && dy == -1 => true,        
 
-        ('7', 'J') if dx == 0 && dy == 1 => true,
         ('7', 'F') if dx == -1 && dy == 0 => true,
-        ('7', '-') if dx == -1 && dy == 0 => true,
-        ('7', '|') if dx == 0 && dy == 1 => true,
+        ('7', '-') if dx == -1 && dy == 0 => true,        
         ('7', 'L') if dx == -1 && dy == 0 => true,
+        ('7', '|') if dx == 0 && dy == 1 => true,
+        ('7', 'J') if dx == 0 && dy == 1 => true,
         ('7', 'L') if dx == 0 && dy == 1 => true,
-
-        ('J', '|') if dx == 0 && dy == -1 => true,
-        ('J', '-') if dx == -1 && dy == 0 => true,
-        ('J', '7') if dx == 0 && dy == -1 => true,
-        ('J', 'F') if dx == 0 && dy == -1 => true,
+        
+        ('J', '-') if dx == -1 && dy == 0 => true,        
         ('J', 'F') if dx == -1 && dy == 0 => true,
         ('J', 'L') if dx == -1 && dy == 0 => true,
+        ('J', '|') if dx == 0 && dy == -1 => true,
+        ('J', '7') if dx == 0 && dy == -1 => true,
+        ('J', 'F') if dx == 0 && dy == -1 => true,
 
         ('-', 'F') if dx == -1 && dy == 0 => true, 
         ('-', 'L') if dx == -1 && dy == 0 => true, 
+        ('-', '-') if dx == -1 && dy == 0 => true, 
         ('-', 'J') if dx == 1 && dy == 0 => true, 
         ('-', '7') if dx == 1 && dy == 0 => true, 
-        ('-', '-') if dx == 1 && dy == 0 => true, 
-        ('-', '-') if dx == -1 && dy == 0 => true, 
-        // cant connect to |
+        ('-', '-') if dx == 1 && dy == 0 => true,         
    
         ('|', 'F') if dx == 0 && dy == -1 => true,
-        ('|', 'L') if dx == 0 && dy == 1 => true,
-        ('|', 'J') if dx == 0 && dy == 1 => true,
         ('|', '7') if dx == 0 && dy == -1 => true,
         ('|', '|') if dx == 0 && dy == -1 => true,
+        ('|', 'L') if dx == 0 && dy == 1 => true,
+        ('|', 'J') if dx == 0 && dy == 1 => true,        
         ('|', '|') if dx == 0 && dy == 1 => true,
 
         _ => false,
@@ -144,7 +154,8 @@ fn is_compatible(current_char: &char, neighbour_char: char, dx: i32, dy: i32) ->
 }
 
 
-fn find_loop_length(graph: &UnGraph<Coord, ()>, start: NodeIndex) -> Option<usize> {
+// returns the path found
+fn find_loop(graph: &UnGraph<Coord, ()>, start: NodeIndex) -> Option<Vec<NodeIndex>> {
     let mut dfs = DfsPostOrder::new(graph, start);
     let mut loop_detected = false;
     let mut visited = HashSet::new();
@@ -170,7 +181,7 @@ fn find_loop_length(graph: &UnGraph<Coord, ()>, start: NodeIndex) -> Option<usiz
                 break;
             }
         }
-        Some(loop_path.len())
+        Some(loop_path)
     } else {
         println!("loop not found");
         None // No loop found
@@ -188,13 +199,11 @@ fn print_graph(graph: &UnGraph::<Coord, ()>) {
 }
 
 
-fn silver(data: &Vec<Vec<char>>) -> i64 {
-    let mut sum: i64 = 0;    
+fn silver(data: &[Vec<char>], map_width: i32, map_height: i32) 
+-> Option<(UnGraph<Coord, (), u32>, Vec<NodeIndex>)> {
     let mut graph = UnGraph::<Coord, ()>::new_undirected();
     let mut ctni: HashMap<Coord, NodeIndex> = HashMap::new();
     let mut start: Option<Coord> = None;
-    let map_width: i32 = data[0].len().try_into().unwrap();
-    let map_height: i32 = data.len().try_into().unwrap();
 
     // Add nodes
     for (y, row) in data.iter().enumerate() {
@@ -228,35 +237,76 @@ fn silver(data: &Vec<Vec<char>>) -> i64 {
     }
     //print_graph(&graph);
 
-    println!("found start: {:?}", start);
+    //println!("found start: {:?}", start);
 
     start = Some(Coord{x:79,y:64});
-    //start = Some(Coord{x:0,y:2});
+    //start = Some(Coord{x:1,y:1});
 
     if let Some(start_coord) = start {
         if let Some(start_index) = ctni.get(&start_coord) {
-            if let Some(result) = find_loop_length(&graph, *start_index) {
-                println!("path found");
-                sum = result as i64;
+            if let Some(loop_path) = find_loop(&graph, *start_index) {
+                return Some((graph, loop_path));
             }
         }
-    }
-
-    // F: 7702 not correct
-    // L J 7 all the same answer, 7702. 7700 too high also.
-    if sum % 2 == 0 {
-        return sum ;
-    } else {
-        println!("wrong sum: {}", sum);
-        return sum + 1;
-    }   
+    }  
+    None  
 }
 
 
-/* fn gold(data: &Vec<String>) -> i64 {
-    let mut sum: i64 = 0;    
+fn write_path_to_2d_map_file(
+    result: &(UnGraph<Coord, (), u32>, Vec<NodeIndex>), 
+    file_path: &str,
+    map_width: i32,
+    map_height: i32
+) -> io::Result<()> {
+    let mut file = File::create(file_path)?;
+    let mut map = vec![vec!['.'; map_width as usize]; map_height as usize];
 
-    for row in data {
-           } 
-    sum 
-} */
+    // draw the path with zeroes '0'
+    for node in &result.1 {
+        let coord: Coord = *result.0.node_weight(*node).unwrap();
+        map[coord.y][coord.x] = '0';
+    }
+
+    for row in map {
+        for cell in row {
+            write!(file, "{}", cell)?;
+        }
+        writeln!(file)?;
+    }
+
+    Ok(())
+}
+
+
+fn gold(result: &(UnGraph<Coord, (), u32>, Vec<NodeIndex>), map_width: i32, map_height: i32) {
+    //let io_op_res = write_path_to_2d_map_file(result, "gold_map.txt", map_width, map_height);
+
+    let mut char_count:i32 = 0;
+    let image = "0000000.000000000000000
+    0000......0000..0000.00
+    000.............00....0
+    0000000.........00..000
+    00000000............000
+    00000000.............00
+    00000000.............00
+    000000000........00.000
+    0000..000........00.000
+    0000..00........0000000
+    0000............0000000
+    00000...........0000000
+    00000............000000
+    0000...00........000000
+    00.....00.........00000
+    000000.00.........00000
+    00000000000.......00000
+    00000000000000.....0000
+    00000000000000.....0000
+    000000000000000000.0000";
+
+    
+    println!("gold: {}", image.chars().filter(|&c| c == '.').count()); // 194 too low
+    
+
+
+}
