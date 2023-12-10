@@ -408,12 +408,13 @@ fn write_fill_to_file(grid: &Vec<Vec<char>>, file_path: &str) -> io::Result<()> 
     Ok(())
 }
 
-
+// since pipe always overlaps the middle char of a 3x3 area, count areas
+// where the middle char is empty
 fn count_3x3_spaces(map: &[Vec<char>]) -> usize {
     let mut count = 0;
-    for y in 0..map.len() - 2 {
-        for x in 0..map[0].len() - 2 {
-            if is_3x3_space(map, x, y) {
+    for y in (0..map.len() - 2).step_by(3) {
+        for x in (0..map[0].len() - 2).step_by(3) {
+            if map[y + 1][x + 1] == ' ' {
                 count += 1;
             }
         }
@@ -421,18 +422,10 @@ fn count_3x3_spaces(map: &[Vec<char>]) -> usize {
     count
 }
 
-fn is_3x3_space(map: &[Vec<char>], start_x: usize, start_y: usize) -> bool {
-    for y in start_y..start_y + 3 {
-        for x in start_x..start_x + 3 {
-            if map[y][x] != ' ' {
-                return false;
-            }
-        }
-    }
-    true
-}
 
-
+// used this to generate a 3x3 representation of the pipe map
+// then used flood fill on outside to generate another txt
+// counted empty spaces in steps of 3 from the flood filled map
 fn gold(graph: &PipeGraph) {
     //let io_op_res = write_path_to_2d_map_file(graph, "gold_map_enhance_more2.txt");
 
@@ -448,7 +441,7 @@ fn gold(graph: &PipeGraph) {
     //println!("filled count: {}", flood_fill(&mut data_as_chars, 214, 214, 'I'));
 
     let count = count_3x3_spaces(&data_as_chars);
-    println!("Gold: {}", count); // 3033 "not the right answer"
+    println!("Gold: {}", count); // 3033 "not the right answer" .. 337 new guess..
     
     //println!("gold: {}", image.chars().filter(|&c| c == e).count()); // 194 too low, 204 too low // 210 too low
     
