@@ -17,7 +17,7 @@ use lazy_static::lazy_static;
 use petgraph::data::Build;
 use petgraph::graph::{UnGraph, NodeIndex};
 use petgraph::visit::{Bfs, IntoNodeReferences, Visitable, VisitMap, DfsPostOrder};
-use std::collections::{HashSet, HashMap};
+use std::collections::{HashSet, HashMap, VecDeque};
 
 lazy_static! {
     static ref NODE_CHARS: HashSet<char> = 
@@ -31,7 +31,12 @@ struct Coord {
 }
 
 pub fn solve(data: Vec<String>) {
-    println!("Silver: {}", silver(&data));
+    let mut data_as_chars: Vec<Vec<char>> = vec![];
+    for row in data {
+        data_as_chars.push(row.chars().collect::<Vec<char>>());
+    }
+
+    println!("Silver: {}", silver(&data_as_chars)/2);
     //println!("Gold: {}", gold(&data));
 }
 
@@ -75,35 +80,84 @@ fn get_neighbours(c: &Coord, char: &char, map_width: i32, map_height: i32)
     neighbours
 }
 
+fn get_neighbors_chars(data: &Vec<Vec<char>>, x: usize, y: usize) -> String {
+    let mut n_chars = String::new();
+
+    // Top
+    if y > 0 {
+        n_chars.push(data[y - 1][x]);
+    } else {
+        n_chars.push('.'); // no neighbor
+    }
+
+    // Right
+    if x + 1 < data[y].len() {
+        n_chars.push(data[y][x + 1]);
+    } else {
+        n_chars.push('.'); // no neighbor
+    }
+
+    // Bottom
+    if y + 1 < data.len() {
+        n_chars.push(data[y + 1][x]);
+    } else {
+        n_chars.push('.'); // no neighbor
+    }
+
+    // Left
+    if x > 0 {
+        n_chars.push(data[y][x - 1]);
+    } else {
+        n_chars.push('.'); // no neighbor
+    }
+
+    n_chars
+}
+
 fn find_loop_length(graph: &UnGraph<Coord, ()>, start: NodeIndex) -> Option<usize> {
     let mut dfs = DfsPostOrder::new(graph, start);
-    let mut visited = HashSet::new();
     let mut loop_detected = false;
+    let mut visited = HashSet::new();
+    let mut path = VecDeque::new();
 
     println!("Start: {:?}", graph.node_weight(start).unwrap());
     while let Some(nx) = dfs.next(graph) {
-        println!("{:?}", graph.node_weight(nx).unwrap());
-        if !visited.insert(nx) {    
+        if nx == start && !path.is_empty() {
             loop_detected = true;
             break;
+        }
+        if visited.insert(nx) {
+            path.push_front(nx);
         }
     }
 
     if loop_detected {
-        println!("loop found");
-        // Calculate the length of the loop
-        // Note: The exact implementation depends on how you want to define "length"
-        // It might be the count of unique nodes in the loop, or the total number of steps taken
-        Some(visited.len()) // Placeholder for loop length calculation
+        println!("Loop found");
+        let mut loop_path = Vec::new();
+        while let Some(node) = path.pop_front() {
+            loop_path.push(node);
+            if node == start {
+                break;
+            }
+        }
+        Some(loop_path.len())
     } else {
         println!("loop not found");
         None // No loop found
     }
 }
 
+fn print_graph(graph: &UnGraph::<Coord, ()>) {
+    for node_index in graph.node_indices() {
+        println!("Node {:?} has coordinates {:?}", node_index, graph[node_index]);
+        for neighbor in graph.neighbors(node_index) {
+            println!(" - connected to {:?}", graph[neighbor]);
+        }
+    }
+}
 
-fn silver(data: &Vec<String>) -> i64 {
-    println!("{:?}", data);
+
+fn silver(data: &Vec<Vec<char>>) -> i64 {
     let mut sum: i64 = 0;    
     let mut graph = UnGraph::<Coord, ()>::new_undirected();
     let mut ctni: HashMap<Coord, NodeIndex> = HashMap::new();
@@ -113,19 +167,19 @@ fn silver(data: &Vec<String>) -> i64 {
 
     // Add nodes
     for (y, row) in data.iter().enumerate() {
-        for (x, char) in row.chars().enumerate() {            
+        for (x, char) in row.iter().enumerate() {            
             if NODE_CHARS.contains(&char) {
                 let coord = Coord{x, y};
                 let node_index = graph.add_node(coord);
                 ctni.insert(coord, node_index);
             }
-            if char == 'S' { start = Some(Coord{x, y}); }
+            if char == &'S' { start = Some(Coord{x, y}); }
         }
     }
 
     // Add edges, function is UGLY AS A SIN
     for (y, row) in data.iter().enumerate() {
-        for (x, char) in row.chars().enumerate() {
+        for (x, char) in row.iter().enumerate() {
             if NODE_CHARS.contains(&char) {
                 let coord = Coord{x, y};
                 if let Some(node_index) = ctni.get(&coord) {
@@ -141,28 +195,30 @@ fn silver(data: &Vec<String>) -> i64 {
             }
         }
     }
+    print_graph(&graph);
 
-    for node_index in graph.node_indices() {
-        println!("Node {:?} has coordinates {:?}", node_index, graph[node_index]);
-        for neighbor in graph.neighbors(node_index) {
-            println!(" - connected to {:?}", graph[neighbor]);
-        }
-    }
+    println!("found start: {:?}", start);
 
-/*     start = Some(Coord{x:0,y:2});
+    start = Some(Coord{x:79,y:64});
+    //start = Some(Coord{x:0,y:2});
 
     if let Some(start_coord) = start {
-        println!("start works");
         if let Some(start_index) = ctni.get(&start_coord) {
-            println!("start coord found");
             if let Some(result) = find_loop_length(&graph, *start_index) {
                 println!("path found");
                 sum = result as i64;
             }
         }
-    } */
-    
-    sum 
+    }
+
+    // F: 7702 not correct
+    // L J 7 all the same answer, 7702. 7700 too high also.
+    if sum % 2 == 0 {
+        return sum ;
+    } else {
+        println!("wrong sum: {}", sum);
+        return sum + 1;
+    }   
 }
 
 /* fn gold(data: &Vec<String>) -> i64 {
