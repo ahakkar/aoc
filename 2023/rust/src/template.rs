@@ -1,28 +1,27 @@
-#![allow(unused_parens)]
-#![allow(unused_imports)]
-#![allow(unused_variables)]
-#![allow(unused_mut)]
-#![allow(dead_code)]
-#![allow(clippy::needless_return)]
-#![allow(clippy::needless_range_loop)]
+/*
+ * 2023 Advent of Code with Rust
+ * Author: Antti Hakkarainen
+ * https://github.com/ahakkar/
+ */
 
-use std::fs;
-use std::fmt;
-use std::time::Instant;
-
-fn main() {
-    let start = Instant::now();
-    let input = fs::read_to_string("input/07puzzle.txt").unwrap();
-    let data: Vec<&str> = input.lines().collect();
-
-    process(&data);
-
-    let duration = start.elapsed();
-    println!("Time elapsed in main() is: {:?}", duration);
+ pub fn solve(data: Vec<String>) {
+    println!("Silver: {}", silver(&data));
+    //println!("Gold: {}", gold(&data));
 }
 
-fn process(data: &[&str]) {  
+fn silver(data: &Vec<String>) -> i64 {
+    let mut sum: i64 = 0;    
+
     for row in data {
 
     }
+    sum 
 }
+
+/* fn gold(data: &Vec<String>) -> i64 {
+    let mut sum: i64 = 0;    
+
+    for row in data {
+           } 
+    sum 
+} */

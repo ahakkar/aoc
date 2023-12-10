@@ -6,6 +6,7 @@
 
 // List of implemented solutions
 mod day09;
+mod day10;
 
 use std::{fs, path::Path};
 use std::time::Instant;
@@ -32,7 +33,7 @@ fn main() {
         let filepath = format!("input/{}/{}.txt", folder, args.day);
 
         if !Path::new(&filepath).is_file() {
-            println!("File input/{}/{}.txt does not exist.", folder, args.day);
+            println!("File {} does not exist.", filepath);
             return;
         }
 
@@ -46,6 +47,7 @@ fn main() {
         // Add new days as they are implemented
         match args.day.as_str() {
             "09" => execute_with_data(day09::solve),
+            "10" => execute_with_data(day10::solve),
             _ => println!("Unimplemented day"),
         }
     } else {
