@@ -19,7 +19,7 @@ use petgraph::data::Build;
 use petgraph::graph::{UnGraph, NodeIndex};
 use petgraph::visit::{Bfs, IntoNodeReferences, Visitable, VisitMap, DfsPostOrder};
 use std::collections::{HashSet, HashMap, VecDeque};
-use std::fs::File;
+use std::fs::{File, self};
 use std::io::{self, Write};
 
 lazy_static! {
@@ -33,22 +33,61 @@ struct Coord {
     y: usize,
 }
 
+struct PipeGraph {
+    graph: Option<UnGraph<Coord, (), u32>>,
+    path: Option<Vec<NodeIndex>>,
+    map_width: i32,
+    map_height: i32,
+    chars: Option<Vec<Vec<char>>>,
+}
+
+
+impl PipeGraph {
+    fn new(map_width: i32, map_height: i32) -> Self {
+        PipeGraph {
+            graph: None,
+            path: None,
+            map_width,
+            map_height,
+            chars: None,
+        }
+    }
+
+    fn set_graph(&mut self, graph: UnGraph<Coord, (), u32>) {
+        self.graph = Some(graph);
+    }
+
+    fn set_path(&mut self, path: Vec<NodeIndex>) {
+        self.path = Some(path);
+    }
+
+    fn set_chars(&mut self, chars: &[Vec<char>]) {
+        self.chars = Some(chars.to_vec());
+    }
+}
+
 
 pub fn solve(data: Vec<String>) {
+    let mut graph_data: PipeGraph = PipeGraph::new(
+        data[0].len().try_into().unwrap(),
+        data.len().try_into().unwrap()
+    );
+ 
     let mut data_as_chars: Vec<Vec<char>> = vec![];
-    let map_width: i32 = data[0].len().try_into().unwrap();
-    let map_height: i32 = data.len().try_into().unwrap();
-
     for row in data {
         data_as_chars.push(row.chars().collect::<Vec<char>>());
     }
+    graph_data.set_chars(&data_as_chars);
 
     // F: 7702 not correct
     // L J 7 all the same answer, 7702. 7700 too high also.
     // 6820 works
-    if let Some(result) = silver(&data_as_chars, map_width, map_height) {
+    if let Some(result) = silver(&data_as_chars, graph_data.map_width, graph_data.map_height) {
         println!("Silver: {}", (result.1.len()+1)/2);   
-        gold(&result, map_width, map_height);
+
+        graph_data.set_graph(result.0);
+        graph_data.set_path(result.1);
+        gold(&graph_data);
     }    
 }
 
@@ -252,60 +291,166 @@ fn silver(data: &[Vec<char>], map_width: i32, map_height: i32)
     None  
 }
 
+fn get_enhanced_char_representation() -> HashMap<char, Vec<Vec<char>>> {
+    let mut representations = HashMap::new();
 
-fn write_path_to_2d_map_file(
-    result: &(UnGraph<Coord, (), u32>, Vec<NodeIndex>), 
-    file_path: &str,
-    map_width: i32,
-    map_height: i32
-) -> io::Result<()> {
+    let e:char = ' ';
+    representations.insert('L', vec![
+        vec![e, 'X', e],
+        vec![e, 'X', 'X'],
+        vec![e, e, e],
+    ]);
+
+    representations.insert('J', vec![
+        vec![e, 'X', e],
+        vec!['X', 'X', e],
+        vec![e, e, e],
+    ]);
+
+    representations.insert('F', vec![
+        vec![e, e, e],
+        vec![e, 'X', 'X'],
+        vec![e, 'X', e],
+    ]);
+
+    representations.insert('7', vec![
+        vec![e, e, e],
+        vec!['X', 'X', e],
+        vec![e, 'X', e],
+    ]);
+
+    representations.insert('|', vec![
+        vec![e, 'X', e],
+        vec![e, 'X', e],
+        vec![e, 'X', e],
+    ]);
+
+    representations.insert('-', vec![
+        vec![e, e, e],
+        vec!['X', 'X', 'X'],
+        vec![e, e, e],
+    ]);
+
+    // Add other characters and their representations as needed
+
+    representations
+}
+
+fn write_path_to_2d_map_file(graph_data: &PipeGraph, file_path: &str) -> io::Result<()> {
     let mut file = File::create(file_path)?;
-    let mut map = vec![vec!['.'; map_width as usize]; map_height as usize];
+    let mut map = vec![vec![' '; (graph_data.map_width as usize) * 3]; (graph_data.map_height as usize) * 3];
+    let representations = get_enhanced_char_representation();
 
-    // draw the path with zeroes '0'
-    for node in &result.1 {
-        let coord: Coord = *result.0.node_weight(*node).unwrap();
-        map[coord.y][coord.x] = '0';
+    if let Some(graph) = &graph_data.graph {
+        if let Some(path) = &graph_data.path {
+            if let Some(chars) = &graph_data.chars {
+                // draw the path with enhanced 3x3 chars
+                for node in path {
+                    let coord: Coord = *graph.node_weight(*node).unwrap();
+                    if let Some(representation) = representations.get(&chars[coord.y][coord.x]) {
+                        for (dy, row) in representation.iter().enumerate() {
+                            for (dx, &cell) in row.iter().enumerate() {
+                                map[coord.y * 3 + dy][coord.x * 3 + dx] = cell;
+                            }
+                        }
+                    }
+                }
+
+                for row in map {
+                    for cell in row {
+                        write!(file, "{}", cell)?;
+                    }
+                    writeln!(file)?;
+                }
+            }            
+        }        
+    }    
+
+    Ok(())
+}
+
+fn flood_fill(grid: &mut Vec<Vec<char>>, start_x: usize, start_y: usize, fill_char: char) -> usize {
+    let rows = grid.len();
+    let cols = grid[0].len();
+    let mut stack = vec![(start_x, start_y)];
+    let mut count = 0;
+
+    while let Some((x, y)) = stack.pop() {
+        if x >= cols || y >= rows || grid[y][x] != ' ' { // Replace ' ' with your empty cell indicator
+            continue;
+        }
+
+        // Fill the cell and increment the count
+        grid[y][x] = fill_char;
+        count += 1;
+
+        // Add neighboring cells to the stack
+        if x > 0 { stack.push((x - 1, y)); }
+        if x + 1 < cols { stack.push((x + 1, y)); }
+        if y > 0 { stack.push((x, y - 1)); }
+        if y + 1 < rows { stack.push((x, y + 1)); }
     }
 
-    for row in map {
+    let io_op_res = write_fill_to_file(grid, "flood_filled_inside.txt");
+
+    count
+}
+
+fn write_fill_to_file(grid: &Vec<Vec<char>>, file_path: &str) -> io::Result<()> {
+    let mut file = File::create(file_path)?;
+    
+    for row in grid {
         for cell in row {
             write!(file, "{}", cell)?;
         }
         writeln!(file)?;
     }
-
     Ok(())
 }
 
 
-fn gold(result: &(UnGraph<Coord, (), u32>, Vec<NodeIndex>), map_width: i32, map_height: i32) {
-    //let io_op_res = write_path_to_2d_map_file(result, "gold_map.txt", map_width, map_height);
+fn count_3x3_spaces(map: &[Vec<char>]) -> usize {
+    let mut count = 0;
+    for y in 0..map.len() - 2 {
+        for x in 0..map[0].len() - 2 {
+            if is_3x3_space(map, x, y) {
+                count += 1;
+            }
+        }
+    }
+    count
+}
+
+fn is_3x3_space(map: &[Vec<char>], start_x: usize, start_y: usize) -> bool {
+    for y in start_y..start_y + 3 {
+        for x in start_x..start_x + 3 {
+            if map[y][x] != ' ' {
+                return false;
+            }
+        }
+    }
+    true
+}
+
+
+fn gold(graph: &PipeGraph) {
+    //let io_op_res = write_path_to_2d_map_file(graph, "gold_map_enhance_more2.txt");
 
     let mut char_count:i32 = 0;
-    let image = "0000000.000000000000000
-    0000......0000..0000.00
-    000.............00....0
-    0000000.........00..000
-    00000000............000
-    00000000.............00
-    00000000.............00
-    000000000........00.000
-    0000..000........00.000
-    0000..00........0000000
-    0000............0000000
-    00000...........0000000
-    00000............000000
-    0000...00........000000
-    00.....00.........00000
-    000000.00.........00000
-    00000000000.......00000
-    00000000000000.....0000
-    00000000000000.....0000
-    000000000000000000.0000";
+    let input = fs::read_to_string("flood_filled.txt").unwrap();
+    let data: Vec<&str> = input.lines().collect();
+    let mut data_as_chars: Vec<Vec<char>> = vec![];
 
+    for row in data {
+        data_as_chars.push(row.chars().collect::<Vec<char>>());
+    }
+
+    //println!("filled count: {}", flood_fill(&mut data_as_chars, 214, 214, 'I'));
+
+    let count = count_3x3_spaces(&data_as_chars);
+    println!("Gold: {}", count); // 3033 "not the right answer"
     
-    println!("gold: {}", image.chars().filter(|&c| c == '.').count()); // 194 too low
+    //println!("gold: {}", image.chars().filter(|&c| c == e).count()); // 194 too low, 204 too low // 210 too low
     
 
 
