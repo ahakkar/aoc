@@ -30,6 +30,7 @@ struct Coord {
     y: usize,
 }
 
+
 pub fn solve(data: Vec<String>) {
     let mut data_as_chars: Vec<Vec<char>> = vec![];
     for row in data {
@@ -40,19 +41,19 @@ pub fn solve(data: Vec<String>) {
     //println!("Gold: {}", gold(&data));
 }
 
-fn fits_bounds(coord: &Coord, x_change: i32, y_change: i32, map_width: i32, map_height: i32) 
-    -> bool {
+
+fn fits_bounds(coord: &Coord, x_change: i32, y_change: i32, map_width: i32, map_height: i32) -> bool {
     let new_x = coord.x as i32 + x_change;
     let new_y = coord.y as i32 + y_change;
 
-    if (new_x < 0 || new_y < 0 || new_x > map_width || new_y > map_height) {
-        return false;
-    }
-    true
+    new_x >= 0 &&
+    new_y >= 0 &&
+    (new_x as usize) < map_width.try_into().unwrap() &&
+    (new_y as usize) < map_height.try_into().unwrap()
 }
 
 
-fn get_neighbours(c: &Coord, char: &char, map_width: i32, map_height: i32) 
+fn get_neighbours(grid: &[Vec<char>], c: &Coord, char: &char, map_width: i32, map_height: i32) 
     -> Vec<Coord> {
     let mut neighbours:Vec<Coord> = Vec::new();
 
@@ -69,50 +70,75 @@ fn get_neighbours(c: &Coord, char: &char, map_width: i32, map_height: i32)
     };
 
     for (dx, dy) in changes {
+        let new_x = (c.x as i32 + dx) as usize;
+        let new_y = (c.y as i32 + dy) as usize;
+
         if fits_bounds(c, dx, dy, map_width, map_height) {
-            neighbours.push( // not sure how safe this is but.. :D
-                Coord{x: (c.x as i32 + dx) as usize, y: (c.y as i32 + dy) as usize }
-            );
+            // println!("coord:{:?}, dx {}, dy: {}", c, dx, dy);
+            let neighbour_char = grid[new_y][new_x];     
+            //println!("current char: {}, neighbour_char: {}", char, neighbour_char);
+            if is_compatible(char, neighbour_char, dx, dy) {
+                neighbours.push(
+                    Coord{
+                        x: (c.x as i32 + dx) as usize,
+                        y: (c.y as i32 + dy) as usize
+                    }
+                );
+            }
         }
     }
 
-    // println!("neighbours of {:?}: {:?}", c, neighbours);
+    //println!("compatible neighbours of {:?}: {:?}\n", c, neighbours);
     neighbours
 }
 
-fn get_neighbors_chars(data: &Vec<Vec<char>>, x: usize, y: usize) -> String {
-    let mut n_chars = String::new();
 
-    // Top
-    if y > 0 {
-        n_chars.push(data[y - 1][x]);
-    } else {
-        n_chars.push('.'); // no neighbor
+fn is_compatible(current_char: &char, neighbour_char: char, dx: i32, dy: i32) -> bool {
+    match (current_char, neighbour_char) {
+        // L J 7 F - |
+        ('F', '-') if dx == 1 && dy == 0 => true,
+        ('F', '|') if dx == 0 && dy == 1 => true,
+        ('F', 'J') if dx == 1 && dy == 0 => true,
+        ('F', '7') if dx == 1 && dy == 0 => true,
+        ('F', 'L') if dx == 0 && dy == 1 => true,
+        // can't connect to F
+
+        ('L', 'J') if dx == 1 && dy == 0 => true,
+        ('L', 'F') if dx == 0 && dy == -1 => true,
+        ('L', '7') if dx == 0 && dy == -1 => true,
+        ('L', '|') if dx == 0 && dy == -1 => true,
+        ('L', '-') if dx == 1 && dy == 0 => true,
+
+        ('7', 'J') if dx == 0 && dy == 1 => true,
+        ('7', 'F') if dx == -1 && dy == 0 => true,
+        ('7', '-') if dx == -1 && dy == 0 => true,
+        ('7', '|') if dx == 0 && dy == 1 => true,
+        ('7', 'L') if dx == -1 && dy == 0 => true,
+        ('7', 'L') if dx == 0 && dy == 1 => true,
+
+        ('J', '|') if dx == 0 && dy == -1 => true,
+        ('J', '-') if dx == -1 && dy == 0 => true,
+        ('J', '7') if dx == 0 && dy == -1 => true,
+        ('J', 'F') if dx == 0 && dy == -1 => true,
+        ('J', 'L') if dx == -1 && dy == 0 => true,
+
+        ('-', 'F') if dx == -1 && dy == 0 => true, 
+        ('-', 'L') if dx == -1 && dy == 0 => true, 
+        ('-', 'J') if dx == 1 && dy == 0 => true, 
+        ('-', '7') if dx == 1 && dy == 0 => true, 
+        ('-', '-') if dx == 1 && dy == 0 => true, 
+        ('-', '-') if dx == -1 && dy == 0 => true, 
+        // cant connect to |
+   
+        ('|', 'F') if dx == 0 && dy == -1 => true,
+        ('|', 'L') if dx == 0 && dy == 1 => true,
+        ('|', 'J') if dx == 0 && dy == 1 => true,
+        ('|', '7') if dx == 0 && dy == -1 => true,
+
+        _ => false,
     }
-
-    // Right
-    if x + 1 < data[y].len() {
-        n_chars.push(data[y][x + 1]);
-    } else {
-        n_chars.push('.'); // no neighbor
-    }
-
-    // Bottom
-    if y + 1 < data.len() {
-        n_chars.push(data[y + 1][x]);
-    } else {
-        n_chars.push('.'); // no neighbor
-    }
-
-    // Left
-    if x > 0 {
-        n_chars.push(data[y][x - 1]);
-    } else {
-        n_chars.push('.'); // no neighbor
-    }
-
-    n_chars
 }
+
 
 fn find_loop_length(graph: &UnGraph<Coord, ()>, start: NodeIndex) -> Option<usize> {
     let mut dfs = DfsPostOrder::new(graph, start);
@@ -147,6 +173,7 @@ fn find_loop_length(graph: &UnGraph<Coord, ()>, start: NodeIndex) -> Option<usiz
     }
 }
 
+
 fn print_graph(graph: &UnGraph::<Coord, ()>) {
     for node_index in graph.node_indices() {
         println!("Node {:?} has coordinates {:?}", node_index, graph[node_index]);
@@ -168,7 +195,7 @@ fn silver(data: &Vec<Vec<char>>) -> i64 {
     // Add nodes
     for (y, row) in data.iter().enumerate() {
         for (x, char) in row.iter().enumerate() {            
-            if NODE_CHARS.contains(&char) {
+            if NODE_CHARS.contains(char) {
                 let coord = Coord{x, y};
                 let node_index = graph.add_node(coord);
                 ctni.insert(coord, node_index);
@@ -180,10 +207,10 @@ fn silver(data: &Vec<Vec<char>>) -> i64 {
     // Add edges, function is UGLY AS A SIN
     for (y, row) in data.iter().enumerate() {
         for (x, char) in row.iter().enumerate() {
-            if NODE_CHARS.contains(&char) {
+            if NODE_CHARS.contains(char) {
                 let coord = Coord{x, y};
-                if let Some(node_index) = ctni.get(&coord) {
-                    for neighbour_coord in get_neighbours(&coord, &char, map_width, map_height) {
+                if let Some(node_index) = ctni.get(&coord) {   
+                    for neighbour_coord in get_neighbours(data, &coord, char, map_width, map_height) {
                         if let Some(neighbour_index) = ctni.get(&neighbour_coord) {
                             // avoid adding edges twice to undirected graph
                             if *node_index < *neighbour_index {
@@ -220,6 +247,7 @@ fn silver(data: &Vec<Vec<char>>) -> i64 {
         return sum + 1;
     }   
 }
+
 
 /* fn gold(data: &Vec<String>) -> i64 {
     let mut sum: i64 = 0;    
