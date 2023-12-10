@@ -3,21 +3,9 @@
  * Author: Antti Hakkarainen
  * https://github.com/ahakkar/
  */
-
-#![allow(unused_assignments)]
-#![allow(unused_parens)]
-#![allow(unused_imports)]
-#![allow(unused_variables)]
-#![allow(unused_mut)]
-#![allow(dead_code)]
-#![allow(clippy::needless_return)]
-#![allow(clippy::needless_range_loop)]
-
 use lazy_static::lazy_static;
-use petgraph::{Graph, Undirected};
-use petgraph::data::Build;
 use petgraph::graph::{UnGraph, NodeIndex};
-use petgraph::visit::{Bfs, IntoNodeReferences, Visitable, VisitMap, DfsPostOrder};
+use petgraph::visit::DfsPostOrder;
 use std::collections::{HashSet, HashMap, VecDeque};
 use std::fs::{File, self};
 use std::io::{self, Write};
@@ -291,47 +279,43 @@ fn silver(data: &[Vec<char>], map_width: i32, map_height: i32)
     None  
 }
 
-fn get_enhanced_char_representation() -> HashMap<char, Vec<Vec<char>>> {
+fn get_enhanced_char_representation(e: char, p: char) -> HashMap<char, Vec<Vec<char>>> {
     let mut representations = HashMap::new();
-
-    let e:char = ' ';
     representations.insert('L', vec![
-        vec![e, 'X', e],
-        vec![e, 'X', 'X'],
+        vec![e, p, e],
+        vec![e, p, p],
         vec![e, e, e],
     ]);
 
     representations.insert('J', vec![
-        vec![e, 'X', e],
-        vec!['X', 'X', e],
+        vec![e, p, e],
+        vec![p, p, e],
         vec![e, e, e],
     ]);
 
     representations.insert('F', vec![
         vec![e, e, e],
-        vec![e, 'X', 'X'],
-        vec![e, 'X', e],
+        vec![e, p, p],
+        vec![e, p, e],
     ]);
 
     representations.insert('7', vec![
         vec![e, e, e],
-        vec!['X', 'X', e],
-        vec![e, 'X', e],
+        vec![p, p, e],
+        vec![e, p, e],
     ]);
 
     representations.insert('|', vec![
-        vec![e, 'X', e],
-        vec![e, 'X', e],
-        vec![e, 'X', e],
+        vec![e, p, e],
+        vec![e, p, e],
+        vec![e, p, e],
     ]);
 
     representations.insert('-', vec![
         vec![e, e, e],
-        vec!['X', 'X', 'X'],
+        vec![p, p, p],
         vec![e, e, e],
     ]);
-
-    // Add other characters and their representations as needed
 
     representations
 }
@@ -339,7 +323,7 @@ fn get_enhanced_char_representation() -> HashMap<char, Vec<Vec<char>>> {
 fn write_path_to_2d_map_file(graph_data: &PipeGraph, file_path: &str) -> io::Result<()> {
     let mut file = File::create(file_path)?;
     let mut map = vec![vec![' '; (graph_data.map_width as usize) * 3]; (graph_data.map_height as usize) * 3];
-    let representations = get_enhanced_char_representation();
+    let representations = get_enhanced_char_representation(' ', 'X');
 
     if let Some(graph) = &graph_data.graph {
         if let Some(path) = &graph_data.path {
@@ -355,13 +339,7 @@ fn write_path_to_2d_map_file(graph_data: &PipeGraph, file_path: &str) -> io::Res
                         }
                     }
                 }
-
-                for row in map {
-                    for cell in row {
-                        write!(file, "{}", cell)?;
-                    }
-                    writeln!(file)?;
-                }
+                let io_op_res = write_fill_to_file(&map, "3x3_enhanced_map.txt");
             }            
         }        
     }    
@@ -376,7 +354,7 @@ fn flood_fill(grid: &mut Vec<Vec<char>>, start_x: usize, start_y: usize, fill_ch
     let mut count = 0;
 
     while let Some((x, y)) = stack.pop() {
-        if x >= cols || y >= rows || grid[y][x] != ' ' { // Replace ' ' with your empty cell indicator
+        if x >= cols || y >= rows || grid[y][x] != ' ' {
             continue;
         }
 
