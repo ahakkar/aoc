@@ -99,11 +99,12 @@ fn is_compatible(current_char: &char, neighbour_char: char, dx: i32, dy: i32) ->
         ('F', '-') if dx == 1 && dy == 0 => true,
         ('F', '|') if dx == 0 && dy == 1 => true,
         ('F', 'J') if dx == 1 && dy == 0 => true,
+        ('F', 'J') if dx == 0 && dy == 1 => true,
         ('F', '7') if dx == 1 && dy == 0 => true,
         ('F', 'L') if dx == 0 && dy == 1 => true,
-        // can't connect to F
 
         ('L', 'J') if dx == 1 && dy == 0 => true,
+        ('L', '7') if dx == 1 && dy == 0 => true,
         ('L', 'F') if dx == 0 && dy == -1 => true,
         ('L', '7') if dx == 0 && dy == -1 => true,
         ('L', '|') if dx == 0 && dy == -1 => true,
@@ -120,6 +121,7 @@ fn is_compatible(current_char: &char, neighbour_char: char, dx: i32, dy: i32) ->
         ('J', '-') if dx == -1 && dy == 0 => true,
         ('J', '7') if dx == 0 && dy == -1 => true,
         ('J', 'F') if dx == 0 && dy == -1 => true,
+        ('J', 'F') if dx == -1 && dy == 0 => true,
         ('J', 'L') if dx == -1 && dy == 0 => true,
 
         ('-', 'F') if dx == -1 && dy == 0 => true, 
@@ -134,6 +136,8 @@ fn is_compatible(current_char: &char, neighbour_char: char, dx: i32, dy: i32) ->
         ('|', 'L') if dx == 0 && dy == 1 => true,
         ('|', 'J') if dx == 0 && dy == 1 => true,
         ('|', '7') if dx == 0 && dy == -1 => true,
+        ('|', '|') if dx == 0 && dy == -1 => true,
+        ('|', '|') if dx == 0 && dy == 1 => true,
 
         _ => false,
     }
@@ -222,7 +226,7 @@ fn silver(data: &Vec<Vec<char>>) -> i64 {
             }
         }
     }
-    print_graph(&graph);
+    //print_graph(&graph);
 
     println!("found start: {:?}", start);
 
