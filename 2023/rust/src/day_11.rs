@@ -52,8 +52,11 @@ fn binomial_coefficient(n: usize, k: usize) -> usize {
     result
 }
 
-fn manhattan_distance(a: Coord, b: Coord) -> isize {
-    ((b.x - a.x) as isize).abs() + ((b.y - a.y) as isize).abs()
+fn manhattan_distance(a: &Coord, b: &Coord) -> i64 {
+    (
+        (b.x as i64 - a.x as i64).abs() + 
+        (b.y as i64 - a.y as i64).abs()
+    )
 }
 
 fn data_as_chars(data: &[String]) -> Vec<Vec<char>> {
@@ -103,8 +106,23 @@ fn print_map(galaxies: &[Coord], map_w: usize, map_h: usize) {
     }
 }
 
+
+fn calc_pair_dist_sums(galaxies: Vec<Coord>) -> i64 {
+    let mut sum: i64 = 0;
+    let mut pairs = vec![];
+
+    // Function to generate pairs
+    for (i, coord1) in galaxies.iter().enumerate() {
+        for coord2 in &galaxies[i + 1..] {
+            pairs.push((coord1, coord2));
+        }
+    }
+
+    pairs.iter().map(|(a, b)| manhattan_distance(a, b)).sum()
+}
+
 fn silver(data: &[String]) -> i64 {
-    let mut sum: i64 = 0;  
+
     let grid: Vec<Vec<char>> = data_as_chars(data);
     let mut galaxies: Vec<Coord> = vec![];    
     let mut empty_rows: Vec<usize> = vec![];
@@ -123,18 +141,18 @@ fn silver(data: &[String]) -> i64 {
     }
 
     transform_coordinates(&mut galaxies, &empty_rows, &empty_cols);
-    print_map(
+/*     print_map(
         &galaxies,
         grid[0].len()+empty_cols.len(),
         grid.len()+empty_rows.len()
-    );
+    ); */
 
     println!("galaxies: {}", galaxies.len()); // 432
     println!("pairs: {}", binomial_coefficient(galaxies.len(), 2)); //
     println!("empty rows: {:?}", empty_rows);
     println!("empty cols: {:?}", empty_cols);
 
-    sum 
+    calc_pair_dist_sums(galaxies) 
 }
 
 /* fn gold(data: &Vec<String>) -> i64 {
