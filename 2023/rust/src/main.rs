@@ -4,6 +4,7 @@
  * https://github.com/ahakkar/
  */
 
+mod utils;
 // List of implemented solutions
 mod day09;
 mod day10;

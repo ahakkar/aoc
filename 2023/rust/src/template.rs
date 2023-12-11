@@ -4,7 +4,17 @@
  * https://github.com/ahakkar/
  */
 
- pub fn solve(data: Vec<String>) {
+#![allow(unused_parens)]
+#![allow(unused_imports)]
+#![allow(unused_variables)]
+#![allow(unused_mut)]
+#![allow(clippy::needless_return)]
+#![allow(clippy::needless_range_loop)]
+#![allow(dead_code)]
+#![allow(unused_assignments)]
+
+
+pub fn solve(data: Vec<String>) {
     println!("Silver: {}", silver(&data));
     //println!("Gold: {}", gold(&data));
 }
