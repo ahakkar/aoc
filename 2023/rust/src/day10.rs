@@ -3,6 +3,16 @@
  * Author: Antti Hakkarainen
  * https://github.com/ahakkar/
  */
+
+#![allow(unused_parens)]
+#![allow(unused_imports)]
+#![allow(unused_variables)]
+#![allow(unused_mut)]
+#![allow(clippy::needless_return)]
+#![allow(clippy::needless_range_loop)]
+#![allow(dead_code)]
+#![allow(unused_assignments)]
+
 use lazy_static::lazy_static;
 use petgraph::graph::{UnGraph, NodeIndex};
 use petgraph::visit::DfsPostOrder;

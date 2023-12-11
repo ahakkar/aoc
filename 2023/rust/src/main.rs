@@ -7,6 +7,7 @@
 // List of implemented solutions
 mod day09;
 mod day10;
+mod day_11;
 
 use std::{fs, path::Path};
 use std::time::Instant;
@@ -48,6 +49,7 @@ fn main() {
         match args.day.as_str() {
             "09" => execute_with_data(day09::solve),
             "10" => execute_with_data(day10::solve),
+            "11" => execute_with_data(day_11::solve),
             _ => println!("Unimplemented day"),
         }
     } else {
