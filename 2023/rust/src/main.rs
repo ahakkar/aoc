@@ -9,6 +9,7 @@ mod utils;
 mod day09;
 mod day10;
 mod day_11;
+mod day_12;
 
 use std::{fs, path::Path};
 use std::time::Instant;
@@ -51,6 +52,7 @@ fn main() {
             "09" => execute_with_data(day09::solve),
             "10" => execute_with_data(day10::solve),
             "11" => execute_with_data(day_11::solve),
+            "12" => execute_with_data(day_12::solve),
             _ => println!("Unimplemented day"),
         }
     } else {
