@@ -21,25 +21,38 @@ use super::utils::data_as_chars;
 struct Group {
     chars: Vec<char>,
     constraints: Vec<i8>,
-    perms: i16,
-    len: u8,
+    len: usize,
 }
 
 pub fn solve(data: Vec<String>) {
-    let mut groups: Vec<Group> = vec![];
-    let mut silver: i64 = 0;
+    let mut memo: HashMap<(Vec<i8>, String), usize> = HashMap::new();
+    let mut silver_groups: Vec<Group> = vec![];
+    let mut gold_groups: Vec<Group> = vec![];
+    let mut silver: usize = 0;
+    let mut gold: usize = 0;
 
     for row in data {
-        groups.push(parse_to_group(row));
+        silver_groups.push(parse_to_group(row.clone()));
+        gold_groups.push(unfold_to_group(row, 5));
     }
 
-    for g in groups {
+    for g in silver_groups {
         //println!("{:?} {:?} {}", g.chars, g.constraints, g.len);
         let mut current = String::new();
-        silver += count_combinations(g, 0, current);
+        silver += count_combinations(g, 0, current, &mut memo);
+    }
+    
+    println!("Silver: {}", silver); // 7460
+/*     memo.clear();
+
+     for g in gold_groups {
+        println!("{:?} {:?} {}", g.chars, g.constraints, g.len);
+        let mut current = String::new();
+        gold += count_combinations(g, 0, current, &mut memo);
     }
 
-    println!("Silver: {}", silver); // 7460
+    
+    println!("Gold: {}", gold); */
 }
 
 fn parse_to_group(row: String) -> Group {
@@ -50,45 +63,90 @@ fn parse_to_group(row: String) -> Group {
         .unwrap();
 
     Group{
-        len: chars.len() as u8,
+        len: chars.len(),
         chars,
-        constraints: constraints.map(|s| s.parse::<i8>().unwrap()).collect::<Vec<i8>>(),
-        perms: 0,        
+        constraints: constraints.map(|s| s.parse::<i8>().unwrap()).collect::<Vec<i8>>(),    
+    }
+}
+
+fn unfold_to_group(row: String, m: u8) -> Group {
+    let (chars, cst) = row
+        .trim()
+        .split_once(' ')
+        .unwrap();
+
+    let chars_repeated: Vec<char> = std::iter::repeat(chars)
+        .take(m as usize)
+        .collect::<Vec<&str>>()
+        .join("?")
+        .chars()
+        .collect();
+
+    let binding = std::iter::repeat(cst)
+        .take(m as usize)
+        .collect::<Vec<&str>>()
+        .join(",");
+    let cst_repeated = binding
+        .split(',');
+
+    Group{
+        len: chars_repeated.len(),
+        chars: chars_repeated,
+        constraints: cst_repeated.map(|s| s.parse::<i8>().unwrap()).collect::<Vec<i8>>(),  
     }
 }
 
 // forms patterns recursively and checks if they match constraints
-fn count_combinations(group: Group, idx: u8, mut current: String) -> i64 {
+fn count_combinations(
+    group: Group,
+    idx: usize,
+    mut current: String,
+    memo: &mut HashMap<(Vec<i8>, String), usize>
+) -> usize {
     // base case
     if idx == group.len {
-        match matches_constraints(current, group.constraints) {
-            true => return 1,
-            false => return 0,
-        }
+        let result = match matches_constraints(&current, &group.constraints) {
+            true => 1,
+            false => 0,
+        };
+        return result;
+    }
+
+    let mut key = (group.constraints.clone(), current.to_string()).clone();
+    if let Some(&result) = memo.get(&key) {
+        return result;
     }
 
     // replace ? with or . and continue recursion
-    if group.chars.get(idx as usize).unwrap() == &'?' {
-        return count_combinations(
+    let result = if group.chars.get(idx).unwrap() == &'?' {
+        count_combinations(
             group.clone(),
             idx + 1,
-            current.clone() + &'#'.to_string()
+            current.clone() + &'#'.to_string(),
+            memo,
         ) + 
         count_combinations(
             group.clone(),
             idx + 1,
-            current.clone() + &'.'.to_string()
+            current.clone() + &'.'.to_string(),
+            memo,
         )
     }
-    
-    count_combinations(
-        group.clone(),
-        idx + 1,
-        current + &group.chars.get(idx as usize).unwrap().to_string()
-    )
+    else {
+        count_combinations(
+            group.clone(),
+            idx + 1,
+            current.clone() + &group.chars.get(idx).unwrap().to_string(),
+            memo,
+        )        
+    };    
+    memo.insert(key.clone(), result);
+    //key = &(group.constraints, current.to_string());
+    //println!("idx: {} count: {} k: {:?} v:{}", idx, result, key, memo.get(&key).unwrap());
+    result    
 }
 
-fn matches_constraints(current: String, cst: Vec<i8>) -> bool {
+fn matches_constraints(current: &str, cst: &[i8]) -> bool {
     let mut cit = cst.iter().peekable();
     let mut cg_count = 0;
 
