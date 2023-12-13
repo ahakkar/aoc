@@ -63,26 +63,20 @@ fn silver(map: &[String]) -> isize {
     let row_result = match_lines(&rows, None);
     let col_result = match_lines(&cols, None);
     
-    if row_result > -1 {
-        return (row_result + OFFSET) * 100;
+    match row_result {
+        r if r > -1 => (r + OFFSET) * 100,
+        _           => col_result + OFFSET,
     }
-    col_result + OFFSET    
 }
 
-fn gold(map: &[String]) -> isize {
-    let (rows, cols) = parse_to_bits(map);
-    let mut vars: Vec<(Vec<i32>, Vec<i32>)> = vec![];
-    let mut min_row = isize::MAX;
-    let mut min_col = isize::MAX;
-
-    let og_row_result = match_lines(&rows, None);
-    let og_col_result = match_lines(&cols, None);
-
-    // new variation for each one cell bit toggle
-    for y in 0..map.len() {
-        for x in 0..map[0].len() {
-            let mut new_rows = rows.clone();
-            let mut new_cols = cols.clone();
+// new variation for each one cell bit toggle
+fn create_variations(rows: &[i32], cols: &[i32], height: usize, width: usize)
+-> Vec<(Vec<i32>, Vec<i32>)> {
+    let mut vars = Vec::new();
+    for y in 0..height {
+        for x in 0..width {
+            let mut new_rows = rows.to_vec();
+            let mut new_cols = cols.to_vec();
 
             new_rows[y] ^= 1 << x;
             new_cols[x] ^= 1 << y;
@@ -90,6 +84,17 @@ fn gold(map: &[String]) -> isize {
             vars.push((new_rows, new_cols));
         }
     }
+    vars
+}
+
+fn gold(map: &[String]) -> isize {
+    let (rows, cols) = parse_to_bits(map);
+    let vars = create_variations(&rows, &cols, map.len(), map[0].len());
+    let mut min_row = isize::MAX;
+    let mut min_col = isize::MAX;
+
+    let og_row_result = match_lines(&rows, None);
+    let og_col_result = match_lines(&cols, None);
 
     for var in vars {
         let row_result = match_lines(&var.0, Some(og_row_result));
