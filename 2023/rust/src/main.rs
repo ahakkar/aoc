@@ -12,9 +12,10 @@ mod day_11;
 mod day_12;
 mod day_13;
 
-use std::{fs, path::Path};
+use std::path::Path;
 use std::time::Instant;
 use clap::Parser;
+use utils::read_data_from_file;
 
 /// 2023 Advent of Code with Rust
 #[derive(Parser, Debug)]
@@ -62,11 +63,3 @@ fn main() {
     }
 }
 
-// parameter is a function call to another module
-fn read_data_from_file(file_path: &str) -> Vec<String> {
-    fs::read_to_string(file_path)
-        .unwrap_or_else(|_| panic!("Failed to read {}", file_path))
-        .lines()
-        .map(|s| s.to_string())
-        .collect()
-}

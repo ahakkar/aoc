@@ -20,7 +20,7 @@ use std::cmp::min;
 const OFFSET: isize = 1;
  
 pub fn solve(data: Vec<String>) {
-    //println!("Silver: {}", silver(&data)); // 18724, 17517, 26168 too low, ok: 27502
+    println!("Silver: {}", silver(&data)); // 18724, 17517, 26168 too low, ok: 27502
     println!("Gold: {}", gold(&data)); // 22429 most likely too low // 38076 too high, 31947 ok
 }
 
@@ -105,58 +105,6 @@ fn print_bit_vec(vec: &[i32]) {
     println!();
 }
 
-/* fn process_gold(map: &Vec<&String>) -> isize {
-    let mut rows: Vec<i32> = vec![0; map.len()]; 
-    let mut cols: Vec<i32> = vec![0; map[0].len()]; 
-
-    // parse map to bits
-    for (y, row) in map.iter().enumerate() {
-        for (x, col) in row.chars().enumerate() {            
-            if col == '#' {
-                rows[y] |= 1 << x;
-                cols[x] |= 1 << y;
-            }
-        }        
-    }
-
-
-    // iterate through all variations with brute force
-    for y in 0..rows.len() {
-        for x in 0..cols.len() {
-            print_bit_vec(&rows);
-            //print_bit_vec(&cols);
-            
-            rows[y] ^= 1 << x;
-            cols[x] ^= 1 << y;
-
-            //println!("rows..");
-            let row_result = match_gold_lines(&rows);
-            //println!("cols..");
-            let col_result = match_gold_lines(&cols);
-            // println!("row sum: {} col sum: {}", row_result, col_result);   
-
-            print_bit_vec(&rows);
-            //print_bit_vec(&cols);            
-
-            // Toggle the bit back
-            rows[y] ^= 1 << x;
-            cols[x] ^= 1 << y;
-
-            if (row_result > -1 || col_result > -1) {
-                if row_result > -1 {
-                    return (row_result + OFFSET) * 100;
-                } else if (col_result > -1) {
-                     return col_result + OFFSET;
-                };             
-            }         
-        }
-    }
-
-    panic!("Should find always a match..");
-}
- */
-
-
 fn process_gold(map: &Vec<&String>) -> isize {
     let mut rows: Vec<i32> = vec![0; map.len()];
     let mut cols: Vec<i32> = vec![0; map[0].len()];
@@ -187,8 +135,6 @@ fn process_gold(map: &Vec<&String>) -> isize {
             vars.push((new_rows, new_cols));
         }
     }
-    // so slow..
-    vars.retain(|(r, c)| *r != rows || *c != cols);
 
     let mut min_row = isize::MAX;
     let mut min_col = isize::MAX;
@@ -260,15 +206,8 @@ fn process_silver(map: &Vec<&String>) -> isize {
         }        
     }
 
-    // perfect reflection across either a horizontal line between two rows
-    // or across a vertical line between two columns.
     let row_result = match_lines(&rows);
     let col_result = match_lines(&cols);
-    //println!("row sum: {} col sum: {}", row_result, col_result);   
-
-/*     if row_result == col_result {
-        println!("Error, {} == {}", row_result, col_result);
-    } else  */
     
     if (row_result > -1) {
         return (row_result + OFFSET) * 100;
@@ -298,4 +237,23 @@ fn silver(data: &[String]) -> isize {
     }
     
     sum 
+}
+
+// run these with cargo test --bin main -- day_13::tests
+#[cfg(test)]
+mod tests {
+    use crate::utils::{self, read_data_from_file};
+    use super::*;   
+
+    #[test]
+    fn test_silver() {
+        let test_data:Vec<String> = read_data_from_file("input/real/13.txt");
+        assert_eq!(silver(&test_data), 27502);
+    }
+
+    #[test]
+    fn test_gold() {
+        let test_data:Vec<String> = read_data_from_file("input/real/13.txt");
+        assert_eq!(gold(&test_data), 31947);
+    }
 }

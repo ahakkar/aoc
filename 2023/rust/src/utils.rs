@@ -6,7 +6,7 @@
 
 #![allow(dead_code)]
 
-use std::fmt;
+use std::{fmt, fs};
 
 #[derive(Clone)]
 pub struct Coord {
@@ -53,4 +53,12 @@ fn print_map(galaxies: &[Coord], map_w: usize, map_h: usize) {
         let row_string: String = row.iter().collect();
         println!("{}", row_string);
     }
+}
+
+pub fn read_data_from_file(file_path: &str) -> Vec<String> {
+    fs::read_to_string(file_path)
+        .unwrap_or_else(|_| panic!("Failed to read {}", file_path))
+        .lines()
+        .map(|s| s.to_string())
+        .collect()
 }
