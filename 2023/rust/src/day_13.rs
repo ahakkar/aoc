@@ -19,7 +19,7 @@ use std::cmp::min;
 const OFFSET: isize = 1;
  
 pub fn solve(data: Vec<String>) {
-    println!("Silver: {}", silver(&data)); // 18724 too low // 17517
+    println!("Silver: {}", silver(&data)); // 18724, 17517, 26168 too low, ok: 27502
     //println!("Gold: {}", gold(&data));
 }
 
@@ -36,7 +36,7 @@ fn match_lines(lines: &[i32]) -> isize {
             mirror = i as isize; // save the row which was mirrored
             //println!("{} {}", i, length - i -1);
             let dist = min(i, length - i - 1);
-            println!("potential mirror on line {}, dist to border: {}", mirror, dist);     
+            //println!("potential mirror on line {}, dist to border: {}", mirror, dist);     
 
             // if found, check if the pattern mirrors
             for cmp in 0..dist {
@@ -44,18 +44,19 @@ fn match_lines(lines: &[i32]) -> isize {
 
                 if lines[i-(cmp+1)] != lines[i+1+(cmp+1)] {
                     // not a perfect mirror
+                    mirror = -1;
                     break;
                 }
-            }
-
-            // perfect mirror found
-            //println!("mirror on line {}, dist to closest border: {}", i+OFFSET, dist);   
-            return mirror + OFFSET;            
+            } 
+            if mirror > -1 {
+                return mirror;
+            }       
         }
         i += 1;
         //println!("{:#034b}", lines[i]);  
     }
-    return mirror + OFFSET;  
+    //println!("mirror on line {}, dist to closest border: {}", i+OFFSET, dist);  
+    mirror    
 }
 
 fn process_silver(map: &Vec<&String>) -> isize {
@@ -74,17 +75,18 @@ fn process_silver(map: &Vec<&String>) -> isize {
 
     // perfect reflection across either a horizontal line between two rows
     // or across a vertical line between two columns.
-    let row_sum = match_lines(&rows) * 100;
-    //println!();
-    let col_sum = match_lines(&cols);
+    let row_result = match_lines(&rows);
+    let col_result = match_lines(&cols);
+    //println!("row sum: {} col sum: {}", row_result, col_result);   
 
-    if row_sum == col_sum {
-        println!("Error, {} == {}", row_sum, col_sum);
+/*     if row_result == col_result {
+        println!("Error, {} == {}", row_result, col_result);
+    } else  */
+    
+    if (row_result > -1) {
+        return (row_result + OFFSET) * 100;
     }
-
-    //    println!("row sum: {} col sum: {}", row_sum, col_sum);
-
-    row_sum + col_sum       
+    col_result + OFFSET    
 }
 
 fn silver(data: &[String]) -> isize {
