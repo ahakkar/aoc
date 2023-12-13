@@ -62,3 +62,14 @@ pub fn read_data_from_file(file_path: &str) -> Vec<String> {
         .map(|s| s.to_string())
         .collect()
 }
+
+pub fn print_bit_vec<T>(vec: &[T]) 
+where
+    T: std::fmt::Binary + Sized,
+{
+    for line in vec {
+        let bit_size = 8 * std::mem::size_of::<T>();
+        println!("{:0width$b}", line, width=bit_size + 2); // +2 for '0b' prefix
+    }
+    println!();
+}
