@@ -21,7 +21,7 @@ const OFFSET: isize = 1;
  
 pub fn solve(data: Vec<String>) {
     //println!("Silver: {}", silver(&data)); // 18724, 17517, 26168 too low, ok: 27502
-    println!("Gold: {}", gold(&data)); // 22429 most likely too low // 38076 too high
+    println!("Gold: {}", gold(&data)); // 22429 most likely too low // 38076 too high, 31947 ok
 }
 
 // return -1 if no match, otherwise the row number
@@ -61,7 +61,7 @@ fn match_lines(lines: &[i32]) -> isize {
 }
 
 // return -1 if no match, otherwise the row number
-fn match_gold_lines(lines: &[i32]) -> isize {
+fn match_gold_lines(lines: &[i32], ignore_this: isize) -> isize {
     let mut mirror:isize = -1;
     let length = lines.len() - OFFSET as usize;
     let mut i = 0;
@@ -69,7 +69,7 @@ fn match_gold_lines(lines: &[i32]) -> isize {
 
     // find location of row pair
     for line in 0..length {        
-        if lines[i] == lines[i+1] {                   
+        if (lines[i] == lines[i+1]) && (i != ignore_this as usize) {                   
             mirror = i as isize; // save the row which was mirrored
             //println!("{} {}", i, length - i -1);
             let dist = min(i, length - i - 1);
@@ -173,6 +173,9 @@ fn process_gold(map: &Vec<&String>) -> isize {
         }
     }
 
+    let og_row_result = match_lines(&rows);
+    let og_col_result = match_lines(&cols);
+
     for y in 0..map.len() {
         for x in 0..map[0].len() {
             let mut new_rows = rows.clone();
@@ -192,8 +195,8 @@ fn process_gold(map: &Vec<&String>) -> isize {
     let mut vars_len = vars.len();
 
     for var in vars {
-        let row_result = match_lines(&var.0);
-        let col_result = match_lines(&var.1);
+        let row_result = match_gold_lines(&var.0, og_row_result);
+        let col_result = match_gold_lines(&var.1, og_col_result);
         //print_bit_vec(&var.0);
         //print_bit_vec(&var.1);
 
