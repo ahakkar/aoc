@@ -189,10 +189,13 @@ fn process_gold(map: &Vec<&String>) -> isize {
 
     let mut min_row = isize::MAX;
     let mut min_col = isize::MAX;
+    let mut vars_len = vars.len();
 
     for var in vars {
-        let row_result = match_gold_lines(&var.0);
-        let col_result = match_gold_lines(&var.1);
+        let row_result = match_lines(&var.0);
+        let col_result = match_lines(&var.1);
+        //print_bit_vec(&var.0);
+        //print_bit_vec(&var.1);
 
         //println!("row result: {} col result: {}", row_result, col_result);  
         if row_result >= 0 {
@@ -203,11 +206,13 @@ fn process_gold(map: &Vec<&String>) -> isize {
         }     
     }
 
-    //println!("min row: {} min col: {}", min_row, min_col);  
+    //print!("variations: {}, min row: {} min col: {}", vars_len, min_row, min_col);  
 
     if (min_row >= 0) && min_row != isize::MAX {
+        //println!(", returning value: {}", (min_row + OFFSET) * 100);
         return (min_row + OFFSET) * 100;
     } else if (min_col >= 0) && min_col != isize::MAX {
+        //println!(", returning value: {}", min_col + OFFSET);
         return min_col + OFFSET;
     }
 
