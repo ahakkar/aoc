@@ -7,7 +7,7 @@
 #![allow(dead_code)]
 
 use std::{fmt, fs};
-
+use std::fmt::{Display, Write};
 #[derive(Clone)]
 pub struct Coord {
     pub x: usize,
@@ -43,14 +43,16 @@ pub fn data_as_chars(data: &[String]) -> Vec<Vec<char>> {
     data_as_chars
 }
 
-fn print_map(galaxies: &[Coord], map_w: usize, map_h: usize) {
-    let mut map:Vec<Vec<char>> = vec![vec!['.'; map_w]; map_h];
-    for galaxy in galaxies {
-        map[galaxy.y][galaxy.x] = '#';
-    }
-    println!("map size: [{} x {}]", map_w, map_h);
-    for row in &map {
-        let row_string: String = row.iter().collect();
+pub fn print_map<T>(map: &Vec<Vec<T>>)
+where
+    T: Display,
+{
+    println!("map size: [{} x {}]", map[0].len(), map.len());
+    for row in map {
+        let row_string = row.iter().fold(String::new(), |mut acc, item| {
+            write!(acc, "{}", item).expect("[utils::print_map]: Failed to write to string");
+            acc
+        });
         println!("{}", row_string);
     }
 }
