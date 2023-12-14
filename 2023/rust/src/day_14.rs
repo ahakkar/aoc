@@ -3,20 +3,8 @@
  * 2023 Advent of Code with Rust
  * Author: Antti Hakkarainen
  * https://github.com/ahakkar/
- */
-
- #![allow(unused_parens)]
- #![allow(unused_imports)]
- #![allow(unused_variables)]
- #![allow(unused_mut)]
- #![allow(clippy::needless_return)]
- #![allow(clippy::needless_range_loop)]
- #![allow(dead_code)]
- #![allow(unused_assignments)]
-
-use binary_tree::count;
-
-use super::utils::print_map;
+*/
+use std::collections::HashMap;
 
 const OFFSET: usize = 1;
 
@@ -34,7 +22,7 @@ struct CubeGrid {
 }
 
 impl CubeGrid {
-    fn new(width: usize, height: usize) -> Self {
+    fn new(height: usize) -> Self {
         let rows = vec![0; height];
         Self { rows }
     }
@@ -49,49 +37,44 @@ impl CubeGrid {
 }
 
 pub fn solve(data: Vec<String>) {
-    println!("Silver: {}", silver(&data)); // 108614 ok
-    //println!("Gold: {}", gold(&data));
+    println!("Silver: {}", silver(&data)); // 108614
+    println!("Gold: {}", gold(&data)); // 96447
 }
 
-fn process_data<F>(data: &[String], processor: F) -> isize
-where
-    F: Fn(&[String]) -> isize,
-{
-    data.split(|row| row.is_empty())
-        .map(processor)
-        .sum()
-}
+fn parse_map(data: &[String]) ->
+(Vec<Vec<i8>>, CubeGrid) {
+    let rows = data.len();
+    let cols = data[0].len();
+    let mut cg: CubeGrid = CubeGrid::new(rows);    
+    let mut map: Vec<Vec<i8>> = vec![vec![0; cols]; rows];
 
-// Move balls in the given direction, stopping at obstacles and map edges.
-/* fn move_balls(map: &mut [Vec<i8>], cg: &CubeGrid, dir: (i8,i8)) {
-    let w = map[0].len() as i8;/*  */
-    let h = map.len() as i8;
-    let (dx, dy) = dir;
-
-    for y in 0..h {
-        for x in 0..w {
-            let nx = x+dx;
-            let ny = y+dy;
-            if  (ny >= 0 && ny < h) && (nx >= 0 && nx < w) &&
-                map[y as usize][x as usize] == BALL && 
-                map[ny as usize][nx as usize] == EMPTY 
-            {
-                map[ny as usize][nx as usize] = BALL;
-                map[y as usize][x as usize] = EMPTY;
-            } 
+    for (y, row) in data.iter().enumerate() {
+        for (x, char) in row.chars().enumerate() {
+            match char {
+                '.' => map[y][x] = EMPTY,
+                '#' => { map[y][x] = CUBE; cg.set_obstacle(x, y); },
+                'O' => map[y][x] = BALL,
+                 _  => panic!("unknown char at {}, {}", x, y),
+            }
         }
     }
+    (map, cg)
 }
- */
 
-// Move balls in the given direction, stopping at obstacles and map edges.
-fn move_balls(map: &mut [Vec<i8>], cg: &CubeGrid, dir: (i8, i8)) {
+// A terrible monster from beyond..
+fn move_balls(map: &mut [Vec<i8>], cg: &CubeGrid, dir: &(i8, i8)) {
     let w = map[0].len() as i8;
     let h = map.len() as i8;
     let (dx, dy) = dir;
 
-    for y in 0..h {
-        for x in 0..w {
+    // Determine the iteration order based on direction
+    let (start_x, end_x, step_x) = if dx > &0 { (w - 1, -1, -1) } else { (0, w, 1) };
+    let (start_y, end_y, step_y) = if dy > &0 { (h - 1, -1, -1) } else { (0, h, 1) };
+
+    let mut y = start_y;
+    while y != end_y {
+        let mut x = start_x;
+        while x != end_x {
             if map[y as usize][x as usize] == BALL {
                 let mut nx = x;
                 let mut ny = y;
@@ -110,7 +93,9 @@ fn move_balls(map: &mut [Vec<i8>], cg: &CubeGrid, dir: (i8, i8)) {
                     map[y as usize][x as usize] = EMPTY;
                 }
             }
+            x += step_x;
         }
+        y += step_y;
     }
 }
 
@@ -118,41 +103,50 @@ fn count_weight(map: &[Vec<i8>]) -> usize {
     let mut sum: usize = 0;  
     for (y, row) in map.iter().rev().enumerate() {        
         let result = row.iter().filter(|&&n| n == BALL).count() * (y + OFFSET);
-        //println!("y: {}, {:?}, result: {}", y+1, row, result);
-        sum += result;
-    }
-    
+          sum += result;
+    }    
     sum
 }
 
-fn silver(data: &Vec<String>) -> usize {      
-    let rows = data.len();
-    let cols = data[0].len();
-    let mut cg: CubeGrid = CubeGrid::new(cols, rows);
-    let mut map: Vec<Vec<i8>> = vec![vec![0; cols]; rows];
-    
+fn find_cycle(map: &mut [Vec<i8>], cg: &CubeGrid, n: &usize) -> usize {
+    let mut seen_maps = HashMap::new();
+    seen_maps.insert(map.to_vec(), 0);
 
-    // parse data...
-    for (y, row) in data.iter().enumerate() {
-        for (x, char) in row.chars().enumerate() {
-            match char {
-                '.' => map[y][x] = EMPTY,
-                '#' => { map[y][x] = CUBE; cg.set_obstacle(x, y); },
-                'O' => map[y][x] = BALL,
-                 _  => panic!("unknown char at {}, {}", x, y),
-            }
+    // Find start and end for a cycle
+    let (start, end) = loop {
+        for next_dir in [NORTH, WEST, SOUTH, EAST] {
+            move_balls(map, cg, &next_dir);
+        }
+
+        let end = seen_maps.len();
+        if let Some(start) = seen_maps.insert(map.to_vec(), end) {
+            break (start, end);
+        }
+    };
+
+    // simulate the result
+    let target_index = ((n - start) % (end - start)) + start;
+    let mut found_value = None;
+
+    for (key, index) in seen_maps.iter() {
+        if *index == target_index {
+            found_value = Some(key);
+            break;
         }
     }
+    // Return the final weight
+    count_weight(found_value.unwrap())
+}
 
-    //print_map(&map);
-    println!();
-
-    // move balls around
-    move_balls(&mut map, &cg, NORTH);
-    //print_map(&map);
-
-    // count load of balls on north edge
+fn silver(data: &[String]) -> usize {      
+    let (mut map, cg) = parse_map(data);
+    move_balls(&mut map, &cg, &NORTH);
     count_weight(&map) 
+}
+
+fn gold(data: &[String]) -> usize {   
+    let (mut map, cg) = parse_map(data);
+    find_cycle(&mut map, &cg, &1_000_000_000)
 }
 
 // run these with cargo test --bin main -- day_13::tests
@@ -165,17 +159,18 @@ mod tests {
     fn test_test() {
         let test_data:Vec<String> = read_data_from_file("input/test/14.txt");
         assert_eq!(silver(&test_data), 136);
+        assert_eq!(gold(&test_data), 64);
     }
 
-/*     #[test]
+    #[test]
     fn test_silver() {
-        let test_data:Vec<String> = read_data_from_file("input/real/13.txt");
-        assert_eq!(process_data(&test_data, silver), 27502);
+        let test_data:Vec<String> = read_data_from_file("input/real/14.txt");
+        assert_eq!(silver(&test_data), 108614);
     }
 
     #[test]
     fn test_gold() {
-        let test_data:Vec<String> = read_data_from_file("input/real/13.txt");
-        assert_eq!(process_data(&test_data, gold), 31947);
-    } */
+        let test_data:Vec<String> = read_data_from_file("input/real/14.txt");
+        assert_eq!(gold(&test_data), 96447);
+    }
 }
