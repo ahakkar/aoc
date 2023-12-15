@@ -2,7 +2,7 @@
  * 2023 Advent of Code with Rust
  * Author: Antti Hakkarainen
  * https://github.com/ahakkar/
- */
+**/
 
 #![allow(unused_parens)]
 #![allow(unused_imports)]
@@ -19,8 +19,8 @@ pub fn solve(data: Vec<String>) {
     //println!("Gold: {}", gold(&data));
 }
 
-fn silver(data: &Vec<String>) -> i64 {
-    let mut sum: i64 = 0;    
+fn silver(data: &Vec<String>) -> usize {
+    let mut sum: usize = 0;    
 
     for row in data {
 
@@ -28,8 +28,8 @@ fn silver(data: &Vec<String>) -> i64 {
     sum 
 }
 
-/* fn gold(data: &Vec<String>) -> i64 {
-    let mut sum: i64 = 0;    
+/* fn gold(data: &Vec<String>) -> usize {
+    let mut sum: usize = 0;    
 
     for row in data {
            } 
