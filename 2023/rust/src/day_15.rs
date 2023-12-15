@@ -3,25 +3,12 @@
  * Author: Antti Hakkarainen
  * https://github.com/ahakkar/
 **/
+use std::collections::BTreeMap;
 
-#![allow(unused_parens)]
-#![allow(unused_imports)]
-#![allow(unused_variables)]
-#![allow(unused_mut)]
-#![allow(clippy::needless_return)]
-#![allow(clippy::needless_range_loop)]
-#![allow(dead_code)]
-#![allow(unused_assignments)]
-
-use std::collections::{VecDeque, BTreeMap};
-
-#[derive(Debug)]
 struct Box {
-    idx: usize,
     lenses: Vec<Lens>,
 }
 
-#[derive(Debug)]
 struct Lens {
     fl: usize,
     label: String,
@@ -46,7 +33,7 @@ fn gold(data: &[String]) -> usize {
     let mut shelf: BTreeMap<usize, Box> = BTreeMap::new();   
 
     for idx in 0..=255 {        
-        shelf.insert(idx, Box{idx, lenses: Vec::new()});
+        shelf.insert(idx, Box{lenses: Vec::new()});
     }
 
     for hash in data[0].split(',') {
@@ -102,7 +89,6 @@ fn tokenize(hash: &str) -> (String, char, usize) {
             break;
         } else {
             op = c;
-            break;
         }
     }
     (label, op, fl)
