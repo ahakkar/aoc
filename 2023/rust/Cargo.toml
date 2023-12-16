@@ -72,8 +72,4 @@ path = "src/day07b.rs"
 name = "day07opt"
 path = "src/day07opt.rs"
 
-[[bin]]
-name = "day08"
-path = "src/day08.rs"
-
 
