@@ -9,19 +9,63 @@
 use std::{fmt, fs};
 use std::fmt::{Display, Write};
 
-pub type GridMap = Vec<Vec<char>>;
-#[derive(Clone)]
+pub type Grid = Vec<Vec<char>>;
+
+#[derive(Clone, Eq, Hash, PartialEq)]
 pub struct Coord {
-    pub x: usize,
-    pub y: usize,
+    pub x: isize,
+    pub y: isize,
 }
+
+impl Coord {
+    pub fn new(x: isize, y: isize) -> Coord {
+        Coord { x, y }
+    }
+}    
 
 impl fmt::Debug for Coord {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "[{}, {}]", self.x, self.y)
     }
 }
-    
+
+#[derive(PartialEq, Eq)]
+pub struct Vec2D {
+    pub x: isize,
+    pub y: isize,
+}
+
+impl Vec2D {
+    pub const fn new(x: isize, y: isize) -> Vec2D {
+        Vec2D { x, y }
+    }
+}  
+
+pub struct GridMap {
+    d: Grid,
+    w: usize,
+    h: usize,
+}
+
+impl GridMap {
+    pub fn new(d: Grid) -> GridMap {
+        let w = d[0].len();
+        let h = d.len();
+        GridMap {
+            d,
+            w,
+            h,
+        }
+    }
+
+    pub fn get(&self, xy: &Coord) -> Option<char> {
+        if xy.x < self.w as isize && xy.y < self.h as isize && xy.x >= 0 && xy.y >= 0{
+            Some(self.d[xy.y as usize][xy.x as usize])
+        } else {
+            None
+        }
+    }
+}
 
 pub fn binomial_coefficient(n: usize, k: usize) -> usize {
     let mut result = 1;
@@ -37,8 +81,8 @@ pub fn manhattan_distance(a: &Coord, b: &Coord) -> i64 {
     (b.y as i64 - a.y as i64).abs()   
 }
 
-pub fn data_as_chars(data: &[String]) -> GridMap {
-    let mut data_as_chars: GridMap = vec![];
+pub fn data_as_chars(data: &[String]) -> Grid {
+    let mut data_as_chars: Grid = vec![];
     for row in data {
         data_as_chars.push(row.chars().collect::<Vec<char>>());
     }

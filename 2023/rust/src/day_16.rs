@@ -13,7 +13,9 @@
 #![allow(dead_code)]
 #![allow(unused_assignments)]
 
-use super::utils::{GridMap, Coord, data_as_chars};
+use std::collections::{BTreeSet, HashSet};
+
+use super::utils::{Grid, GridMap, Coord, Vec2D, data_as_chars};
 
 
 pub fn solve(data: Vec<String>) {
@@ -22,11 +24,82 @@ pub fn solve(data: Vec<String>) {
 }
 
 fn silver(data: &[String]) -> usize {
-    let mut sum: usize = 0;    
-    let map:GridMap = data_as_chars(data);
+    let mut map:GridMap = GridMap::new(data_as_chars(data)); 
+    let mut energized:HashSet<Coord> = HashSet::new();
+    energized.insert(Coord::new(0,0)); // easier to add starting position manually
+    follow_path(&mut map, Coord{x: 0, y:0}, Vec2D::new(1, 0), &mut energized);
 
+    energized.len() 
+}
 
-    sum 
+/*
+.|...\....
+|.-.\.....
+.....|-...
+........|.
+..........
+.........\
+..../.\\..
+.-.-/..|..
+.|....-|.\
+..//.|....
+*/
+
+const NORTH: Vec2D = Vec2D::new(0, -1);
+const SOUTH: Vec2D = Vec2D::new(0, 1);
+const EAST: Vec2D = Vec2D::new(1, 0);
+const WEST: Vec2D = Vec2D::new(-1, 0);
+
+fn follow_path(
+    map: &mut GridMap, 
+    prev: Coord,
+    dir: Vec2D, 
+    energized: &mut HashSet<Coord>
+) {
+    let cur = Coord::new(prev.x + dir.x, prev.y + dir.y);
+
+    if let Some(char) = map.get(&cur) {
+        energized.insert(prev.clone());
+        match char {
+            '|' => {
+                if dir.x.abs() == 1 && dir.y == 0 {
+                    follow_path(map, cur.clone(), Vec2D::new(0, -1), energized);
+                    follow_path(map, cur, Vec2D::new(0, 1), energized);
+                } else {
+                    follow_path(map, cur, dir, energized);
+                }                
+            },
+            '-' => {
+                if dir.y.abs() == 1 && dir.x == 0 {
+                    follow_path(map, cur.clone(), Vec2D::new(1, 0), energized);
+                    follow_path(map, cur, Vec2D::new(-1, 0), energized);
+                } else {
+                    follow_path(map, cur, dir, energized);
+                };
+                
+            },
+            '/' => {
+                match dir {
+                    NORTH => follow_path(map, cur, EAST, energized),
+                    SOUTH => follow_path(map, cur, WEST, energized),
+                    EAST  => follow_path(map, cur, NORTH, energized),
+                    WEST  => follow_path(map, cur, SOUTH, energized),
+                    _     => panic!("invalid dir"),
+                };
+            },
+           '\\' => {
+                match dir {
+                    NORTH => follow_path(map, cur, WEST, energized),
+                    SOUTH => follow_path(map, cur, EAST, energized),
+                    EAST  => follow_path(map, cur, SOUTH, energized),
+                    WEST  => follow_path(map, cur, NORTH, energized),
+                    _     => panic!("invalid dir"),
+                };
+            },
+            '.' => follow_path(map, cur, dir, energized),
+             _  => panic!("Invalid char at map {:?}, char: {}", cur, char),
+        }
+    }
 }
 
 /* fn gold(data: &[String]) -> usize {
