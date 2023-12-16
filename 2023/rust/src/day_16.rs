@@ -7,14 +7,6 @@
 use std::collections::HashSet;
 use super::utils::*;
 
-enum Elem {
-    Empty,
-    Ver,
-    Hor,
-    LMir,
-    RMir,    
-}
-
 pub fn solve(data: Vec<String>) {    
     println!("Silver: {}", silver(&data)); // 7210
     println!("Gold: {}", gold(&data)); // 7672 too low, 7673

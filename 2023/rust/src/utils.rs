@@ -68,11 +68,7 @@ where
     pub fn new(d: Grid<T>) -> GridMap<T> {
         let w = d[0].len();
         let h = d.len();
-        GridMap {
-            d,
-            w,
-            h,
-        }
+        GridMap {d, w, h}
     }
 
     pub fn get(&self, xy: &Coord) -> Option<T> {
