@@ -13,24 +13,23 @@
 #![allow(dead_code)]
 #![allow(unused_assignments)]
 
-use super::utils::*;
+use super::utils::{GridMap, Coord, data_as_chars};
 
 
-pub fn solve(data: &[String]) {
+pub fn solve(data: Vec<String>) {
     println!("Silver: {}", silver(&data));
     //println!("Gold: {}", gold(&data));
 }
 
 fn silver(data: &[String]) -> usize {
     let mut sum: usize = 0;    
+    let map:GridMap = data_as_chars(data);
 
-    for row in data {
 
-    }
     sum 
 }
 
-/* fn gold(data: &Vec<String>) -> usize {
+/* fn gold(data: &[String]) -> usize {
     let mut sum: usize = 0;    
 
     for row in data {
@@ -46,20 +45,20 @@ mod tests {
 
     #[test]
     fn test_test() {
-        let test_data:Vec<String> = read_data_from_file("input/test/15.txt");
-        assert_eq!(silver(&test_data), 1320);
-        assert_eq!(gold(&test_data), 145);
+        let test_data:Vec<String> = read_data_from_file("input/test/16.txt");
+        assert_eq!(silver(&test_data), 46);
+        //assert_eq!(gold(&test_data), 145);
     }
 
     #[test]
     fn test_silver() {
-        let test_data:Vec<String> = read_data_from_file("input/real/15.txt");
+        let test_data:Vec<String> = read_data_from_file("input/real/16.txt");
         assert_eq!(silver(&test_data), 510801);
     }
 
     #[test]
     fn test_gold() {
-        let test_data:Vec<String> = read_data_from_file("input/real/15.txt");
-        assert_eq!(gold(&test_data), 212763);
+        let test_data:Vec<String> = read_data_from_file("input/real/16.txt");
+        //assert_eq!(gold(&test_data), 212763);
     }
 }

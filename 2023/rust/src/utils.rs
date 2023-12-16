@@ -8,6 +8,8 @@
 
 use std::{fmt, fs};
 use std::fmt::{Display, Write};
+
+pub type GridMap = Vec<Vec<char>>;
 #[derive(Clone)]
 pub struct Coord {
     pub x: usize,
@@ -35,8 +37,8 @@ pub fn manhattan_distance(a: &Coord, b: &Coord) -> i64 {
     (b.y as i64 - a.y as i64).abs()   
 }
 
-pub fn data_as_chars(data: &[String]) -> Vec<Vec<char>> {
-    let mut data_as_chars: Vec<Vec<char>> = vec![];
+pub fn data_as_chars(data: &[String]) -> GridMap {
+    let mut data_as_chars: GridMap = vec![];
     for row in data {
         data_as_chars.push(row.chars().collect::<Vec<char>>());
     }

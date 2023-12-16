@@ -13,6 +13,7 @@ mod day_12;
 mod day_13;
 mod day_14;
 mod day_15;
+mod day_16;
 
 use std::path::Path;
 use std::time::Instant;
@@ -60,6 +61,7 @@ fn main() {
             "13" => execute_with_data(day_13::solve),
             "14" => execute_with_data(day_14::solve),
             "15" => execute_with_data(day_15::solve),
+            "16" => execute_with_data(day_16::solve),
             _ => println!("Unimplemented day"),
         }
     } else {
