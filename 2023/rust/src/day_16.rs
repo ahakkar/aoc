@@ -7,18 +7,26 @@
 use std::collections::HashSet;
 use super::utils::*;
 
+enum Elem {
+    Empty,
+    Ver,
+    Hor,
+    LMir,
+    RMir,    
+}
+
 pub fn solve(data: Vec<String>) {    
     println!("Silver: {}", silver(&data)); // 7210
     println!("Gold: {}", gold(&data)); // 7672 too low, 7673
 }
 
 fn silver(data: &[String]) -> usize {
-    let map:GridMap = GridMap::new(data_as_chars(data)); 
+    let map:GridMap<char> = GridMap::new(data_as_chars(data)); 
     get_energized(&map, Coord::new(-1,0), EAST)
 }
 
 fn gold(data: &[String]) -> usize {
-    let map:GridMap = GridMap::new(data_as_chars(data)); 
+    let map:GridMap<char> = GridMap::new(data_as_chars(data)); 
     let width = map.get_width() as isize;
     let height = map.get_height() as isize;
 
@@ -33,7 +41,7 @@ fn gold(data: &[String]) -> usize {
         .unwrap()
 }
 
-fn get_energized(map: &GridMap, start: Coord, dir: Vec2D) -> usize {
+fn get_energized(map: &GridMap<char>, start: Coord, dir: Vec2D) -> usize {
     let mut visited:Visited = HashSet::new();
     follow_path(map, start, dir, &mut visited);
 
@@ -44,7 +52,7 @@ fn get_energized(map: &GridMap, start: Coord, dir: Vec2D) -> usize {
     energized.len() 
 }
 
-fn follow_path(map: &GridMap, prev: Coord, dir: Vec2D, visited: &mut Visited) {
+fn follow_path(map: &GridMap<char>, prev: Coord, dir: Vec2D, visited: &mut Visited) {
     let cur = Coord::new(prev.x + dir.x, prev.y + dir.y);
 
     if let Some(char) = map.get(&cur) {

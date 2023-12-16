@@ -10,7 +10,7 @@ use std::collections::HashSet;
 use std::{fmt, fs};
 use std::fmt::{Display, Write};
 
-pub type Grid = Vec<Vec<char>>;
+pub type Grid<T> = Vec<Vec<T>>;
 pub type Visited = HashSet<(Coord, Vec2D)>;
 
 pub const NORTH: Vec2D = Vec2D::new(0, -1);
@@ -31,8 +31,8 @@ pub struct Vec2D {
 }
 
 #[derive(Clone)]
-pub struct GridMap {
-    d: Grid,
+pub struct GridMap<T> {
+    d: Grid<T>,
     w: usize,
     h: usize,
 }
@@ -61,8 +61,11 @@ impl fmt::Debug for Vec2D {
     }
 }
 
-impl GridMap {
-    pub fn new(d: Grid) -> GridMap {
+impl<T> GridMap<T>
+where
+    T: Copy,
+{
+    pub fn new(d: Grid<T>) -> GridMap<T> {
         let w = d[0].len();
         let h = d.len();
         GridMap {
@@ -72,7 +75,7 @@ impl GridMap {
         }
     }
 
-    pub fn get(&self, xy: &Coord) -> Option<char> {
+    pub fn get(&self, xy: &Coord) -> Option<T> {
         if xy.x < self.w as isize && xy.y < self.h as isize && xy.x >= 0 && xy.y >= 0{
             Some(self.d[xy.y as usize][xy.x as usize])
         } else {
@@ -103,8 +106,8 @@ pub fn manhattan_distance(a: &Coord, b: &Coord) -> i64 {
     (b.y as i64 - a.y as i64).abs()   
 }
 
-pub fn data_as_chars(data: &[String]) -> Grid {
-    let mut data_as_chars: Grid = vec![];
+pub fn data_as_chars(data: &[String]) -> Grid<char> {
+    let mut data_as_chars: Grid<char> = vec![];
     for row in data {
         data_as_chars.push(row.chars().collect::<Vec<char>>());
     }
