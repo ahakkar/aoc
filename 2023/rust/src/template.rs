@@ -38,7 +38,7 @@ fn silver(data: &[String]) -> usize {
     sum 
 } */
 
-// run these with cargo test --bin main -- day_13::tests
+// run these with cargo test --bin main -- day_XX::tests
 #[cfg(test)]
 mod tests {
     use crate::utils::read_data_from_file;
