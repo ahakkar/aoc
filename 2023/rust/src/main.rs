@@ -8,6 +8,7 @@ mod utils;
 // List of implemented solutions
 mod day_01;
 mod day_02;
+mod day_05;
 mod day_08;
 mod day_09;
 mod day_10;
@@ -59,6 +60,7 @@ fn main() {
         match args.day.as_str() {
             "01" => execute_with_data(day_01::solve),
             "02" => execute_with_data(day_02::solve),
+            "05" => execute_with_data(day_05::solve),
             "08" => execute_with_data(day_08::solve),
             "09" => execute_with_data(day_09::solve),
             "10" => execute_with_data(day_10::solve),
