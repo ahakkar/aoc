@@ -16,7 +16,7 @@
 use super::utils::*;
 
 
-pub fn solve(data: &[String]) {
+pub fn solve(data: Vec<String>) {    
     println!("Silver: {}", silver(&data));
     //println!("Gold: {}", gold(&data));
 }
