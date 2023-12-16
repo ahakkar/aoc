@@ -24,6 +24,7 @@ pub struct Vec2D {
     pub y: isize,
 }
 
+#[derive(Clone)]
 pub struct GridMap {
     d: Grid,
     w: usize,
@@ -47,6 +48,12 @@ impl Vec2D {
         Vec2D { x, y }
     }
 }  
+
+impl fmt::Debug for Vec2D {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "[{}, {}]", self.x, self.y)
+    }
+}
 
 impl GridMap {
     pub fn new(d: Grid) -> GridMap {
