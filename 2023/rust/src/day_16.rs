@@ -15,88 +15,84 @@
 
 use std::collections::{BTreeSet, HashSet};
 
-use super::utils::{Grid, GridMap, Coord, Vec2D, data_as_chars};
-
-
-pub fn solve(data: Vec<String>) {
-    println!("Silver: {}", silver(&data));
-    //println!("Gold: {}", gold(&data));
-}
-
-fn silver(data: &[String]) -> usize {
-    let mut map:GridMap = GridMap::new(data_as_chars(data)); 
-    let mut energized:HashSet<Coord> = HashSet::new();
-    energized.insert(Coord::new(0,0)); // easier to add starting position manually
-    follow_path(&mut map, Coord{x: 0, y:0}, Vec2D::new(1, 0), &mut energized);
-
-    energized.len() 
-}
-
-/*
-.|...\....
-|.-.\.....
-.....|-...
-........|.
-..........
-.........\
-..../.\\..
-.-.-/..|..
-.|....-|.\
-..//.|....
-*/
+use super::utils::{Grid, GridMap, Coord, Vec2D, data_as_chars, print_coords};
 
 const NORTH: Vec2D = Vec2D::new(0, -1);
 const SOUTH: Vec2D = Vec2D::new(0, 1);
 const EAST: Vec2D = Vec2D::new(1, 0);
 const WEST: Vec2D = Vec2D::new(-1, 0);
 
+pub fn solve(data: Vec<String>) {
+    println!("Silver: {}", silver(&data)); // 7210
+    //println!("Gold: {}", gold(&data));
+}
+
+fn silver(data: &[String]) -> usize {
+    let mut map:GridMap = GridMap::new(data_as_chars(data)); 
+    let mut visited:HashSet<(Coord, Vec2D)> = HashSet::new();
+    follow_path(&mut map, Coord::new(-1,0), EAST, &mut visited);
+
+    let mut energized:HashSet<Coord> = HashSet::new();
+    for visit in visited {        
+        energized.insert(visit.0);
+    }
+
+    //print_coords(&energized, '\u{1F44D}', '\u{2B1B}', map.get_width(), map.get_height());
+    //println!("{:?}", energized);
+    energized.len() 
+}
+
 fn follow_path(
     map: &mut GridMap, 
     prev: Coord,
     dir: Vec2D, 
-    energized: &mut HashSet<Coord>
+    visited: &mut HashSet<(Coord, Vec2D)>
 ) {
     let cur = Coord::new(prev.x + dir.x, prev.y + dir.y);
 
     if let Some(char) = map.get(&cur) {
-        energized.insert(prev.clone());
+        if !visited.insert((cur.clone(), dir.clone())) {
+            return;
+        }
+
+        //println!("Current: {:?}, char: {}", cur, char);
         match char {
             '|' => {
                 if dir.x.abs() == 1 && dir.y == 0 {
-                    follow_path(map, cur.clone(), Vec2D::new(0, -1), energized);
-                    follow_path(map, cur, Vec2D::new(0, 1), energized);
+                    follow_path(map, cur.clone(), NORTH, visited);
+                    follow_path(map, cur, SOUTH, visited);
                 } else {
-                    follow_path(map, cur, dir, energized);
+                    follow_path(map, cur, dir, visited);
                 }                
             },
             '-' => {
-                if dir.y.abs() == 1 && dir.x == 0 {
-                    follow_path(map, cur.clone(), Vec2D::new(1, 0), energized);
-                    follow_path(map, cur, Vec2D::new(-1, 0), energized);
+                if dir.x == 0 && dir.y.abs() == 1 {
+                    follow_path(map, cur.clone(), EAST, visited);
+                    follow_path(map, cur, WEST, visited);
                 } else {
-                    follow_path(map, cur, dir, energized);
+                    follow_path(map, cur, dir, visited);
                 };
                 
             },
             '/' => {
                 match dir {
-                    NORTH => follow_path(map, cur, EAST, energized),
-                    SOUTH => follow_path(map, cur, WEST, energized),
-                    EAST  => follow_path(map, cur, NORTH, energized),
-                    WEST  => follow_path(map, cur, SOUTH, energized),
+                    NORTH => follow_path(map, cur, EAST, visited),
+                    SOUTH => follow_path(map, cur, WEST, visited),
+                    EAST  => follow_path(map, cur, NORTH, visited),
+                    WEST  => follow_path(map, cur, SOUTH, visited),
                     _     => panic!("invalid dir"),
                 };
             },
            '\\' => {
                 match dir {
-                    NORTH => follow_path(map, cur, WEST, energized),
-                    SOUTH => follow_path(map, cur, EAST, energized),
-                    EAST  => follow_path(map, cur, SOUTH, energized),
-                    WEST  => follow_path(map, cur, NORTH, energized),
+                    NORTH => follow_path(map, cur, WEST, visited),
+                    SOUTH => follow_path(map, cur, EAST, visited),
+                    EAST  => follow_path(map, cur, SOUTH, visited),
+                    WEST  => follow_path(map, cur, NORTH, visited),
                     _     => panic!("invalid dir"),
                 };
             },
-            '.' => follow_path(map, cur, dir, energized),
+            '.' => follow_path(map, cur, dir, visited),
              _  => panic!("Invalid char at map {:?}, char: {}", cur, char),
         }
     }

@@ -6,6 +6,7 @@
 
 #![allow(dead_code)]
 
+use std::collections::HashSet;
 use std::{fmt, fs};
 use std::fmt::{Display, Write};
 
@@ -15,6 +16,18 @@ pub type Grid = Vec<Vec<char>>;
 pub struct Coord {
     pub x: isize,
     pub y: isize,
+}
+
+#[derive(Clone, Eq, Hash, PartialEq)]
+pub struct Vec2D {
+    pub x: isize,
+    pub y: isize,
+}
+
+pub struct GridMap {
+    d: Grid,
+    w: usize,
+    h: usize,
 }
 
 impl Coord {
@@ -29,23 +42,11 @@ impl fmt::Debug for Coord {
     }
 }
 
-#[derive(PartialEq, Eq)]
-pub struct Vec2D {
-    pub x: isize,
-    pub y: isize,
-}
-
 impl Vec2D {
     pub const fn new(x: isize, y: isize) -> Vec2D {
         Vec2D { x, y }
     }
 }  
-
-pub struct GridMap {
-    d: Grid,
-    w: usize,
-    h: usize,
-}
 
 impl GridMap {
     pub fn new(d: Grid) -> GridMap {
@@ -64,6 +65,14 @@ impl GridMap {
         } else {
             None
         }
+    }
+
+    pub fn get_height(&self) -> usize {
+        self.h
+    }
+
+    pub fn get_width(&self) -> usize {
+        self.w
     }
 }
 
@@ -100,6 +109,22 @@ where
             acc
         });
         println!("{}", row_string);
+    }
+}
+
+pub fn print_coords(coords: &HashSet<Coord>, c: char, e: char, w: usize, h: usize) {
+    println!("map size: [{} x {}]", w, h);
+
+    for y in 0..h {
+        for x in 0..w {
+            let coord = Coord::new(x as isize, y as isize);
+            if coords.contains(&coord) {
+                print!("{}", c);
+            } else {
+                print!("{}", e);
+            }
+        }
+        println!();
     }
 }
 
