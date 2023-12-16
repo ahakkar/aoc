@@ -11,6 +11,12 @@ use std::{fmt, fs};
 use std::fmt::{Display, Write};
 
 pub type Grid = Vec<Vec<char>>;
+pub type Visited = HashSet<(Coord, Vec2D)>;
+
+pub const NORTH: Vec2D = Vec2D::new(0, -1);
+pub const SOUTH: Vec2D = Vec2D::new(0, 1);
+pub const EAST: Vec2D = Vec2D::new(1, 0);
+pub const WEST: Vec2D = Vec2D::new(-1, 0);
 
 #[derive(Clone, Eq, Hash, PartialEq)]
 pub struct Coord {
