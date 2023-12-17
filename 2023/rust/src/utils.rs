@@ -6,12 +6,14 @@
 
 #![allow(dead_code)]
 
-use std::collections::HashSet;
+use petgraph::graph::NodeIndex;
+use std::collections::{HashSet, HashMap};
 use std::{fmt, fs};
 use std::fmt::{Display, Write};
 
 pub type Grid<T> = Vec<Vec<T>>;
 pub type Visited = HashSet<(Coord, Vec2D)>;
+pub type NodeMap = HashMap<Coord, NodeIndex>;
 
 pub const NORTH: Vec2D = Vec2D::new(0, -1);
 pub const SOUTH: Vec2D = Vec2D::new(0, 1);
@@ -71,12 +73,16 @@ where
         GridMap {d, w, h}
     }
 
-    pub fn get(&self, xy: &Coord) -> Option<T> {
+    pub fn get_cell(&self, xy: &Coord) -> Option<T> {
         if xy.x < self.w as isize && xy.y < self.h as isize && xy.x >= 0 && xy.y >= 0{
             Some(self.d[xy.y as usize][xy.x as usize])
         } else {
             None
         }
+    }
+
+    pub fn get_data(&self) -> &Grid<T> {
+        &self.d
     }
 
     pub fn get_height(&self) -> usize {
@@ -108,6 +114,19 @@ pub fn data_as_chars(data: &[String]) -> Grid<char> {
         data_as_chars.push(row.chars().collect::<Vec<char>>());
     }
     data_as_chars
+}
+
+pub fn data_as_intmap(data: &[String]) -> Vec<Vec<u8>> {
+    let mut map: Vec<Vec<u8>> = vec![];
+    for row in data {
+        let row_as_u8 = 
+            row
+                .chars()
+                .map(|c| c.to_digit(10).expect("Expected a digit") as u8)
+                .collect::<Vec<u8>>();
+        map.push(row_as_u8);
+    }
+    map
 }
 
 pub fn print_map<T>(map: &Vec<Vec<T>>)

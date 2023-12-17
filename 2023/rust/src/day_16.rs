@@ -19,12 +19,12 @@ fn silver(data: &[String]) -> usize {
 
 fn gold(data: &[String]) -> usize {
     let map:GridMap<char> = GridMap::new(data_as_chars(data)); 
-    let width = map.get_width() as isize;
+    let width  = map.get_width() as isize;
     let height = map.get_height() as isize;
 
-    let top_row = (0..width).map(|x| (Coord::new(x, -1), SOUTH));
-    let bottom_row = (0..width).map(|x| (Coord::new(x, height), NORTH));
-    let left_column = (0..height).map(|y| (Coord::new(-1, y), EAST));
+    let top_row      = (0..width).map(|x|  (Coord::new(x, -1), SOUTH));
+    let bottom_row   = (0..width).map(|x|  (Coord::new(x, height), NORTH));
+    let left_column  = (0..height).map(|y| (Coord::new(-1, y), EAST));
     let right_column = (0..height).map(|y| (Coord::new(width, y), WEST));
 
     top_row.chain(bottom_row).chain(left_column).chain(right_column)
@@ -47,7 +47,7 @@ fn get_energized(map: &GridMap<char>, start: Coord, dir: Vec2D) -> usize {
 fn follow_path(map: &GridMap<char>, prev: Coord, dir: Vec2D, visited: &mut Visited) {
     let cur = Coord::new(prev.x + dir.x, prev.y + dir.y);
 
-    if let Some(char) = map.get(&cur) {
+    if let Some(char) = map.get_cell(&cur) {
         if !visited.insert((cur.clone(), dir.clone())) {
             return;
         }
