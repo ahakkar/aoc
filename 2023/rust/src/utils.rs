@@ -43,6 +43,29 @@ impl Coord {
     pub fn new(x: isize, y: isize) -> Coord {
         Coord { x, y }
     }
+
+    /// Checks if the coordinate is within a rectangular area defined by two other coordinates.
+    ///
+    /// # Arguments
+    /// 
+    /// * `start` - A reference to a `Coord` representing the starting (top-left) point of the rectangle.
+    /// * `end` - A reference to a `Coord` representing the ending (bottom-right) point of the rectangle.
+    ///
+    /// # Returns
+    /// 
+    /// `true` if the coordinate is within the bounds, `false` otherwise.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let point = Coord::new(3, 3);
+    /// let start = Coord::new(0, 0);
+    /// let end = Coord::new(5, 5);
+    /// assert_eq!(point.fits_bounds(&start, &end), true);
+    /// ```
+    pub fn fits_bounds(&self, start: &Coord, end: &Coord) -> bool {
+        self.x >= start.x && self.x <= end.x && self.y >= start.y && self.y <= end.y
+    }
 }    
 
 impl fmt::Debug for Coord {

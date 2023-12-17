@@ -17,6 +17,8 @@ use std::collections::HashMap;
 use petgraph::graph::{DiGraph, NodeIndex};
 use super::utils::*;
 
+const MAX_DIST: usize = 3;
+
 pub fn solve(data: Vec<String>) {    
     let map:GridMap<u8> = GridMap::new(data_as_intmap(&data));
     let graph:DiGraph<Coord, usize> = build_graph(&map);
@@ -29,6 +31,8 @@ pub fn solve(data: Vec<String>) {
 fn build_graph(map: &GridMap<u8>) -> DiGraph<Coord, usize> {
     let mut graph:DiGraph<Coord, usize> = DiGraph::new();
     let mut node_indices:NodeMap = HashMap::new();
+    let top_left: Coord = Coord::new(0,0);
+    let bot_rght: Coord = Coord::new((map.get_height()-1) as isize, (map.get_width()-1) as isize);
 
     for (y, row) in map.get_data().iter().enumerate() {
         for (x, _) in row.iter().enumerate() {
@@ -37,31 +41,79 @@ fn build_graph(map: &GridMap<u8>) -> DiGraph<Coord, usize> {
         }
     }
 
-    for (a, &node_index) in node_indices.iter() {
-        for dx in 0..=2 {
-            for dy in 0..=2 {
-                if dx + dy > 0 && dx + dy <= 3 {
-                    // Add edges in each direction if within grid bounds
-                    let b:Coord = Coord::new(dx as isize, dy as isize);
-                    if let Some(cost) = calculate_edge_cost(map, a, &b) {
-                        if let Some(target_index) = 
-                            node_indices.get(&Coord::new(a.x + b.x, a.y + b.y)) {
-                            graph.add_edge(node_index, *target_index, cost);
-                        }
-                    }
-                }
-            }
+    // create edges up to 4 tiles away. This adds up to 12 edges for each node
+    for (cur_coord, &cur_index) in node_indices.iter() {
+        // potential nodes in X in 1 to 3 steps away to either left or right
+        for dx in -3..=3 {
+            if dx == 0 { continue }
+            let t_coord:Coord = Coord::new(cur_coord.x + dx as isize, cur_coord.y);
+            if t_coord.fits_bounds(&top_left, &bot_rght) {
+                let cost = calculate_edge_cost(map, cur_coord, &t_coord);
+                if let Some(t_index) = node_indices.get(&t_coord) {
+                    graph.add_edge(cur_index, *t_index, cost);
+                } 
+            }   
         }
-    }
 
+        // potential nodes in Y in 1 to 3 steps away to either up or down
+        for dy in -3..=3 {
+            if dy == 0 { continue }
+            let t_coord:Coord = Coord::new(cur_coord.x, cur_coord.y + dy as isize);
+            if t_coord.fits_bounds(&top_left, &bot_rght) {
+                let cost = calculate_edge_cost(map, cur_coord, &t_coord);
+                if let Some(t_index) = node_indices.get(&t_coord) {
+                    graph.add_edge(cur_index, *t_index, cost);
+                }     
+            }            
+        }     
+    }
     graph
 }
 
 // Get an appropriate cost for a edge, the sum of all nodes' weights between a-b
-fn calculate_edge_cost(grid: &GridMap<u8>, a: &Coord, b: &Coord) -> Option<usize> {
-    // Calculate the cost of moving from (x, y) to (x + dx, y + dy)
-    // ...
-    None
+fn calculate_edge_cost(grid: &GridMap<u8>, a: &Coord, b: &Coord) -> usize {
+    let mut sum: usize = 0;
+    let x_dist = (b.x - a.x).abs();
+    let y_dist = (b.y - a.y).abs();
+    
+    if (x_dist != 0 && y_dist != 0) {
+        panic!("Should create only horizontal or vertical edges between nodes");
+    }
+    // println!("xd, {}, yd: {}, calc weight between a: {:?}, b: {:?}", x_dist, y_dist, a, b);
+    if x_dist != 0 {
+        // Horizontal line
+        let step = if b.x > a.x { 1 } else { -1 };
+        for i in 0..=x_dist {
+            let coord = Coord::new(a.x + i * step, a.y);
+            sum += grid.get_cell(&coord).unwrap_or(0) as usize;
+        }
+    } else {
+        // Vertical line
+        let step = if b.y > a.y { 1 } else { -1 };
+        for i in 0..=y_dist {
+            let coord = Coord::new(a.x, a.y + i * step);
+            sum += grid.get_cell(&coord).unwrap_or(0) as usize;
+        }
+    }
+  
+    /*
+    Hopefully sums like these are correct
+    
+    a: [3, 3], b: [0, 3], sum: 22
+    a: [3, 3], b: [1, 3], sum: 18
+    a: [3, 3], b: [2, 3], sum: 13
+    a: [3, 3], b: [3, 0], sum: 22
+    a: [3, 3], b: [3, 1], sum: 18
+    a: [3, 3], b: [3, 2], sum: 10
+    a: [3, 1], b: [0, 1], sum: 26
+    a: [3, 1], b: [1, 1], sum: 21
+    a: [3, 1], b: [2, 1], sum: 15
+    a: [3, 1], b: [3, 0], sum: 12
+    a: [3, 1], b: [3, 2], sum: 11
+    a: [3, 1], b: [3, 3], sum: 18
+    */
+    //println!("a: {:?}, b: {:?}, sum: {}", a, b, sum);
+    sum
 }
 
 fn silver(data: &[String]) -> usize {
