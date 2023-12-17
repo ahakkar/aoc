@@ -48,14 +48,14 @@ fn follow_path(map: &GridMap<char>, prev: Coord, dir: Vec2D, visited: &mut Visit
     let cur = Coord::new(prev.x + dir.x, prev.y + dir.y);
 
     if let Some(char) = map.get_cell(&cur) {
-        if !visited.insert((cur.clone(), dir.clone())) {
+        if !visited.insert((cur, dir)) {
             return;
         }
 
         match char {
             '|' => {
                 if dir == EAST || dir == WEST {
-                    follow_path(map, cur.clone(), NORTH, visited);
+                    follow_path(map, cur, NORTH, visited);
                     follow_path(map, cur, SOUTH, visited);
                 } else {
                     follow_path(map, cur, dir, visited);
@@ -63,7 +63,7 @@ fn follow_path(map: &GridMap<char>, prev: Coord, dir: Vec2D, visited: &mut Visit
             },
             '-' => {
                 if dir == NORTH || dir == SOUTH {
-                    follow_path(map, cur.clone(), EAST, visited);
+                    follow_path(map, cur, EAST, visited);
                     follow_path(map, cur, WEST, visited);
                 } else {
                     follow_path(map, cur, dir, visited);

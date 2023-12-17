@@ -13,20 +13,51 @@
 #![allow(dead_code)]
 #![allow(unused_assignments)]
 
-use std::collections::HashMap;
-use petgraph::{graph::{DiGraph, NodeIndex}, algo::dijkstra};
+use std::cmp::{Reverse, Ordering};
+use std::collections::{HashMap, VecDeque, BinaryHeap, HashSet};
+use binary_tree::Node;
+use petgraph::{graph::{DiGraph, NodeIndex}, algo::dijkstra, Direction::Incoming, visit::EdgeRef};
 use super::utils::*;
 
 const MAX_DIST: usize = 3;
 
+#[derive(Copy, Clone, Eq, PartialEq)]
+struct Agent {
+    cost: usize,
+    pos: Coord,
+    idx: NodeIndex,
+    dir: Vec2D,
+    steps: usize,
+    prev: Coord,
+}
+
+impl Agent {
+    pub fn new(
+        cost: usize, pos: Coord, idx: NodeIndex, 
+        dir: Vec2D, steps: usize, prev: Coord
+    ) -> Agent {
+        Agent {cost, pos, idx, dir, steps, prev}
+    }
+}
+
+impl Ord for Agent {
+    fn cmp(&self, other: &Agent) -> std::cmp::Ordering {
+        other.cost.cmp(&self.cost)
+    }
+}
+
+impl PartialOrd for Agent {
+    fn partial_cmp(&self, other: &Agent) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
 pub fn solve(data: Vec<String>) {    
     let map:GridMap<u8> = GridMap::new(data_as_intmap(&data));
-    let start: Coord = Coord::new(0,0);
-    let end: Coord = Coord::new((map.get_height()-1) as isize, (map.get_width()-1) as isize);
     let mut node_indices:NodeMap = HashMap::new();
     let graph:DiGraph<Coord, usize> = build_graph(&map, &mut node_indices);
 
-    println!("Silver: {}", silver(&start, &end, &graph, &node_indices));
+    println!("Silver: {}", silver(&map, &graph, &node_indices)); // 936 too high
     //println!("Gold: {}", gold(&data));
 }
 
@@ -136,23 +167,183 @@ fn calculate_edge_cost(grid: &GridMap<u8>, a: &Coord, b: &Coord) -> usize {
     sum
 }
 
-fn silver(start: &Coord, end: &Coord, graph: &DiGraph<Coord, usize>, node_indices: &NodeMap) -> usize { 
-    if let (Some(&start_index), Some(&end_index)) = (
+// Reconstructs path based on edge weights... a bit clumsy way to do this
+fn reconstruct_path(
+    node_costs: &HashMap<NodeIndex, usize>,
+    graph: &DiGraph<Coord, usize>,
+    start: NodeIndex,
+    end: NodeIndex,
+) -> Vec<NodeIndex> {
+    let mut path = Vec::new();
+    let mut current = end;
+    while current != start {
+        path.push(current);
+
+        let mut min_cost = usize::MAX;
+        let mut predecessor = None;
+
+        // Find the predecessor of the current node
+        for edge in graph.edges_directed(current, Incoming) {
+            let node = edge.source();
+            let edge_cost = edge.weight();
+            if let Some(&total_cost) = node_costs.get(&node) {
+                let cost_to_current = total_cost + edge_cost;
+                if (cost_to_current <= node_costs[&current] && 
+                    cost_to_current < min_cost)
+                {
+                    min_cost = cost_to_current;
+                    predecessor = Some(node);
+                }
+            }
+        }
+
+        current = predecessor.expect("No path found");
+    }
+
+    path.push(start);
+    path.reverse();
+    path
+}
+
+/*
+function custom_dijkstra(graph, start, end):
+    priority_queue = PriorityQueue()  
+    priority_queue.add(start, cost=0, direction=None, steps=0)
+
+    while not priority_queue.isEmpty():
+        current, cost, direction, steps = priority_queue.pop()
+
+        if current.position == end:
+            return reconstruct_path(current)
+
+        for neighbor in expandNode(current):
+            if is_valid_transition(current, neighbor, direction, steps):
+                new_cost = cost + edge_cost(current, neighbor)
+                new_direction, new_steps = 
+                    update_direction_and_steps(current, neighbor, direction, steps)
+                priority_queue.add(
+                    neighbor, 
+                    cost=new_cost, 
+                    direction=new_direction,
+                    steps=new_steps)
+
+    return failure
+
+function is_valid_transition(current, neighbor, direction, steps):
+    # Check if moving from current to neighbor is valid based on direction and steps
+    # ...
+
+function update_direction_and_steps(current, neighbor, direction, steps):
+    # Determine new direction and step count after moving to neighbor
+    # ...
+     */
+
+
+fn calc_dir(a: &Coord, b: &Coord) -> Vec2D {
+    match (a.x.cmp(&b.x), a.y.cmp(&b.y)) {
+        (Ordering::Equal,   Ordering::Less)     => NORTH,
+        (Ordering::Equal,   Ordering::Greater)  => SOUTH,
+        (Ordering::Less,    Ordering::Equal)    => EAST,
+        (Ordering::Greater, Ordering::Equal)    => WEST,
+         _                                      => STILL,
+    }
+}
+     
+
+fn custom_djikstra(
+    map: &GridMap<u8>,
+    graph: &DiGraph<Coord, usize>,
+    node_indices: &NodeMap,
+    start: &Coord,
+    end: &Coord
+) {
+    if let (Some(&start_idx), Some(&end_idx)) = (
         node_indices.get(start), 
         node_indices.get(end)
     ) {
-        let node_costs = dijkstra(graph, start_index, Some(end_index), |e| *e.weight());
+        let mut prioq = BinaryHeap::new();
+        let mut visited = HashSet::new();
+        prioq.push(Reverse(Agent::new(0,*start, start_idx, STILL, 0, *start)));
 
-        // Retrieve the cost to the end node
-        if let Some(&cost) = node_costs.get(&end_index) {
-            return cost;
-        } else {
-            panic!("no path found between start and end when one should be found!");
+        while let Some(Reverse(agent)) = prioq.pop() {
+            //println!("current pos: {:?}", agent.pos);
+            if agent.pos == *end {
+                return;
+            }
+            // Try to avoid death loops where agent fruitlessly revisits same states
+            if visited.contains(&(agent.pos, agent.dir, agent.steps)) {
+                continue;
+            }
+            visited.insert((agent.pos, agent.dir, agent.steps));
+
+            // Iterate through edges, checking distances and directions
+            // and if the edge continues in same dir, check if it would 
+            // contain too many steps
+            for edge in graph.edges(agent.idx) {
+                let next_coord = graph.node_weight(edge.target()).unwrap(); 
+                if *next_coord == agent.prev {
+                    continue;
+                }
+
+                let new_dir = calc_dir(&agent.pos, next_coord);
+                let distance = 
+                    (next_coord.x - agent.pos.x).abs() +
+                    (next_coord.y - agent.pos.y).abs();
+
+                let new_steps = if new_dir == agent.dir {
+                    agent.steps + distance as usize
+                } else {
+                    distance as usize
+                };
+
+                // Can move only 3 steps in the same direction
+                if new_steps > 3 { continue; }
+            
+                let new_cost = agent.cost + edge.weight();
+                let new_agent = Agent {
+                    cost: new_cost,
+                    pos: *next_coord,
+                    idx: edge.target(),
+                    dir: new_dir,
+                    steps: new_steps,
+                    prev: agent.pos,
+                };
+            
+                prioq.push(Reverse(new_agent));
+            }            
         }
+        
     } else {
         panic!("Start or end node not found in the graph");
     }
 }
+
+fn silver(
+    map: &GridMap<u8>,
+    graph: &DiGraph<Coord, usize>,
+    node_indices: &NodeMap
+) -> usize { 
+    let start: Coord = Coord::new(0,0);
+    let end: Coord = Coord::new((map.get_height()-1) as isize, (map.get_width()-1) as isize);
+    println!("start: {:?}, end: {:?}", start, end);
+    custom_djikstra(map, graph, node_indices, &start, &end);
+    0
+}
+
+/*
+let node_costs = dijkstra(graph, start_idx, Some(end_idx), |e| *e.weight());
+        //println!("costs:\n{:?}", node_costs);
+        // Retrieve the cost to the end node
+        if let Some(&cost) = node_costs.get(&end_idx) {
+            let path = reconstruct_path(&node_costs, graph, start_idx, end_idx);
+            for node in path {
+                println!("node: {:?}", graph.node_weight(node).unwrap());
+            }
+            //return cost;
+        } else {
+            panic!("no path found between start and end when one should be found!");
+        }
+*/
 
 /* fn gold(data: &Vec<String>) -> usize {
     let mut sum: usize = 0;    
@@ -172,12 +363,10 @@ mod tests {
     fn test_test() {
         let test_data:Vec<String> = read_data_from_file("input/test/17.txt");
         let map:GridMap<u8> = GridMap::new(data_as_intmap(&test_data));
-        let start: Coord = Coord::new(0,0);
-        let end: Coord = Coord::new((map.get_height()-1) as isize, (map.get_width()-1) as isize);
         let mut node_indices:NodeMap = HashMap::new();
         let graph:DiGraph<Coord, usize> = build_graph(&map, &mut node_indices); 
         
-        assert_eq!(silver(&start, &end, &graph, &node_indices), 102);
+        assert_eq!(silver(&map, &graph, &node_indices), 102);
         //assert_eq!(gold(&test_data), 145);
     }
 

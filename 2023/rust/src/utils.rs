@@ -19,14 +19,15 @@ pub const NORTH: Vec2D = Vec2D::new(0, -1);
 pub const SOUTH: Vec2D = Vec2D::new(0, 1);
 pub const EAST: Vec2D = Vec2D::new(1, 0);
 pub const WEST: Vec2D = Vec2D::new(-1, 0);
+pub const STILL: Vec2D = Vec2D::new(0,0);
 
-#[derive(Clone, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Eq, Hash, PartialEq)]
 pub struct Coord {
     pub x: isize,
     pub y: isize,
 }
 
-#[derive(Clone, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Eq, Hash, PartialEq)]
 pub struct Vec2D {
     pub x: isize,
     pub y: isize,
@@ -99,22 +100,12 @@ where
     pub fn get_cell(&self, xy: &Coord) -> Option<T> {
         if xy.x < self.w as isize && xy.y < self.h as isize && xy.x >= 0 && xy.y >= 0{
             Some(self.d[xy.y as usize][xy.x as usize])
-        } else {
-            None
-        }
+        } else { None }
     }
 
-    pub fn get_data(&self) -> &Grid<T> {
-        &self.d
-    }
-
-    pub fn get_height(&self) -> usize {
-        self.h
-    }
-
-    pub fn get_width(&self) -> usize {
-        self.w
-    }
+    pub fn get_data(&self) -> &Grid<T>  { &self.d }
+    pub fn get_height(&self) -> usize   { self.h  }
+    pub fn get_width(&self) -> usize    { self.w  }
 }
 
 pub fn binomial_coefficient(n: usize, k: usize) -> usize {
