@@ -14,23 +14,43 @@
 #![allow(unused_assignments)]
 
 use std::collections::HashMap;
-use petgraph::graph::{DiGraph, NodeIndex};
+use petgraph::{graph::{DiGraph, NodeIndex}, algo::dijkstra};
 use super::utils::*;
 
 const MAX_DIST: usize = 3;
 
 pub fn solve(data: Vec<String>) {    
     let map:GridMap<u8> = GridMap::new(data_as_intmap(&data));
-    let graph:DiGraph<Coord, usize> = build_graph(&map);
-    println!("Silver: {}", silver(&data));
+    let start: Coord = Coord::new(0,0);
+    let end: Coord = Coord::new((map.get_height()-1) as isize, (map.get_width()-1) as isize);
+    let mut node_indices:NodeMap = HashMap::new();
+    let graph:DiGraph<Coord, usize> = build_graph(&map, &mut node_indices);
+
+    println!("Silver: {}", silver(&start, &end, &graph, &node_indices));
     //println!("Gold: {}", gold(&data));
 }
 
+/*
+    for (y, row) in grid.iter().enumerate() {
+        for (x, &cost) in row.iter().enumerate() {
+            // Create nodes for each direction and step count
+            for &dir in &[NORTH, SOUTH, EAST, WEST] {
+                for steps in 1..=3 {
+                    let state = ((x, y), dir, steps);
+                    let node_index = graph.add_node(state);
+                    node_indices.insert(state, node_index);
+                    // Add edges (omitted for brevity)
+                }
+            }
+        }
+    }
+
+*/
+
 // Build a graph where each node will have direct edges to other
 // nodes up to 3 tiles away in each direction
-fn build_graph(map: &GridMap<u8>) -> DiGraph<Coord, usize> {
-    let mut graph:DiGraph<Coord, usize> = DiGraph::new();
-    let mut node_indices:NodeMap = HashMap::new();
+fn build_graph(map: &GridMap<u8>, node_indices: &mut NodeMap) -> DiGraph<Coord, usize> {
+    let mut graph:DiGraph<Coord, usize> = DiGraph::new();    
     let top_left: Coord = Coord::new(0,0);
     let bot_rght: Coord = Coord::new((map.get_height()-1) as isize, (map.get_width()-1) as isize);
 
@@ -98,7 +118,7 @@ fn calculate_edge_cost(grid: &GridMap<u8>, a: &Coord, b: &Coord) -> usize {
   
     /*
     Hopefully sums like these are correct
-    
+
     a: [3, 3], b: [0, 3], sum: 22
     a: [3, 3], b: [1, 3], sum: 18
     a: [3, 3], b: [2, 3], sum: 13
@@ -116,13 +136,22 @@ fn calculate_edge_cost(grid: &GridMap<u8>, a: &Coord, b: &Coord) -> usize {
     sum
 }
 
-fn silver(data: &[String]) -> usize {
-    let mut sum: usize = 0;    
+fn silver(start: &Coord, end: &Coord, graph: &DiGraph<Coord, usize>, node_indices: &NodeMap) -> usize { 
+    if let (Some(&start_index), Some(&end_index)) = (
+        node_indices.get(start), 
+        node_indices.get(end)
+    ) {
+        let node_costs = dijkstra(graph, start_index, Some(end_index), |e| *e.weight());
 
-    for row in data {
-
+        // Retrieve the cost to the end node
+        if let Some(&cost) = node_costs.get(&end_index) {
+            return cost;
+        } else {
+            panic!("no path found between start and end when one should be found!");
+        }
+    } else {
+        panic!("Start or end node not found in the graph");
     }
-    sum 
 }
 
 /* fn gold(data: &Vec<String>) -> usize {
@@ -142,19 +171,25 @@ mod tests {
     #[test]
     fn test_test() {
         let test_data:Vec<String> = read_data_from_file("input/test/17.txt");
-        assert_eq!(silver(&test_data), 1320);
+        let map:GridMap<u8> = GridMap::new(data_as_intmap(&test_data));
+        let start: Coord = Coord::new(0,0);
+        let end: Coord = Coord::new((map.get_height()-1) as isize, (map.get_width()-1) as isize);
+        let mut node_indices:NodeMap = HashMap::new();
+        let graph:DiGraph<Coord, usize> = build_graph(&map, &mut node_indices); 
+        
+        assert_eq!(silver(&start, &end, &graph, &node_indices), 102);
         //assert_eq!(gold(&test_data), 145);
     }
 
-    #[test]
+/*     #[test]
     fn test_silver() {
         let test_data:Vec<String> = read_data_from_file("input/real/17.txt");
-        assert_eq!(silver(&test_data), 510801);
+        //assert_eq!(silver(&test_data), 510801);
     }
 
     #[test]
     fn test_gold() {
         let test_data:Vec<String> = read_data_from_file("input/real/17.txt");
         //assert_eq!(gold(&test_data), 212763);
-    }
+    } */
 }
