@@ -4,20 +4,11 @@
  * https://github.com/ahakkar/
 **/
 
-#![allow(unused_parens)]
-#![allow(unused_imports)]
-#![allow(unused_variables)]
-#![allow(unused_mut)]
-#![allow(clippy::needless_return)]
-#![allow(clippy::needless_range_loop)]
-#![allow(dead_code)]
-#![allow(unused_assignments)]
-
 use super::utils::*;
 
 pub fn solve(data: Vec<String>) {    
-    println!("Silver: {}", silver(&data));
-    //println!("Gold: {}", gold(&data));
+    println!("Silver: {}", silver(&data)); // // 50465
+    println!("Gold: {}", gold(&data));
 }
 
 fn flood_fill(grid: &mut Grid<char>, start_x: usize, start_y: usize, fill_char: char) -> usize {
@@ -47,10 +38,10 @@ fn flood_fill(grid: &mut Grid<char>, start_x: usize, start_y: usize, fill_char: 
 
 fn dig(dpos: &mut Point, grid: &mut Grid<char>, dir: &str, amt: usize) -> Point {
     match dir.chars().next().unwrap() {
-        'R' => for i in 0..amt { grid[dpos.1][dpos.0+1] = '#'; dpos.0 += 1; },
-        'L' => for i in 0..amt { grid[dpos.1][dpos.0-1] = '#'; dpos.0 -= 1; },
-        'U' => for i in 0..amt { grid[dpos.1-1][dpos.0] = '#'; dpos.1 -= 1; },
-        'D' => for i in 0..amt { grid[dpos.1+1][dpos.0] = '#'; dpos.1 += 1; },
+        'R' => for _ in 0..amt { grid[dpos.1][dpos.0+1] = '#'; dpos.0 += 1; },
+        'L' => for _ in 0..amt { grid[dpos.1][dpos.0-1] = '#'; dpos.0 -= 1; },
+        'U' => for _ in 0..amt { grid[dpos.1-1][dpos.0] = '#'; dpos.1 -= 1; },
+        'D' => for _ in 0..amt { grid[dpos.1+1][dpos.0] = '#'; dpos.1 += 1; },
          _  => panic!("bad dig dir"),
     }
     *dpos
@@ -65,7 +56,7 @@ fn silver(data: &[String]) -> usize {
     // dig
     for row in data {
         let (dir, amtcolor) = row.trim().split_once(' ').unwrap();
-        let (amt, color) = amtcolor.trim().split_once(' ').unwrap();
+        let (amt, _) = amtcolor.trim().split_once(' ').unwrap();
         sum += amt.parse::<usize>().unwrap();
         dig(
             &mut dpos,
@@ -73,26 +64,53 @@ fn silver(data: &[String]) -> usize {
             dir, 
             amt.parse::<usize>().unwrap()
         );
-        //println!("{} {} {}", dir, amt, color);
     }
-    //assert_eq!(sum, 38);
-    //print_map(&grid);
-
-    // flood
-    sum += flood_fill(&mut grid, 2049, 2049, '#');
-    //assert_eq!(sum, 62);
-    //print_map(&grid);
-    
-    sum // 50465
+    sum + flood_fill(&mut grid, 2049, 2049, '#')
 }
 
-/* fn gold(data: &Vec<String>) -> usize {
-    let mut sum: usize = 0;    
+fn add_vertex(dpos: &mut PointI, vertices: &mut Vec<PointI>, dir:u8, length:isize) {
+    match dir {
+    /*R */ 0 => {vertices.push( (dpos.0 + length, dpos.1) ); dpos.0 += length },
+    /*D */ 1 => {vertices.push( (dpos.0, dpos.1 + length) ); dpos.1 += length },
+    /*L */ 2 => {vertices.push( (dpos.0 - length, dpos.1) ); dpos.0 -= length },
+    /*U */ 3 => {vertices.push( (dpos.0, dpos.1 - length) ); dpos.1 -= length },
+           _ => panic!("invalid dir num"), 
+    }    
+}
 
+fn gold(data: &Vec<String>) -> usize {
+    let mut sum: isize = 0;    
+    let mut bsum: isize = 0;
+    let mut dpos: PointI = (0,0);
+    let mut vertices: Vec<PointI> = vec![];
+    vertices.push((0,0)); // start
+
+    // parse to vertices
     for row in data {
-           } 
-    sum 
-} */
+        let (_, amtcolor) = row.trim().split_once(' ').unwrap();
+        let (_, mut color) = amtcolor.trim().split_once(' ').unwrap();
+
+        color = color.trim_start_matches("(#").trim_end_matches(')');
+        let dir = u8::from_str_radix(&color[5..6], 16).unwrap();
+        let length = isize::from_str_radix(&color[0..5], 16).unwrap();
+        bsum += length;
+        add_vertex(&mut dpos, &mut vertices, dir, length);
+    } 
+
+    // use shoelace formula to calculate area
+    // https://en.wikipedia.org/wiki/Shoelace_formula
+    let n = vertices.len();
+    for i in 0..n {
+        let x1 = vertices[i].0;        
+        let y1 = vertices[i].1;
+
+        let x2 = vertices[(i+1) % n].0;
+        let y2 = vertices[(i+1) % n].1;
+
+        sum += x1 * y2 - y1 * x2;
+    }
+    ((sum+bsum)/2+1) as usize
+}
 
 // run these with cargo test --bin main -- day_XX::tests
 #[cfg(test)]
@@ -104,7 +122,7 @@ mod tests {
     fn test_test() {
         let test_data:Vec<String> = read_data_from_file("input/test/18.txt");
         assert_eq!(silver(&test_data), 62);
-        //assert_eq!(gold(&test_data), 145);
+        assert_eq!(gold(&test_data), 952408144115);
     }
 
     #[test]
@@ -116,6 +134,6 @@ mod tests {
     #[test]
     fn test_gold() {
         let test_data:Vec<String> = read_data_from_file("input/real/18.txt");
-        //assert_eq!(gold(&test_data), 212763);
+        assert_eq!(gold(&test_data), 82712746433310);
     }
 }
