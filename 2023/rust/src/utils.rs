@@ -11,6 +11,7 @@ use std::collections::{HashSet, HashMap};
 use std::{fmt, fs};
 use std::fmt::{Display, Write};
 
+pub type Point = (usize, usize);
 pub type Grid<T> = Vec<Vec<T>>;
 pub type Visited = HashSet<(Coord, Vec2D)>;
 pub type NodeMap = HashMap<Coord, NodeIndex>;
