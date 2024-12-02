@@ -6,10 +6,7 @@
 
 mod utils;
 // List of implemented solutions
-mod day_01;
-mod day_01b;
-mod day_02;
-mod day_03;
+mod day_10;
 
 use std::path::Path;
 use std::time::Instant;
@@ -52,10 +49,7 @@ fn main() {
 
         // Add new days as they are implemented
         match args.day.as_str() {
-            "01" => execute_with_data(day_01::silver, day_01::gold),
-            "01b" => execute_with_data(day_01b::silver, day_01b::gold),
-            "02" => execute_with_data(day_02::silver, day_02::gold),
-            "03" => execute_with_data(day_03::silver, day_03::gold),
+            "10" => execute_with_data(day_10::silver, day_10::gold),
             _ => println!("Unimplemented day"),
         }
     } else {
