@@ -44,18 +44,13 @@ fn silver(data: &[String]) -> usize {
         .count()   
 }
 
-fn gold(data: &[String]) -> usize {
-    let reports: Vec<Vec<isize>> = data
-        .iter()
-        .map(|s| intvec_from_str(s))
-        .collect();
-
-    // Check also if any permutation is safe by removing one element
-    reports
-        .iter()
-        .filter(|row| {
-            is_safe(row) || (0..row.len()).any(|i| {
-                let mut copy = row.to_vec();
+// Check also if any permutation is safe by removing one element
+fn gold(data: &[String]) -> usize {    
+    data.iter()
+        .filter(|s| {
+            let row: Vec<isize> = intvec_from_str(s);
+            is_safe(&row) || (0..row.len()).any(|i| {
+                let mut copy = row.clone();
                 copy.remove(i);
                 is_safe(&copy)
             })
