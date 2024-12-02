@@ -42,6 +42,13 @@ pub struct GridMap<T> {
     h: usize,
 }
 
+#[derive(Debug, PartialEq)]
+pub enum ListOrder {
+    Ascending,
+    Descending,
+    Unknown,
+}
+
 impl Coord {
     pub fn new(x: isize, y: isize) -> Coord {
         Coord { x, y }
@@ -143,6 +150,13 @@ pub fn data_as_intmap(data: &[String]) -> Vec<Vec<u8>> {
         map.push(row_as_u8);
     }
     map
+}
+
+pub fn intvec_from_str(row: &str) -> Vec<isize> {
+    row
+        .split_ascii_whitespace()
+        .map(|s| s.parse::<isize>().unwrap())
+        .collect()
 }
 
 pub fn print_map<T>(map: &Vec<Vec<T>>)
