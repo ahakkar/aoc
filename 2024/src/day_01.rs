@@ -6,12 +6,7 @@
 
 use std::collections::HashMap;
 
-pub fn solve(data: Vec<String>) {    
-    println!("Silver: {}", silver(&data));
-    println!("Gold: {}", gold(&data));
-}
-
-fn silver(data: &[String]) -> usize {
+pub fn silver(data: &[String]) -> usize {
     let mut sum: usize = 0;  
     let mut a: Vec<usize> = vec![];
     let mut b: Vec<usize> = vec![];
@@ -40,7 +35,7 @@ fn silver(data: &[String]) -> usize {
     sum 
 }
 
-fn gold(data: &Vec<String>) -> usize {
+pub fn gold(data: &[String]) -> usize {
     let mut sum: usize = 0;    
 
     let mut a: Vec<usize> = vec![];

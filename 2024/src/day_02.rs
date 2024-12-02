@@ -4,48 +4,34 @@
  * https://github.com/ahakkar/
 **/
 
-use crate::utils::{intvec_from_str, ListOrder};
+use std::cmp::Ordering;
+use crate::utils::intvec_from_str;
 
-pub fn solve(data: Vec<String>) {    
-    println!("Silver: {}", silver(&data));
-    println!("Gold: {}", gold(&data));
-}
-
-fn list_tentative_order(first: &isize, last: &isize) -> ListOrder {
-    match first.cmp(last) {
-        std::cmp::Ordering::Greater => ListOrder::Descending,
-        std::cmp::Ordering::Less => ListOrder::Ascending,
-        _ => ListOrder::Unknown,
-    }
-}
-
-fn dir_cmp(dir: &ListOrder, a: &isize, b: &isize) -> bool {
+fn dir_cmp(dir: &Ordering, a: &isize, b: &isize) -> bool {
     match dir {
-        ListOrder::Ascending => a < b,
-        ListOrder::Descending => a > b,
+        Ordering::Greater => a > b,
+        Ordering::Less => a < b,
         _ => false,
     }
 }
 
 fn is_safe(row: &[isize]) -> bool {
-    let dir = list_tentative_order(row.first().unwrap(), row.last().unwrap());
-    row
-        .windows(2)
+    let dir = row.first().unwrap().cmp(row.last().unwrap());
+    row.windows(2)
         .all(|w| {
             (1..=3).contains(&(w[0] - w[1]).abs()) && 
             dir_cmp(&dir, &w[0], &w[1])
         })    
 }
 
-fn silver(data: &[String]) -> usize {
-    data
-        .iter()
-        .filter(|row| is_safe(&intvec_from_str(row)))
+pub fn silver(data: &[String]) -> usize {
+    data.iter()
+        .filter(|s| is_safe(&intvec_from_str(s)))
         .count()   
 }
 
 // Check also if any permutation is safe by removing one element
-fn gold(data: &[String]) -> usize {    
+pub fn gold(data: &[String]) -> usize {    
     data.iter()
         .filter(|s| {
             let row: Vec<isize> = intvec_from_str(s);

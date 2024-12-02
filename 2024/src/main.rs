@@ -9,6 +9,7 @@ mod utils;
 mod day_01;
 mod day_01b;
 mod day_02;
+mod day_03;
 
 use std::path::Path;
 use std::time::Instant;
@@ -40,18 +41,21 @@ fn main() {
             return;
         }
 
-        let execute_with_data = |func: fn(Vec<String>)| {
+        let execute_with_data = |silver: fn(&[String]) -> usize, gold: fn(&[String]) -> usize| {
+            let data = read_data_from_file(&filepath);
             let start = Instant::now();
-            func(read_data_from_file(&filepath));
+            println!("Silver: {}", silver(&data));
+            println!("Gold: {}", gold(&data));
             let duration = start.elapsed();
             println!("Time elapsed in day{} is: {:?}", args.day, duration);
         };
 
         // Add new days as they are implemented
         match args.day.as_str() {
-            "01" => execute_with_data(day_01::solve),
-            "01b" => execute_with_data(day_01b::solve),
-            "02" => execute_with_data(day_02::solve),
+            "01" => execute_with_data(day_01::silver, day_01::gold),
+            "01b" => execute_with_data(day_01b::silver, day_01b::gold),
+            "02" => execute_with_data(day_02::silver, day_02::gold),
+            "03" => execute_with_data(day_03::silver, day_03::gold),
             _ => println!("Unimplemented day"),
         }
     } else {

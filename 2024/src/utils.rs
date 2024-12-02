@@ -42,12 +42,7 @@ pub struct GridMap<T> {
     h: usize,
 }
 
-#[derive(Debug, PartialEq)]
-pub enum ListOrder {
-    Ascending,
-    Descending,
-    Unknown,
-}
+
 
 impl Coord {
     pub fn new(x: isize, y: isize) -> Coord {
