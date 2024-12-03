@@ -16,44 +16,29 @@ fn parse_tuple(s: &str) -> usize {
         .unwrap()
 }
 
-fn parse_row(row: &str, re: &Regex) -> Vec<String> {
-    re
-        .find_iter(row)
-        .map(|m| m.as_str().to_string())
-        .collect()
-}
-
 pub fn silver(data: &[String]) -> usize {
     let re = Regex::new(r"mul\(\d+,\d+\)").unwrap();
-    let mut sum = 0;
 
-    for row in data {
-        sum += parse_row(row, &re)
-            .iter()
-            .map(|s| parse_tuple(s))
-            .sum::<usize>();            
-    }    
-    sum
+    data.iter()
+        .flat_map(|row| re.find_iter(row))
+        .map(|m| parse_tuple(m.as_str()))
+        .sum()
 }
 
 pub fn gold(data: &[String]) -> usize {
     let re = Regex::new(r"mul\(\d+,\d+\)|do\(\)|don\'t\(\)").unwrap();
-    let mut sum = 0;
     let mut mode = true;
 
-    for row in data {
-        sum += parse_row(row, &re)
-            .iter()
-            .map(|s| {
-                match s.as_str() {
-                    "don't()" => { mode = false; 0 },
-                    "do()"    => { mode = true; 0 },
-                    _         => if mode { parse_tuple(s) } else { 0 },
-                }
-                })
-            .sum::<usize>();            
-    }    
-    sum   
+    data.iter()
+        .flat_map(|row| re.find_iter(row))
+        .filter_map(|s| {
+            match s.as_str() {
+                "don't()" => { mode = false; None },
+                "do()"    => { mode = true; None },
+                _ => if mode { Some(parse_tuple(s.into())) } else { None },
+            }
+        })
+        .sum()
 }
 
 // cargo test --bin main -- day_XX::tests
