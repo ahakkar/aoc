@@ -23,6 +23,20 @@ pub const EAST: Vec2D = Vec2D::new(1, 0);
 pub const WEST: Vec2D = Vec2D::new(-1, 0);
 pub const STILL: Vec2D = Vec2D::new(0,0);
 
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum Direction {
+    NorthWest,
+    North,
+    NorthEast,
+    East,
+    SouthEast,
+    South,
+    SouthWest,
+    West,
+    Still
+}
+
+
 #[derive(Clone, Copy, Eq, Hash, PartialEq)]
 pub struct Coord {
     pub x: isize,
@@ -71,6 +85,22 @@ impl Coord {
     pub fn fits_bounds(&self, start: &Coord, end: &Coord) -> bool {
         self.x >= start.x && self.x <= end.x && self.y >= start.y && self.y <= end.y
     }
+
+    pub fn neighbour(&self, dir: Direction) -> Coord {
+        let (dx, dy): (isize, isize) = match dir {
+            Direction::East     => ( 1, 0),
+            Direction::North    => ( 0,-1),  
+            Direction::West     => (-1, 0),
+            Direction::South    => ( 0,-1),  
+            Direction::NorthEast=> ( 1, 1), 
+            Direction::NorthWest=> (-1, 1), 
+            Direction::SouthEast=> ( 1,-1), 
+            Direction::SouthWest=> (-1,-1),
+            _ => panic!("invalid direction"),
+        }; 
+
+        Coord{x: self.x + dx, y: self.y + dy }
+    }
 }    
 
 impl fmt::Debug for Coord {
@@ -107,11 +137,39 @@ where
         } else { None }
     }
 
-    pub fn get_char(&self, x: usize, y: usize) -> Option<&T> {
-        if x < self.w && y < self.h { Some(&self.d[y][x]) } 
+    pub fn get_idx(&self, x: usize, y: usize) -> Option<&T> {
+        if x < self.w && y < self.h {
+             Some(&self.d[y][x])
+        } 
         else { None }
     }
-    
+
+    pub fn get_idx_ub(&self, x: isize, y: isize) -> Option<&T> {
+        if (x >= 0 && y >= 0) && (x < self.w as isize && y < self.h as isize) {
+             Some(&self.d[y as usize][x as usize])
+        } 
+        else { None }
+    }
+
+    pub fn get_neighbor(&self, idx: &Coord, dir: Direction) -> Option<T> {
+        let (dx, dy): (isize, isize) = match dir {
+            Direction::East     => ( 1, 0),
+            Direction::North    => ( 0,-1),  
+            Direction::West     => (-1, 0),
+            Direction::South    => ( 0,-1),  
+            Direction::NorthEast=> ( 1, 1), 
+            Direction::NorthWest=> (-1, 1), 
+            Direction::SouthEast=> ( 1,-1), 
+            Direction::SouthWest=> (-1,-1),
+            _ => panic!("invalid direction"),
+        }; 
+
+        if idx.x + dx >= 0 && idx.y + dy >= 0 {
+            return self.get_cell(&Coord::new(idx.x +dx, idx.y + dy));
+        }    
+        None        
+    }
+   
     pub fn get_data(&self) -> &Grid<T>  { &self.d }
     pub fn get_height(&self) -> usize   { self.h  }
     pub fn get_width(&self) -> usize    { self.w  }

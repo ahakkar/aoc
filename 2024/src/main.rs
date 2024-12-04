@@ -11,6 +11,7 @@ mod day_01b;
 mod day_02;
 mod day_03;
 mod day_04;
+mod day_05;
 
 use std::path::Path;
 use std::time::Instant;
@@ -58,6 +59,7 @@ fn main() {
             "02" => execute_with_data(day_02::silver, day_02::gold),
             "03" => execute_with_data(day_03::silver, day_03::gold),
             "04" => execute_with_data(day_04::silver, day_04::gold),
+            "05" => execute_with_data(day_05::silver, day_05::gold),
             _ => println!("Unimplemented day"),
         }
     } else {
