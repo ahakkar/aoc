@@ -110,43 +110,29 @@ pub fn silver(data: &[String]) -> usize {
 }
 
 pub fn gold(data: &[String]) -> usize {
-    let mut sum: usize = 0;  
-    let map:GridMap<char> = GridMap::new(data_as_chars(data));  
+    let mut sum: usize = 0;    
+    let map:GridMap<char> = GridMap::new(data_as_chars(data)); 
 
+    for y in 1..(data.len() - 1) {
+        for x in 1..(data[0].len() - 1) {
+            if let Some('A') = map.get_char(x, y) {    
+                let top_left     = map.get_char(x  - 1, y  - 1);
+                let bottom_right = map.get_char(x  + 1, y  + 1);
+                let top_right    = map.get_char(x  + 1, y  - 1);
+                let bottom_left  = map.get_char(x  - 1, y  + 1);
 
-    for y in 0..data.len() {
-        for x in 0..data[0].len() {
-            if let Some(c) = map.get_char(x as isize, y as isize) {
-                // Look for this surrounding each A
-                // M.S
-                // .A.
-                // M.S
-                if c.eq(&'A') {
-                    let mut a = String::new();
-                    let mut b = String::new();
-                    if let Some(c) = map.get_char(x as isize - 1, y as isize - 1) {
-                        a.push(*c);
-                    }
-                    a.push('A');
-                    if let Some(c) = map.get_char(x as isize + 1, y as isize + 1) {
-                        a.push(*c);
-                    }
-                    if let Some(c) = map.get_char(x as isize - 1, y as isize + 1) {
-                        b.push(*c);
-                    }
-                    b.push('A');
-                    if let Some(c) = map.get_char(x as isize + 1, y as isize - 1) {
-                        b.push(*c);
-                    }       
-                    if (a.eq("MAS") || a.eq("SAM")) && (b.eq("MAS") || b.eq("SAM")) {
-                        sum += 1;
-                    }
-                }
+                if (top_left == Some(&'M') && bottom_right == Some(&'S') ||
+                    top_left == Some(&'S') && bottom_right == Some(&'M'))
+                    && 
+                   (top_right == Some(&'M') && bottom_left == Some(&'S') ||
+                    top_right == Some(&'S') && bottom_left == Some(&'M'))
+                {
+                    sum += 1;
+                }                
             }
         }
     }
-
-    sum 
+    sum
 }
 
 // cargo test --bin main -- day_XX::tests
@@ -171,6 +157,6 @@ mod tests {
     #[test]
     fn test_gold() {
         let test_data:Vec<String> = read_data_from_file("input/real/04.txt");
-        //assert_eq!(gold(&test_data), 212763);
+        assert_eq!(gold(&test_data), 2046);
     }
 }

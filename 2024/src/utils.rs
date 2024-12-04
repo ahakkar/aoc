@@ -107,12 +107,9 @@ where
         } else { None }
     }
 
-    pub fn get_char(&self, x: isize, y: isize) -> Option<&T> {
-        if x >= 0 && y >= 0 && (x as usize) < self.w && (y as usize) < self.h {
-            Some(&self.d[y as usize][x as usize])
-        } else {
-            None
-        }
+    pub fn get_char(&self, x: usize, y: usize) -> Option<&T> {
+        if x < self.w && y < self.h { Some(&self.d[y][x]) } 
+        else { None }
     }
     
     pub fn get_data(&self) -> &Grid<T>  { &self.d }
