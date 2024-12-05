@@ -15,7 +15,6 @@
 
 use super::utils::*;
 
-// Note to self: Solve function is used so data can be shared between solutions
 pub fn solve(data: Vec<String>) {
     let parsed_data = parse_data(&data);       
 
