@@ -3,8 +3,11 @@ mod day_02;
 mod day_03;
 mod day_04;
 mod day_05;
+mod day_06;
 
 mod utils;
+
+use colored::*;
 
 // Preprocessing step
 pub trait Fro {
@@ -17,8 +20,8 @@ pub trait Solution {
 }
 
 pub fn run_solution(solution: Box<dyn Solution>) {
-    println!("Silver: {}", solution.silver());
-    println!("Gold: {}", solution.gold());
+    print!(" {:<15}║", solution.silver().to_string().bright_magenta());
+    print!(" {:<15}║", solution.gold().to_string().bright_magenta());
 }
 
 /// Calls respective's day's struct, input is contents from a file read as str

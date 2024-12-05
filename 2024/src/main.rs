@@ -10,17 +10,23 @@ use std::time::Instant;
 use aoc2024::solve;
 use clap::Parser;
 use utils::read_data_from_file;
+use colored::*;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
     /// [01..25] day of calendar
     #[arg(short, long)]
-    day: String,
+    day: Option<String>,
 
     /// Run tests
     #[arg(short, long, action)]
     test: bool,
+
+    /// Run all solutions
+    #[arg(short, long, action)]
+    all: bool,
+
 }
 
 
@@ -28,9 +34,13 @@ fn main() {
     // example: cargo run -- --day 01 --test
     let args = Args::parse();
 
-    if args.day.len() == 2 {
+    if let Some(day) = args.day.as_deref() {
+        if day.len() != 2 {            
+            println!("Args: [day: integer 01..25] [folder: string real/test]");
+            return;
+        }
         let folder = if args.test { "test" } else { "real" };
-        let filepath = format!("input/{}/{}.txt", folder, args.day);
+        let filepath = format!("input/{}/{}.txt", folder, day);
 
         if !Path::new(&filepath).is_file() {
             println!("File {} does not exist.", filepath);
@@ -38,12 +48,86 @@ fn main() {
         }
 
         let start = Instant::now();    
-        solve(args.day.as_str(), &read_data_from_file(&filepath));
+        solve(day, &read_data_from_file(&filepath));
         let duration = start.elapsed();
-        println!("Time elapsed in day{} is: {:?}", args.day, duration);
+        println!("Time elapsed in day{} is: {:?}", day, duration);
+    } 
+    else if args.all {
+        print_header();
+        for day in ["01", "02", "03", "04", "05"] {
+            let filepath = format!("input/real/{}.txt", day);
+            if !Path::new(&filepath).is_file() {
+                println!("File {} does not exist.", filepath);
+                return;
+            } 
 
-    } else {
-        println!("Args: [day: integer 01..25] [folder: string real/test]");
+            print!("║ {}   ║", day.green());          
+    
+            let start = Instant::now();    
+            solve(day, &read_data_from_file(&filepath));
+            let duration = start.elapsed();
+            println!(" {:<15?}║", duration);
+        }
+
+        print_footer();
     }
 }
 
+fn print_header() {
+    let top_left_corner = "╔".yellow();
+    let top_right_corner = "╗".yellow();
+    let top_down_tee = "╦".yellow();
+    let vert_border = "║".yellow();
+    let vert_right_tee = "╠".cyan();
+    let vert_left_tee = "╣".cyan();
+    let cross = "╬".cyan();
+    println!(
+        "{}{}{}{}{}{}{}{}{}",
+        top_left_corner,
+        "═".repeat(6).yellow(),
+        top_down_tee,
+        "═".repeat(16).yellow(),
+        top_down_tee,
+        "═".repeat(16).yellow(),
+        top_down_tee,
+        "═".repeat(16).yellow(),
+        top_right_corner,
+    );
+    println!(
+        "{}{}{}{}{}{}{}{}{}{}{}{}",
+        vert_border,
+        " Day  ".bright_red(),
+        vert_border,
+        " Silver ".bright_red(),
+        " ".repeat(8),
+        vert_border,
+        " Gold ".bright_red(),
+        " ".repeat(10),
+        vert_border,
+        " Time ".bright_red(),
+        " ".repeat(10),
+        vert_border,
+    );
+    println!(
+        "{}{}{}{}{}{}{}{}{}",
+        vert_right_tee,
+        "═".repeat(6).cyan(),
+        cross,
+        "═".repeat(16).cyan(),
+        cross,
+        "═".repeat(16).cyan(),
+        cross,
+        "═".repeat(16).cyan(),
+        vert_left_tee,
+    );
+}
+
+fn print_footer() {
+    println!(
+        "╚{}╩{}╩{}╩{}╝",
+        "═".repeat(6),
+        "═".repeat(16),
+        "═".repeat(16),
+        "═".repeat(16),
+    );
+}
