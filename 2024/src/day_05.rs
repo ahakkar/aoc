@@ -7,39 +7,31 @@
 use std::{cmp::Ordering, collections::{HashMap, HashSet}};
 
 type Rules = HashMap<usize, HashSet<usize>>;
-type Print = Vec<(bool, Vec<usize>)>; // bool for is the list in correct order
+type Print = Vec<Vec<usize>>; // bool for is the list in correct order
 
 pub fn solve(data: Vec<String>) {
     let (rules, mut print) = parse_data(&data);       
 
-    println!("Silver: {}", silver(&rules, &mut print));
-    println!("Gold: {}", gold(&rules, &mut print));
+    println!("Solutions: {:?}", solver(&rules, &mut print));
 }
 
 // For each page in pagelist, check the rules for page.
 // If any of the pages in rules[page] are already in printed, 
 // the order is invalid. Otherwise, add page to printed.
-fn silver(rules: &Rules, print: &mut Print) -> usize {
-    let mut sum: usize = 0;     
+fn solver(rules: &Rules, print: &mut Print) -> (usize, usize) {
+    let mut sum:  usize = 0;   
+    let mut sum2: usize = 0;    
 
-    for (corr, pagelist) in print {
-        if pagelist.is_sorted_by(|a, b| custom_sort(a, b, rules) != Ordering::Greater) {
-            sum += pagelist.get(pagelist.len()/2).unwrap();
-        }        
-        else { *corr = false; } // tag the pagelist as being in incorrect order
+    for pages in print { // Silver
+        if pages.is_sorted_by(|a, b| custom_sort(a, b, rules) != Ordering::Greater) {
+            sum += pages.get(pages.len()/2).unwrap();
+        }             
+        else { // Gold
+            pages.sort_by(|a, b| custom_sort(a, b, rules));
+            sum2 += pages.get(pages.len()/2).unwrap();
+        } 
     }    
-    sum 
-}
-
-fn gold(rules: &Rules, print: &mut Print) -> usize {
-    let mut sum: usize = 0;   
-
-    for (valid, pages) in print {    
-        if *valid { continue; }   
-        pages.sort_by(|a, b| custom_sort(a, b, rules));
-        sum += pages.get(pages.len()/2).unwrap();        
-    }
-    sum 
+    (sum, sum2) 
 }
 
 fn custom_sort(a: &usize, b: &usize, rules: &Rules) -> Ordering {
@@ -58,12 +50,10 @@ fn parse_data(data: &[String]) -> (Rules, Print) {
     for row in data {
         if row.is_empty() { toggle = true; continue }
         if toggle {
-            print.push(
-                (true,
+            print.push(                
                 row.split(',')
                     .map(|n| n.parse::<usize>().unwrap())
-                    .collect()
-                )
+                    .collect()                
             );
         }
         else if let Some((a, b)) = row.split_once('|') {
@@ -86,15 +76,13 @@ mod tests {
     fn test_test() {  
         let test_data = read_data_from_file("input/test/05.txt");
         let (rules, mut print) = parse_data(&test_data);       
-        assert_eq!(silver(&rules, &mut print), 143);
-        assert_eq!(gold(&rules, &mut print), 123);
+        assert_eq!(solver(&rules, &mut print), (143, 123));
     }
 
     #[test]
     fn test_real() {
         let real_data = read_data_from_file("input/real/05.txt");
         let (rules, mut print) = parse_data(&real_data);  
-        assert_eq!(silver(&rules, &mut print), 5713);
-        assert_eq!(gold(&rules, &mut print), 5180);
+        assert_eq!(solver(&rules, &mut print), (5713, 5180));  
     }
 }
