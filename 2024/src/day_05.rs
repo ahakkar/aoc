@@ -23,19 +23,9 @@ fn silver(rules: &Rules, print: &mut Print) -> usize {
     let mut sum: usize = 0;     
 
     for (corr, pagelist) in print {
-        let mut printed: HashSet<usize> = HashSet::new();
-        let mut valid = true;
-        
-        for page in pagelist.iter() {
-            if let Some(rules) = rules.get(page) {
-                if rules.iter().any(|r| printed.contains(r)) {
-                    valid = false;                    
-                    break;        
-                }        
-            } 
-            printed.insert(*page);            
-        }
-        if valid { sum += pagelist.get(pagelist.len()/2).unwrap(); }
+        if pagelist.is_sorted_by(|a, b| custom_sort(a, b, rules) != Ordering::Greater) {
+            sum += pagelist.get(pagelist.len()/2).unwrap();
+        }        
         else { *corr = false; } // tag the pagelist as being in incorrect order
     }    
     sum 
