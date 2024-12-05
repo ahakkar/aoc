@@ -76,12 +76,12 @@ impl Coord {
     ///
     /// # Examples
     ///
-    /// ```
+    /// 
     /// let point = Coord::new(3, 3);
     /// let start = Coord::new(0, 0);
     /// let end = Coord::new(5, 5);
     /// assert_eq!(point.fits_bounds(&start, &end), true);
-    /// ```
+    /// 
     pub fn fits_bounds(&self, start: &Coord, end: &Coord) -> bool {
         self.x >= start.x && self.x <= end.x && self.y >= start.y && self.y <= end.y
     }
@@ -247,12 +247,9 @@ pub fn print_coords(coords: &HashSet<Coord>, c: char, e: char, w: usize, h: usiz
     }
 }
 
-pub fn read_data_from_file(file_path: &str) -> Vec<String> {
+pub fn read_data_from_file(file_path: &str) -> String {
     fs::read_to_string(file_path)
-        .unwrap_or_else(|_| panic!("Failed to read {}", file_path))
-        .lines()
-        .map(|s| s.to_string())
-        .collect()
+        .unwrap_or_else(|_| panic!("Failed to read {}", file_path))   
 }
 
 pub fn print_bit_vec<T>(vec: &[T]) 

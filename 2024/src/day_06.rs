@@ -15,32 +15,38 @@
 
 use super::utils::*;
 
-pub fn solve(data: Vec<String>) {
-    let parsed_data = parse_data(&data);       
-
-    println!("Silver: {}", silver(&parsed_data));
-    println!("Gold: {}", gold(&parsed_data));
+// Can add more shared vars here
+pub struct Template {
+    data: Vec<String>
 }
 
-fn silver(data: &[String]) -> usize {
-    let mut sum: usize = 0;    
-
-    sum 
+// Can be used to implement fancier task-specific parsing
+impl Fro for Template {
+    fn fro(data: &str) -> Self{
+        Self { data: data.split('\n').map(|line| line.to_string()).collect() }
+    }
 }
 
-fn gold(data: &[String]) -> usize {
-    let mut sum: usize = 0;    
+// Main solvers
+impl Solution for Template {
+    fn silver(&self) -> usize {
+        0
+    }
+    
 
-    sum 
+    fn gold(&self) -> usize {    
+        0
+    }
+
 }
 
-fn parse_data(data: &[String]) -> Vec<String> {
-    let data: Vec<String> = Vec::new();
-    data
-
+// For assisting functions
+impl Template {
+    
 }
 
-// cargo test --bin main -- day_XX::tests
+
+// cargo test --lib day_XX
 #[cfg(test)]
 mod tests {
     use crate::utils::read_data_from_file;   
@@ -48,17 +54,19 @@ mod tests {
 
     #[test]
     fn test_test() {  
-        let test_data = read_data_from_file("input/test/06.txt");
-        let data = parse_data(&test_data);       
-        assert_eq!(silver(&data), 143);
-        //assert_eq!(gold(&data), 123);
+        let test_data = read_data_from_file("input/test/06.txt"); 
+        let queue = Template::fro(&test_data);        
+  
+        assert_eq!(queue.silver(), 0);
+        assert_eq!(queue.gold(), 0);
     }
 
     #[test]
     fn test_real() {
         let real_data = read_data_from_file("input/real/06.txt");
-        let data = parse_data(&real_data);  
-        assert_eq!(silver(&data), 5713);
-        //assert_eq!(gold(&data), 5180);
+        let queue = Template::fro(&real_data);        
+  
+        assert_eq!(queue.silver(), 0);
+        assert_eq!(queue.gold(), 0);
     }
 }

@@ -3,18 +3,11 @@
  * Author: Antti Hakkarainen
  * https://github.com/ahakkar/
  */
-
 mod utils;
-// List of implemented solutions
-mod day_01;
-mod day_02;
-mod day_03;
-mod day_04;
-mod day_05;
-mod day_06;
 
 use std::path::Path;
 use std::time::Instant;
+use aoc2024::solve;
 use clap::Parser;
 use utils::read_data_from_file;
 
@@ -30,6 +23,7 @@ struct Args {
     test: bool,
 }
 
+
 fn main() {
     // example: cargo run -- --day 01 --test
     let args = Args::parse();
@@ -43,23 +37,11 @@ fn main() {
             return;
         }
 
-        let execute_with_data = |func: fn(Vec<String>)| {
-            let start = Instant::now();          
-            func(read_data_from_file(&filepath));
-            let duration = start.elapsed();
-            println!("Time elapsed in day{} is: {:?}", args.day, duration);
-        };
+        let start = Instant::now();    
+        solve(args.day.as_str(), &read_data_from_file(&filepath));
+        let duration = start.elapsed();
+        println!("Time elapsed in day{} is: {:?}", args.day, duration);
 
-        // Add new days as they are implemented
-        match args.day.as_str() {
-            "01" => execute_with_data(day_01::solve),
-            "02" => execute_with_data(day_02::solve),
-            "03" => execute_with_data(day_03::solve),
-            "04" => execute_with_data(day_04::solve),
-            "05" => execute_with_data(day_05::solve),
-            "06" => execute_with_data(day_06::solve),
-            _ => println!("Unimplemented day"),
-        }
     } else {
         println!("Args: [day: integer 01..25] [folder: string real/test]");
     }

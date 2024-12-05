@@ -6,65 +6,78 @@
 
 use std::{cmp::Ordering, collections::{HashMap, HashSet}};
 
+use crate::{Fro, Solution};
+
 type Rules = HashMap<usize, HashSet<usize>>;
-type Print = Vec<Vec<usize>>; // bool for is the list in correct order
+type Print = Vec<Vec<usize>>;
 
-pub fn solve(data: Vec<String>) {
-    let (rules, mut print) = parse_data(&data);       
-
-    println!("Solutions: {:?}", solver(&rules, &mut print));
+pub struct PrintQueue {
+    rules: Rules,
+    print: Print,
 }
 
-// For each page in pagelist, check the rules for page.
-// If any of the pages in rules[page] are already in printed, 
-// the order is invalid. Otherwise, add page to printed.
-fn solver(rules: &Rules, print: &mut Print) -> (usize, usize) {
-    let mut sum:  usize = 0;   
-    let mut sum2: usize = 0;    
-
-    for pages in print { // Silver
-        if pages.is_sorted_by(|a, b| custom_sort(a, b, rules) != Ordering::Greater) {
-            sum += pages.get(pages.len()/2).unwrap();
-        }             
-        else { // Gold
-            pages.sort_by(|a, b| custom_sort(a, b, rules));
-            sum2 += pages.get(pages.len()/2).unwrap();
-        } 
-    }    
-    (sum, sum2) 
-}
-
-fn custom_sort(a: &usize, b: &usize, rules: &Rules) -> Ordering {
-    if a == b { return Ordering::Equal }
-    if let Some(rules) = rules.get(a) {
-        if rules.contains(b) { return Ordering::Less }
-    }
-    Ordering::Greater
-}
-
-fn parse_data(data: &[String]) -> (Rules, Print) {
-    let mut rules: Rules = HashMap::new();
-    let mut print: Print= Vec::new();
-    let mut toggle = false; 
-
-    for row in data {
-        if row.is_empty() { toggle = true; continue }
-        if toggle {
-            print.push(                
-                row.split(',')
-                    .map(|n| n.parse::<usize>().unwrap())
-                    .collect()                
-            );
+impl Fro for PrintQueue {
+    fn fro(data: &str) -> Self {
+        let mut toggle = false; 
+        let mut rules: Rules = HashMap::new();
+        let mut print: Print = vec![];
+        let data: Vec<String> = data.split('\n').map(|line| line.to_string()).collect();
+    
+        for row in data {
+            if row.is_empty() { toggle = true; continue }
+            if toggle {
+                print.push(                
+                    row.split(',')
+                        .map(|n| n.parse::<usize>().unwrap())
+                        .collect()                
+                );
+            }
+            else if let Some((a, b)) = row.split_once('|') {
+                let a = a.trim().parse::<usize>().unwrap();
+                let b = b.trim().parse::<usize>().unwrap();
+                rules.entry(a).or_default().insert(b);  
+            }        
         }
-        else if let Some((a, b)) = row.split_once('|') {
-            let a = a.trim().parse::<usize>().unwrap();
-            let b = b.trim().parse::<usize>().unwrap();
-            rules.entry(a).or_default().insert(b);  
-        }        
+
+        Self {rules, print}
     }
-    (rules, print)
 }
 
+impl Solution for PrintQueue {
+    // For each page in pagelist, check the rules for page.
+    // If any of the pages in rules[page] are already in printed, 
+    // the order is invalid. Otherwise, add page to printed.
+    fn silver(&self) -> usize {
+        self.print.iter()
+        .filter(|pages| pages.is_sorted_by(|a, b| 
+            Self::custom_sort(a, b, &self.rules) != Ordering::Greater)
+        )
+        .map(|pages| pages.get(pages.len()/2).unwrap())            
+        .sum()
+    }
+
+    fn gold(&self) -> usize {
+        self.print.clone().iter_mut()
+        .filter(|pages| !pages.is_sorted_by(|a, b| 
+            Self::custom_sort(a, b, &self.rules) != Ordering::Greater)
+        )
+        .map(|pages| {         
+            pages.sort_by(|a, b| Self::custom_sort(a, b, &self.rules));
+            pages.get(pages.len()/2).unwrap()
+        })
+        .sum()
+    }
+}
+
+impl PrintQueue {
+    fn custom_sort(a: &usize, b: &usize, rules: &Rules) -> Ordering {
+        if a == b { return Ordering::Equal }
+        if let Some(rules) = rules.get(a) {
+            if rules.contains(b) { return Ordering::Less }
+        }
+        Ordering::Greater
+    }  
+}
 
 // cargo test --bin main -- day_XX::tests
 #[cfg(test)]
@@ -74,15 +87,20 @@ mod tests {
 
     #[test]
     fn test_test() {  
-        let test_data = read_data_from_file("input/test/05.txt");
-        let (rules, mut print) = parse_data(&test_data);       
-        assert_eq!(solver(&rules, &mut print), (143, 123));
+        let test_data = read_data_from_file("input/test/05.txt"); 
+        let queue = PrintQueue::fro(&test_data);        
+  
+        assert_eq!(queue.silver(), 143);
+        assert_eq!(queue.gold(), 123);
     }
 
     #[test]
     fn test_real() {
         let real_data = read_data_from_file("input/real/05.txt");
-        let (rules, mut print) = parse_data(&real_data);  
-        assert_eq!(solver(&rules, &mut print), (5713, 5180));  
+        let queue = PrintQueue::fro(&real_data);        
+  
+        assert_eq!(queue.silver(), 5713);
+        assert_eq!(queue.gold(), 5180);
+
     }
 }

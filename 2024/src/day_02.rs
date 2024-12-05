@@ -3,75 +3,83 @@
  * Author: Antti Hakkarainen
  * https://github.com/ahakkar/
 **/
-
+use crate::{utils::intvec_from_str, Fro, Solution};
 use std::cmp::Ordering;
-use crate::utils::intvec_from_str;
 
-pub fn solve(data: Vec<String>) {
-    println!("Silver: {}", silver(&data));
-    println!("Gold: {}", gold(&data));
+pub struct RedNosedReports {
+    data: Vec<String>
 }
 
-fn dir_cmp(dir: &Ordering, a: &isize, b: &isize) -> bool {
-    match dir {
-        Ordering::Greater => a > b,
-        Ordering::Less => a < b,
-        _ => false,
+impl Fro for RedNosedReports {
+    fn fro(data: &str) -> Self{
+        Self { data: data.split('\n').map(|line| line.to_string()).collect() }
     }
 }
 
-fn is_safe(row: &[isize]) -> bool {
-    let dir = row.first().unwrap().cmp(row.last().unwrap());
-    row.windows(2)
-        .all(|w| {
-            (1..=3).contains(&(w[0] - w[1]).abs()) && 
-            dir_cmp(&dir, &w[0], &w[1])
-        })    
-}
-
-pub fn silver(data: &[String]) -> usize {
-    data.iter()
-        .filter(|s| is_safe(&intvec_from_str(s)))
-        .count()   
-}
-
-// Check also if any permutation is safe by removing one element
-pub fn gold(data: &[String]) -> usize {    
-    data.iter()
-        .filter(|s| {
-            let row: Vec<isize> = intvec_from_str(s);
-            is_safe(&row) || (0..row.len()).any(|i| {
-                let mut copy = row.clone();
-                copy.remove(i);
-                is_safe(&copy)
+impl Solution for RedNosedReports {
+    fn silver(&self) -> usize {
+        self.data.iter()
+            .filter(|s| Self::is_safe(&intvec_from_str(s)))
+            .count()   
+    }
+    
+    // Check also if any permutation is safe by removing one element
+    fn gold(&self) -> usize {    
+        self.data.iter()
+            .filter(|s| {
+                let row: Vec<isize> = intvec_from_str(s);
+                Self::is_safe(&row) || (0..row.len()).any(|i| -> bool {
+                    let mut copy = row.clone();
+                    copy.remove(i);
+                    Self::is_safe(&copy)
+                })
             })
-        })
-        .count()
+            .count()
+    }
 }
+
+impl RedNosedReports {
+    fn dir_cmp(dir: &Ordering, a: &isize, b: &isize) -> bool {
+        match dir {
+            Ordering::Greater => a > b,
+            Ordering::Less => a < b,
+            _ => false,
+        }
+    }
+
+    fn is_safe(row: &[isize]) -> bool {
+        let dir = row.first().unwrap().cmp(row.last().unwrap());
+        row.windows(2)
+            .all(|w| {
+                (1..=3).contains(&(w[0] - w[1]).abs()) && 
+                Self::dir_cmp(&dir, &w[0], &w[1])
+            })    
+    }
+}
+
+
 
 // run these with cargo test --bin main -- day_XX::tests
 #[cfg(test)]
 mod tests {
-    use crate::utils::read_data_from_file;
+    use crate::utils::read_data_from_file;   
     use super::*;   
-    
 
     #[test]
-    fn test_test() {
-        let test_data:Vec<String> = read_data_from_file("input/test/02.txt");
-        assert_eq!(silver(&test_data), 2);
-        assert_eq!(gold(&test_data), 4);
+    fn test_test() {  
+        let test_data = read_data_from_file("input/test/02.txt"); 
+        let queue = RedNosedReports::fro(&test_data);        
+  
+        assert_eq!(queue.silver(), 2);
+        assert_eq!(queue.gold(), 4);
     }
 
     #[test]
-    fn test_silver() {
-        let test_data:Vec<String> = read_data_from_file("input/real/02.txt");
-        assert_eq!(silver(&test_data), 639);
-    }
-
-    #[test]
-    fn test_gold() {
-        let test_data:Vec<String> = read_data_from_file("input/real/02.txt");
-        assert_eq!(gold(&test_data), 674);
+    fn test_real() {
+        let real_data = read_data_from_file("input/real/02.txt");
+        let queue = RedNosedReports::fro(&real_data);        
+  
+        assert_eq!(queue.silver(), 639);
+        assert_eq!(queue.gold(), 674);
     }
 }
