@@ -6,6 +6,11 @@
 
 use std::collections::HashMap;
 
+pub fn solve(data: Vec<String>) {
+    println!("Silver: {}", silver(&data));
+    println!("Gold: {}", gold(&data));
+}
+
 pub fn silver(data: &[String]) -> usize {
     let mut sum: usize = 0;  
     let mut a: Vec<usize> = vec![];

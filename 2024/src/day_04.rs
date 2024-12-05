@@ -8,6 +8,11 @@ use regex::Regex;
 
 use super::utils::*;
 
+pub fn solve(data: Vec<String>) {
+    println!("Silver: {}", silver(&data));
+    println!("Gold: {}", gold(&data));
+}
+
 fn get_char(data: &[String], y: usize, x: usize) -> char {
     data
         .get(y)

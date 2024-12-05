@@ -5,6 +5,11 @@
 **/
 use regex::Regex;
 
+pub fn solve(data: Vec<String>) {
+    println!("Silver: {}", silver(&data));
+    println!("Gold: {}", gold(&data));
+}
+
 fn parse_tuple(s: &str) -> usize {
     s
         .get(4..s.len() - 1)

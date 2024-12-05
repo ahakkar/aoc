@@ -7,6 +7,11 @@
 use std::cmp::Ordering;
 use crate::utils::intvec_from_str;
 
+pub fn solve(data: Vec<String>) {
+    println!("Silver: {}", silver(&data));
+    println!("Gold: {}", gold(&data));
+}
+
 fn dir_cmp(dir: &Ordering, a: &isize, b: &isize) -> bool {
     match dir {
         Ordering::Greater => a > b,
