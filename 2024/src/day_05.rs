@@ -4,62 +4,63 @@
  * https://github.com/ahakkar/
 **/
 
-#![allow(unused_parens)]
-#![allow(unused_imports)]
-#![allow(unused_variables)]
-#![allow(unused_mut)]
-#![allow(clippy::needless_return)]
-#![allow(clippy::needless_range_loop)]
-#![allow(dead_code)]
-#![allow(unused_assignments)]
-
-use std::{collections::{HashMap, HashSet}, hash::Hash};
-
-use super::utils::*;
+use std::{cmp::Ordering, collections::{HashMap, HashSet}};
 
 type Rules = HashMap<usize, HashSet<usize>>;
-type Print = Vec<(bool, Vec<usize>)>;
+type Print = Vec<(bool, Vec<usize>)>; // bool for is the list in correct order
 
 pub fn solve(data: Vec<String>) {
-    let (rules, mut print) = parse_data(&data);       
+    let (rules, mut print) = parse_data(data);       
 
-    println!("Silver: {}", silver(&rules, &print));
-    println!("Gold: {}", gold(&rules, &print));
+    println!("Silver: {}", silver(&rules, &mut print));
+    println!("Gold: {}", gold(&rules, &mut print));
 }
 
 // For each page in pagelist, check the rules for page.
 // If any of the pages in rules[page] are already in printed, 
 // the order is invalid. Otherwise, add page to printed.
-pub fn silver(rules: &Rules, mut print: &Print) -> usize {
+pub fn silver(rules: &Rules, print: &mut Print) -> usize {
     let mut sum: usize = 0;     
 
-    print.iter().for_each(|(mut corr, pagelist)| {
+    for (corr, pagelist) in print {
         let mut printed: HashSet<usize> = HashSet::new();
         let mut valid = true;
         
-        for page in pagelist {
+        for page in pagelist.iter() {
             if let Some(rules) = rules.get(page) {
                 if rules.iter().any(|r| printed.contains(r)) {
-                    valid = false;
-                    corr = false;
+                    valid = false;                    
                     break;        
                 }        
             } 
             printed.insert(*page);            
         }
-        if valid { sum += pagelist.get(pagelist.len()/2).unwrap() }
-    });
+        if valid { sum += pagelist.get(pagelist.len()/2).unwrap(); }
+        else { *corr = false; } // tag the pagelist as being in incorrect order
+    }    
     sum 
 }
 
-pub fn gold(rules: &Rules, mut print: &Print) -> usize {
+pub fn gold(rules: &Rules, print: &mut Print) -> usize {
     let mut sum: usize = 0;   
 
-
+    for (valid, pages) in print {    
+        if *valid { continue; }   
+        pages.sort_by(|a, b| custom_sort(a, b, rules));
+        sum += pages.get(pages.len()/2).unwrap();        
+    }
     sum 
 }
 
-fn parse_data(data: &[String]) -> (Rules, Print) {
+fn custom_sort(a: &usize, b: &usize, rules: &Rules) -> Ordering {
+    if a == b { return Ordering::Equal }
+    if let Some(rules) = rules.get(a) {
+        if rules.contains(b) { return Ordering::Less }
+    }
+    Ordering::Greater
+}
+
+fn parse_data(data: Vec<String>) -> (Rules, Print) {
     let mut rules: Rules = HashMap::new();
     let mut print: Print= Vec::new();
     let mut toggle = false; 
@@ -104,20 +105,15 @@ mod tests {
 
     #[test]
     fn test_test() {  
-        let (rules, mut print) = parse_data(&TEST_DATA);       
-        assert_eq!(silver(&rules, &print), 143);
-        //assert_eq!(gold(&rules, &print), 123);
+        let (rules, mut print) = parse_data(TEST_DATA.clone());       
+        assert_eq!(silver(&rules, &mut print), 143);
+        assert_eq!(gold(&rules, &mut print), 123);
     }
 
     #[test]
-    fn test_silver() {
-        let (rules, mut print) = parse_data(&REAL_DATA);  
-        assert_eq!(silver(&rules, &print), 5713);
-    }
-
-    #[test]
-    fn test_gold() {
-        let (rules, mut print) = parse_data(&REAL_DATA);  
-        //assert_eq!(gold(&rules, &print), 212763);
+    fn test_real() {
+        let (rules, mut print) = parse_data(REAL_DATA.clone());  
+        assert_eq!(silver(&rules, &mut print), 5713);
+        assert_eq!(gold(&rules, &mut print), 5180);
     }
 }
