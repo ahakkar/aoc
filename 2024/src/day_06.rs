@@ -18,6 +18,7 @@ use std::{collections::HashSet, fmt, vec};
 use crate::{utils::{self, Coord, Direction}, Fro, Solution};
 use grid::*;
 use petgraph::visit;
+use rayon::prelude::*;
 
 #[derive(Debug, PartialEq, Clone)]
 enum Tile {
@@ -88,36 +89,47 @@ impl Solution for GuardGallivant {
         let mut loop_positions: usize = 0;
         let start_pos = Coord::new(67,89); // 67,89 || 4,6
 
-        for row in 0..self.map.rows() {
-            for col in 0..self.map.cols() {
-                // Reset state
+        let total_rows = self.map.rows();
+        let total_cols = self.map.cols();
+    
+        loop_positions = (0..total_rows).into_par_iter().map(|row| {
+            let mut local_loop_positions = 0;
+    
+            for col in 0..total_cols {
+                // Reset state for each column
                 let mut dir = Direction::North;
                 let mut pos = Some(start_pos);
                 let mut visited: HashSet<(Coord, Direction)> = HashSet::new();
     
-                while let Some(cur_pos) = pos {     
+                while let Some(cur_pos) = pos {
+                    // Loop found if pos&dir were already in the set
                     if !visited.insert((cur_pos, dir)) {
-                        loop_positions += 1;
+                        local_loop_positions += 1;
                         break;
                     }
-
+    
                     let (dx, dy) = dir.to_vector();
                     let new_x = cur_pos.x + dx;
                     let new_y = cur_pos.y + dy;
-
-                    if let Some(new_tile) = self.map.get(new_y, new_x) { 
-                        if *new_tile == Tile::Wall ||
-                            (new_x == col as isize && new_y == row as isize)
-                        {                    
+    
+                    if let Some(new_tile) = self.map.get(new_y, new_x) {
+                        // Obstacle?
+                        if *new_tile == Tile::Wall || (new_x == col as isize && new_y == row as isize) {
                             dir = utils::Direction::turn_90(dir, 'r');
-       
+                        } else {
+                            // Otherwise proceed
+                            pos = Some(Coord::new(new_x, new_y));
                         }
-                        else { pos = Some(Coord::new(new_x, new_y)) }
-                    } 
-                    else { break }
+                    } else {
+                        // Out of bounds
+                        break;
+                    }
                 }
-            }
-        }
+            }    
+            local_loop_positions
+        })
+        .sum::<usize>();
+
         loop_positions
     }
 }
@@ -128,7 +140,7 @@ impl GuardGallivant {
         match c {
             '.' => Tile::Empty,
             '#' => Tile::Wall,
-            '^' => Tile::Empty,
+            '^' => Tile::Guard,
             _   => Tile::Invalid,
         }            
     }
@@ -166,7 +178,7 @@ mod tests {
         let queue = GuardGallivant::fro(&test_data);        
   
         assert_eq!(queue.silver(), 41);
-        assert_eq!(queue.gold(), 0);
+        assert_eq!(queue.gold(), 6);
     }
 
     #[test]
@@ -174,7 +186,7 @@ mod tests {
         let real_data = read_data_from_file("input/real/06.txt");
         let queue = GuardGallivant::fro(&real_data);        
   
-        assert_eq!(queue.silver(), 0);
-        assert_eq!(queue.gold(), 0);
+        assert_eq!(queue.silver(), 4696);
+        assert_eq!(queue.gold(), 1443);
     }
 }
