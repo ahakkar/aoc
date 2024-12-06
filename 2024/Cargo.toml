@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 clap = { version = "4.5.21", features = ["derive"] }
 colored = "2.1.0"
+grid = "0.15.0"
 lazy_static = "1.5.0"
 petgraph = "0.6.5"
 regex = "1.11.1"

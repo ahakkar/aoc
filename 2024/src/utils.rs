@@ -36,6 +36,46 @@ pub enum Direction {
     Still
 }
 
+impl Direction {
+    pub fn to_vector(self) -> (isize, isize) {
+        match self { // col row
+            Direction::East     => ( 1, 0),
+            Direction::North    => ( 0,-1),  
+            Direction::West     => (-1, 0),
+            Direction::South    => ( 0, 1),  
+            Direction::NorthEast=> ( 1,-1), 
+            Direction::NorthWest=> (-1,-1), 
+            Direction::SouthEast=> ( 1, 1), 
+            Direction::SouthWest=> (-1, 1),
+            _ => panic!("invalid direction"),
+        }
+    }
+
+    pub fn turn_90(cur_dir: Direction, turn: char) -> Direction {
+        match turn {
+            'l' => {
+                match cur_dir {
+                    Direction::East => Direction::North,
+                    Direction::North => Direction::West,
+                    Direction::West => Direction::South,
+                    Direction::South => Direction::East,
+                    _ => panic!("invalid dir"),
+                }
+            },
+            'r' => {
+                match cur_dir {
+                    Direction::East => Direction::South,
+                    Direction::North => Direction::East,
+                    Direction::West => Direction::North,
+                    Direction::South => Direction::West,
+                    _ => panic!("invalid dir"),
+                }
+            },
+             _  => panic!("Invalid turn"),
+        }     
+    }
+}
+
 
 #[derive(Clone, Copy, Eq, Hash, PartialEq)]
 pub struct Coord {
@@ -91,7 +131,7 @@ impl Coord {
             Direction::East     => ( 1, 0),
             Direction::North    => ( 0,-1),  
             Direction::West     => (-1, 0),
-            Direction::South    => ( 0,-1),  
+            Direction::South    => ( 0, 1),  
             Direction::NorthEast=> ( 1, 1), 
             Direction::NorthWest=> (-1, 1), 
             Direction::SouthEast=> ( 1,-1), 

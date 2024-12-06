@@ -32,6 +32,7 @@ pub fn solve(day: &str, input: &str) {
         "03" => run_solution(Box::new(day_03::MullItOver::fro(input))),
         "04" => run_solution(Box::new(day_04::CeresSearch::fro(input))),
         "05" => run_solution(Box::new(day_05::PrintQueue::fro(input))),
+        "06" => run_solution(Box::new(day_06::GuardGallivant::fro(input))),
         _ => unreachable!(),
     }
 }

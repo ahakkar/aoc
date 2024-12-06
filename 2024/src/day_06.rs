@@ -13,37 +13,144 @@
 #![allow(dead_code)]
 #![allow(unused_assignments)]
 
-use crate::{Fro, Solution};
-use super::utils::*;
+use std::{collections::HashSet, fmt, vec};
+
+use crate::{utils::{self, Coord, Direction}, Fro, Solution};
+use grid::*;
+use petgraph::visit;
+
+#[derive(Debug, PartialEq, Clone)]
+enum Tile {
+    Empty,
+    Wall,
+    Guard,
+    Invalid,
+    Visited,
+}
 
 // Can add more shared vars here
-pub struct Template {
-    data: Vec<String>
+pub struct GuardGallivant {
+    map: Grid<Tile>,
 }
 
 // Can be used to implement fancier task-specific parsing
-impl Fro for Template {
-    fn fro(data: &str) -> Self{
-        Self { data: data.split('\n').map(|line| line.to_string()).collect() }
+impl Fro for GuardGallivant {
+    fn fro(input: &str) -> Self{
+        Self { map: Grid::from_vec(
+            input.replace('\n', "")
+                .chars()
+                .map(|c| Self::match_char(&c))                    
+                .collect()
+            ,
+            (input.len() as f64).sqrt() as usize
+        )}
     }
 }
 
 // Main solvers
-impl Solution for Template {
+impl Solution for GuardGallivant {
     fn silver(&self) -> usize {
-        0
+        let mut dir = Direction::North; // 67,89
+        let mut pos: Option<Coord> = Some(Coord::new(67,89)); // 4,6 test
+        let mut visited: HashSet<Coord> = HashSet::new();        
+
+        while let Some(cur_pos) = pos {   
+            let mut dir_vec = dir.to_vector(); 
+            let new_x = cur_pos.x + dir_vec.0;
+            let new_y = cur_pos.y + dir_vec.1;
+
+            if let Some(new_pos) = self.map.get(new_y, new_x) {
+                // If tile is clear, move to it
+                if *new_pos != Tile::Wall {       
+                    visited.insert(pos.take().unwrap());        
+                    pos = Some(Coord::new(new_x, new_y));        
+                } 
+                // If tile is occupied, turn right and try again
+                else {                     
+                    dir = utils::Direction::turn_90(dir, 'r');                      
+                }                
+            } else { break }
+        }   
+
+/*         let mut map = self.map.clone();
+        println!("visited [{}]: {:?}", visited.len(), visited);
+
+        for v in &visited {
+            map[(v.y as usize, v.x as usize)] = Tile::Visited;
+        }
+        Self::print_grid(map); */
+
+        visited.len()+1
     }
     
 
-    fn gold(&self) -> usize {    
-        0
-    }
+    fn gold(&self) -> usize {
+        let mut loop_positions: usize = 0;
+        let start_pos = Coord::new(67,89); // 67,89 || 4,6
 
+        for row in 0..self.map.rows() {
+            for col in 0..self.map.cols() {
+                // Reset state
+                let mut dir = Direction::North;
+                let mut pos = Some(start_pos);
+                let mut visited: HashSet<(Coord, Direction)> = HashSet::new();
+    
+                while let Some(cur_pos) = pos {     
+                    if !visited.insert((cur_pos, dir)) {
+                        loop_positions += 1;
+                        break;
+                    }
+
+                    let (dx, dy) = dir.to_vector();
+                    let new_x = cur_pos.x + dx;
+                    let new_y = cur_pos.y + dy;
+
+                    if let Some(new_tile) = self.map.get(new_y, new_x) { 
+                        if *new_tile == Tile::Wall ||
+                            (new_x == col as isize && new_y == row as isize)
+                        {                    
+                            dir = utils::Direction::turn_90(dir, 'r');
+       
+                        }
+                        else { pos = Some(Coord::new(new_x, new_y)) }
+                    } 
+                    else { break }
+                }
+            }
+        }
+        loop_positions
+    }
 }
 
 // For assisting functions
-impl Template {
-    
+impl GuardGallivant {
+    fn match_char(c: &char) -> Tile {
+        match c {
+            '.' => Tile::Empty,
+            '#' => Tile::Wall,
+            '^' => Tile::Empty,
+            _   => Tile::Invalid,
+        }            
+    }
+
+    fn print_grid(map: Grid<Tile>) {
+        println!(" 0123456789");
+        let mut i = 0;
+        for (i, row) in map.iter_rows().enumerate() {
+            print!("{}", i);
+            for tile in row {
+                print!("{}", 
+                match tile {
+                    Tile::Empty => ".",
+                    Tile::Wall  => "#",
+                    Tile::Guard => "^",
+                    Tile::Visited => "X",
+                    _   => "",
+                }); 
+            }     
+            println!();
+        }
+    }
 }
 
 
@@ -56,16 +163,16 @@ mod tests {
     #[test]
     fn test() {  
         let test_data = read_data_from_file("input/test/06.txt"); 
-        let queue = Template::fro(&test_data);        
+        let queue = GuardGallivant::fro(&test_data);        
   
-        assert_eq!(queue.silver(), 0);
+        assert_eq!(queue.silver(), 41);
         assert_eq!(queue.gold(), 0);
     }
 
     #[test]
     fn real() {
         let real_data = read_data_from_file("input/real/06.txt");
-        let queue = Template::fro(&real_data);        
+        let queue = GuardGallivant::fro(&real_data);        
   
         assert_eq!(queue.silver(), 0);
         assert_eq!(queue.gold(), 0);
