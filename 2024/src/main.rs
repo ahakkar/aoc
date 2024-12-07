@@ -8,9 +8,9 @@
 
 mod utils;
 
-use std::{path::Path, time::Duration};
+use std::{path::Path};
 use std::time::Instant;
-use aoc2024::{solve, AocResult};
+use aoc2024::{solve};
 use clap::Parser;
 use utils::read_data_from_file;
 use colored::*;
@@ -56,7 +56,11 @@ fn main() {
         println!("Time elapsed in day{} is: {:?}", day, duration);
     } 
     else if args.all {
+        const RUNS: u8 = 1;
+        println!("Time is a {} run average.", RUNS);
+
         print_header();
+
         for day in ["01", "02", "03", "04", "05", "06", "07", "08"] {
             let filepath = format!("input/real/{}.txt", day);
             if !Path::new(&filepath).is_file() {
@@ -64,20 +68,36 @@ fn main() {
                 return;
             } 
 
-            print!("║ {}   ║", day.green());       
-            let res: AocResult = solve(day, &read_data_from_file(&filepath));
-            print!("{:>23} ║", res.silver.0.to_string().bright_magenta());
-            print!("{:>23} ║", res.gold.0.to_string().bright_magenta());
-            print!("{:>15} ║", format_duration(res.silver.1));
-            println!("{:>15} ║", format_duration(res.gold.1));
+            print!("║ {}   ║", day.green());  
+   
+            let mut avg_silver: Vec<u128> = vec![];
+            let mut avg_gold: Vec<u128> = vec![];
+
+            let res = solve(day, &read_data_from_file(&filepath));
+            let score_silver = res.silver.0;
+            let score_gold = res.gold.0;
+
+            for _ in 0..RUNS {                 
+                let temp = solve(day, &read_data_from_file(&filepath));
+                avg_silver.push(temp.silver.1.as_micros());
+                avg_gold.push(temp.gold.1.as_micros());
+            }
+
+            print!("{:>23} ║", score_silver.to_string().bright_magenta());
+            print!("{:>23} ║", score_gold.to_string().bright_magenta());
+            print!("{:>15} ║", format_duration(avg_silver));
+            println!("{:>15} ║", format_duration(avg_gold));
         }
 
         print_footer();
     }
 }
 
-fn format_duration(duration: Duration) -> String {
-    let us = duration.as_micros(); // Total microseconds
+fn format_duration(duration: Vec<u128>) -> String {
+    let us: u128 = duration
+        .iter()        
+        .sum::<u128>() / duration.len() as u128;
+
     if us < 1_000 {
         format!("{} µs", us) // Microseconds
     } else if us < 1_000_000 {

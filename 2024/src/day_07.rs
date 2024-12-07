@@ -64,18 +64,20 @@ impl Solution for BridgeRepair {
 // For assisting functions
 impl BridgeRepair {
     fn solve(res: &usize, nums: &[usize], op: &[Operation]) -> bool {  
-        // Use itertools to calculate all permutations of operators      
+        // Use itertools to calculate all variations of operators      
         (0..nums.len() - 1)
             .map(|_| op.iter())
             .multi_cartesian_product()
             .any(|comb| {
-                let sum = comb.iter().enumerate().fold(nums[0], |acc, (i, c)| {
+                let mut sum = nums[0];    
+                for (i, c) in comb.iter().enumerate() {
                     match c {
-                        Operation::Add => acc + nums[i + 1],
-                        Operation::Multiply => acc * nums[i + 1],
-                        Operation::Conc => Self::conc(&acc, &nums[i + 1]),
-                    }
-                });
+                        Operation::Add => sum += nums[i + 1],
+                        Operation::Multiply => sum *= nums[i + 1],
+                        Operation::Conc => sum = Self::conc(&sum, &nums[i + 1]),
+                    }    
+                    if sum > *res { return false }
+                }    
                 sum == *res
             })
     } 
