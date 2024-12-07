@@ -6,7 +6,7 @@
 
 use std::{cmp::Ordering, collections::{HashMap, HashSet}};
 
-use crate::{Fro, Solution};
+use crate::{Fro, Solution, TaskResult};
 
 type Rules = HashMap<usize, HashSet<usize>>;
 type Print = Vec<Vec<usize>>;
@@ -47,25 +47,25 @@ impl Solution for PrintQueue {
     // For each page in pagelist, check the rules for page.
     // If any of the pages in rules[page] are already in printed, 
     // the order is invalid. Otherwise, add page to printed.
-    fn silver(&self) -> usize {
-        self.print.iter()
-        .filter(|pages| pages.is_sorted_by(|a, b| 
-            Self::custom_sort(a, b, &self.rules) != Ordering::Greater)
-        )
-        .map(|pages| pages.get(pages.len()/2).unwrap())            
-        .sum()
+    fn silver(&self) -> TaskResult {
+        TaskResult::Usize(self.print.iter()
+            .filter(|pages| pages.is_sorted_by(|a, b| 
+                Self::custom_sort(a, b, &self.rules) != Ordering::Greater)
+            )
+            .map(|pages| pages.get(pages.len()/2).unwrap())            
+            .sum())
     }
 
-    fn gold(&self) -> usize {
-        self.print.clone().iter_mut()
-        .filter(|pages| !pages.is_sorted_by(|a, b| 
-            Self::custom_sort(a, b, &self.rules) != Ordering::Greater)
-        )
-        .map(|pages| {         
-            pages.sort_by(|a, b| Self::custom_sort(a, b, &self.rules));
-            pages.get(pages.len()/2).unwrap()
-        })
-        .sum()
+    fn gold(&self) -> TaskResult {
+        TaskResult::Usize(self.print.clone().iter_mut()
+            .filter(|pages| !pages.is_sorted_by(|a, b| 
+                Self::custom_sort(a, b, &self.rules) != Ordering::Greater)
+            )
+            .map(|pages| {         
+                pages.sort_by(|a, b| Self::custom_sort(a, b, &self.rules));
+                pages.get(pages.len()/2).unwrap()
+            })
+            .sum())
     }
 }
 
@@ -82,7 +82,7 @@ impl PrintQueue {
 // cargo test --bin main -- day_XX::tests
 #[cfg(test)]
 mod tests {
-    use crate::utils::read_data_from_file;   
+    use crate::{utils::read_data_from_file, TaskResult};   
     use super::*;   
 
     #[test]
@@ -90,8 +90,8 @@ mod tests {
         let test_data = read_data_from_file("input/test/05.txt"); 
         let queue = PrintQueue::fro(&test_data);        
   
-        assert_eq!(queue.silver(), 143);
-        assert_eq!(queue.gold(), 123);
+        assert_eq!(queue.silver(), TaskResult::Usize(143));
+        assert_eq!(queue.gold(), TaskResult::Usize(123));
     }
 
     #[test]
@@ -99,8 +99,8 @@ mod tests {
         let real_data = read_data_from_file("input/real/05.txt");
         let queue = PrintQueue::fro(&real_data);        
   
-        assert_eq!(queue.silver(), 5713);
-        assert_eq!(queue.gold(), 5180);
+        assert_eq!(queue.silver(), TaskResult::Usize(5713));
+        assert_eq!(queue.gold(), TaskResult::Usize(5180));
 
     }
 }

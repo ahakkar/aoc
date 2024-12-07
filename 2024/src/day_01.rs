@@ -3,7 +3,7 @@
  * Author: Antti Hakkarainen
  * https://github.com/ahakkar/
 **/
-use crate::{Fro, Solution};
+use crate::{Fro, Solution, TaskResult};
 
 use std::collections::HashMap;
 
@@ -18,7 +18,7 @@ impl Fro for HistorianHysteria {
 }
 
 impl Solution for HistorianHysteria {
-    fn silver(&self) -> usize {
+    fn silver(&self) -> TaskResult {
         let mut sum: usize = 0;  
         let mut a: Vec<usize> = vec![];
         let mut b: Vec<usize> = vec![];
@@ -44,10 +44,10 @@ impl Solution for HistorianHysteria {
             }        
         }
     
-        sum 
+        TaskResult::Usize(sum)
     }
     
-    fn gold(&self) -> usize {
+    fn gold(&self) -> TaskResult {
         let mut sum: usize = 0;    
     
         let mut a: Vec<usize> = vec![];
@@ -73,7 +73,7 @@ impl Solution for HistorianHysteria {
             }
         }
     
-        sum 
+        TaskResult::Usize(sum)
     }
 }
 
@@ -93,8 +93,8 @@ mod tests {
         let test_data = read_data_from_file("input/test/01.txt"); 
         let queue = HistorianHysteria::fro(&test_data);        
   
-        assert_eq!(queue.silver(), 11);
-        assert_eq!(queue.gold(), 31);
+        assert_eq!(queue.silver(), TaskResult::Usize(11));
+        assert_eq!(queue.gold(), TaskResult::Usize(31));
     }
 
     #[test]
@@ -102,8 +102,8 @@ mod tests {
         let real_data = read_data_from_file("input/real/01.txt");
         let queue = HistorianHysteria::fro(&real_data);        
   
-        assert_eq!(queue.silver(), 1879048);
-        assert_eq!(queue.gold(), 21024792);
+        assert_eq!(queue.silver(), TaskResult::Usize(1879048));
+        assert_eq!(queue.gold(), TaskResult::Usize(21024792));
 
     }
 }

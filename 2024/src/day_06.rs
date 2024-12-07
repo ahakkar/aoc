@@ -4,20 +4,12 @@
  * https://github.com/ahakkar/
 **/
 
-#![allow(unused_parens)]
-#![allow(unused_imports)]
-#![allow(unused_variables)]
 #![allow(unused_mut)]
-#![allow(clippy::needless_return)]
-#![allow(clippy::needless_range_loop)]
 #![allow(dead_code)]
-#![allow(unused_assignments)]
 
-use std::{collections::HashSet, fmt, vec};
-
-use crate::{utils::{self, Coord, Direction}, Fro, Solution};
+use std::{collections::HashSet};
+use crate::{utils::{self, Coord, Direction}, Fro, Solution, TaskResult};
 use grid::*;
-use petgraph::visit;
 use rayon::prelude::*;
 
 #[derive(Debug, PartialEq, Clone)]
@@ -50,13 +42,13 @@ impl Fro for GuardGallivant {
 
 // Main solvers
 impl Solution for GuardGallivant {
-    fn silver(&self) -> usize {
+    fn silver(&self) -> TaskResult {
         let mut dir = Direction::North; // 67,89
         let mut pos: Option<Coord> = Some(Coord::new(67,89)); // 4,6 test
         let mut visited: HashSet<Coord> = HashSet::new();        
 
         while let Some(cur_pos) = pos {   
-            let mut dir_vec = dir.to_vector(); 
+            let dir_vec = dir.to_vector(); 
             let new_x = cur_pos.x + dir_vec.0;
             let new_y = cur_pos.y + dir_vec.1;
 
@@ -81,18 +73,16 @@ impl Solution for GuardGallivant {
         }
         Self::print_grid(map); */
 
-        visited.len()+1
+        TaskResult::Usize(visited.len()+1)
     }
     
 
-    fn gold(&self) -> usize {
-        let mut loop_positions: usize = 0;
+    fn gold(&self) -> TaskResult {     
         let start_pos = Coord::new(67,89); // 67,89 || 4,6
-
         let total_rows = self.map.rows();
         let total_cols = self.map.cols();
     
-        loop_positions = (0..total_rows).into_par_iter().map(|row| {
+        let loop_positions: usize = (0..total_rows).into_par_iter().map(|row| {
             let mut local_loop_positions = 0;
     
             for col in 0..total_cols {
@@ -130,7 +120,7 @@ impl Solution for GuardGallivant {
         })
         .sum::<usize>();
 
-        loop_positions
+        TaskResult::Usize(loop_positions)
     }
 }
 
@@ -147,7 +137,6 @@ impl GuardGallivant {
 
     fn print_grid(map: Grid<Tile>) {
         println!(" 0123456789");
-        let mut i = 0;
         for (i, row) in map.iter_rows().enumerate() {
             print!("{}", i);
             for tile in row {
@@ -169,7 +158,7 @@ impl GuardGallivant {
 // cargo test --lib day_XX
 #[cfg(test)]
 mod tests {
-    use crate::utils::read_data_from_file;   
+    use crate::{utils::read_data_from_file, TaskResult};   
     use super::*;   
 
     #[test]
@@ -177,8 +166,8 @@ mod tests {
         let test_data = read_data_from_file("input/test/06.txt"); 
         let queue = GuardGallivant::fro(&test_data);        
   
-        assert_eq!(queue.silver(), 41);
-        assert_eq!(queue.gold(), 6);
+        assert_eq!(queue.silver(), TaskResult::Usize(41));
+        assert_eq!(queue.gold(), TaskResult::Usize(6));
     }
 
     #[test]
@@ -186,7 +175,7 @@ mod tests {
         let real_data = read_data_from_file("input/real/06.txt");
         let queue = GuardGallivant::fro(&real_data);        
   
-        assert_eq!(queue.silver(), 4696);
-        assert_eq!(queue.gold(), 1443);
+        assert_eq!(queue.silver(), TaskResult::Usize(4696));
+        assert_eq!(queue.gold(), TaskResult::Usize(1443));
     }
 }

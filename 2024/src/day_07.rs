@@ -4,7 +4,7 @@
  * https://github.com/ahakkar/
 **/
 
-use crate::{Fro, Solution};
+use crate::{Fro, Solution, TaskResult};
 use itertools::Itertools;
 use rayon::prelude::*;
 
@@ -45,19 +45,19 @@ impl Fro for BridgeRepair {
 
 // Main solvers
 impl Solution for BridgeRepair {
-    fn silver(&self) -> usize {
+    fn silver(&self) -> TaskResult {
         let op = Vec::from([Operation::Add, Operation::Multiply]);
-        self.data.iter()
+        TaskResult::Usize(self.data.iter()
             .map(|row| if Self::solve(&row.0, &row.1, &op) { row.0 } else { 0 })
-            .sum()
+            .sum())
     }
     
 
-    fn gold(&self) -> usize {    
+    fn gold(&self) -> TaskResult {    
         let op = Vec::from([Operation::Add, Operation::Multiply, Operation::Conc]);
-        self.data.par_iter()            
+        TaskResult::Usize(self.data.par_iter()            
             .map(|row| if Self::solve(&row.0, &row.1, &op) { row.0 } else { 0 })
-            .sum()
+            .sum())
     }
 }
 
@@ -97,8 +97,8 @@ mod tests {
         let test_data = read_data_from_file("input/test/07.txt"); 
         let queue = BridgeRepair::fro(&test_data);        
   
-        assert_eq!(queue.silver(), 3749);
-        assert_eq!(queue.gold(), 11387);
+        assert_eq!(queue.silver(), TaskResult::Usize(3749));
+        assert_eq!(queue.gold(), TaskResult::Usize(11387));
     }
 
     #[test]
@@ -106,7 +106,7 @@ mod tests {
         let real_data = read_data_from_file("input/real/07.txt");
         let queue = BridgeRepair::fro(&real_data);        
   
-        assert_eq!(queue.silver(), 663613490587);
-        assert_eq!(queue.gold(), 110365987435001);
+        assert_eq!(queue.silver(), TaskResult::Usize(663613490587));
+        assert_eq!(queue.gold(), TaskResult::Usize(110365987435001));
     }
 }

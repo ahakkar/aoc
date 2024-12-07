@@ -3,6 +3,9 @@
  * Author: Antti Hakkarainen
  * https://github.com/ahakkar/
  */
+
+#![allow(clippy::format_in_format_args)]
+
 mod utils;
 
 use std::{path::Path, time::Duration};
@@ -54,7 +57,7 @@ fn main() {
     } 
     else if args.all {
         print_header();
-        for day in ["01", "02", "03", "04", "05", "06", "07"] {
+        for day in ["01", "02", "03", "04", "05", "06", "07", "08"] {
             let filepath = format!("input/real/{}.txt", day);
             if !Path::new(&filepath).is_file() {
                 println!("File {} does not exist.", filepath);
@@ -107,20 +110,19 @@ fn print_header() {
         "═".repeat(16).yellow(),
         top_right_corner,
     );
+    
     println!(
-        "{}{:<6}{}{:<24}{}{:<24}{}{}{}{}{}{}{}",
+        "{}{:<6}{}{:>24}{}{:>24}{}{}{}{:>16}{}",
         vert_border,
         " Day".bright_red(),
         vert_border,
-        " Silver",
+        format!("{:>16}Silver{}", "Result (".bright_red(), ") ".bright_red()),
         vert_border,
-        " Gold".yellow(),    
+        format!("{:>18}{}{}", "Result (".bright_red(), "Gold".yellow(), ") ".bright_red()),
         vert_border,
-        " Time 01 ".bright_red(),
-        " ".repeat(7),
+        format!("{:>8}Silver{}", "Time (".bright_red(), ") ".bright_red()),
         vert_border,
-        " Time 02 ".bright_red(),
-        " ".repeat(7),
+        format!("{:>10}{}{}", "Time (".bright_red(), "Gold".yellow(), ") ".bright_red()),
         vert_border,
     );
     println!(

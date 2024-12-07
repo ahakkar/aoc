@@ -3,7 +3,7 @@
  * Author: Antti Hakkarainen
  * https://github.com/ahakkar/
 **/
-use crate::{Fro, Solution};
+use crate::{Fro, Solution, TaskResult};
 use regex::Regex;
 
 pub struct MullItOver {
@@ -17,20 +17,20 @@ impl Fro for MullItOver {
 }
 
 impl Solution for MullItOver {
-    fn silver(&self) -> usize {
+    fn silver(&self) -> TaskResult {
         let re = Regex::new(r"mul\(\d+,\d+\)").unwrap();
     
-        self.data.iter()
+        TaskResult::Usize(self.data.iter()
             .flat_map(|row| re.find_iter(row))
             .map(|m| Self::parse_tuple(m.as_str()))
-            .sum()
+            .sum())
     }
     
-    fn gold(&self) -> usize {
+    fn gold(&self) -> TaskResult {
         let re = Regex::new(r"mul\(\d+,\d+\)|do\(\)|don\'t\(\)").unwrap();
         let mut mode = true;
     
-        self.data.iter()
+        TaskResult::Usize(self.data.iter()
             .flat_map(|row| re.find_iter(row))
             .filter_map(|s| {
                 match s.as_str() {
@@ -39,7 +39,7 @@ impl Solution for MullItOver {
                     _ => if mode { Some(Self::parse_tuple(s.into())) } else { None },
                 }
             })
-            .sum()
+            .sum())
     }    
 }
 
@@ -67,7 +67,7 @@ mod tests {
         let test_data = read_data_from_file("input/test/03s.txt"); 
         let queue = MullItOver::fro(&test_data);        
   
-        assert_eq!(queue.silver(), 161);
+        assert_eq!(queue.silver(), TaskResult::Usize(161));
     }
 
     #[test]
@@ -75,7 +75,7 @@ mod tests {
         let test_data = read_data_from_file("input/test/03g.txt"); 
         let queue = MullItOver::fro(&test_data);        
   
-        assert_eq!(queue.gold(), 48);
+        assert_eq!(queue.gold(), TaskResult::Usize(48));
     }
 
     #[test]
@@ -83,8 +83,8 @@ mod tests {
         let real_data = read_data_from_file("input/real/03.txt");
         let queue = MullItOver::fro(&real_data);        
   
-        assert_eq!(queue.silver(), 175615763);
-        assert_eq!(queue.gold(), 74361272);
+        assert_eq!(queue.silver(), TaskResult::Usize(175615763));
+        assert_eq!(queue.gold(), TaskResult::Usize(74361272));
 
     }
 }

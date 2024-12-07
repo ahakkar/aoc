@@ -6,7 +6,7 @@
 
 use regex::Regex;
 
-use crate::{utils::{data_as_chars, Coord, Direction, GridMap}, Fro, Solution};
+use crate::{utils::{data_as_chars, Coord, Direction, GridMap}, Fro, Solution, TaskResult};
 
 pub struct CeresSearch {
     data: Vec<String>
@@ -19,7 +19,7 @@ impl Fro for CeresSearch {
 }
 
 impl Solution for CeresSearch {
-    fn silver(&self) -> usize {
+    fn silver(&self) -> TaskResult {
         let f = Regex::new(r"XMAS").unwrap();
         let b = Regex::new(r"SAMX").unwrap();
         let mut sum: usize = 0;    
@@ -35,10 +35,10 @@ impl Solution for CeresSearch {
         sum += f.find_iter(&dg_l).count();
         sum += b.find_iter(&dg_l).count();  
 
-        sum
+        TaskResult::Usize(sum)
     }
 
-    fn gold(&self) -> usize {
+    fn gold(&self) -> TaskResult {
         let mut sum: usize = 0;    
         let map:GridMap<char> = GridMap::new(data_as_chars(&self.data)); 
 
@@ -62,7 +62,7 @@ impl Solution for CeresSearch {
                 } 
             }
         }
-        sum
+        TaskResult::Usize(sum)
     }
 }
 
@@ -152,8 +152,8 @@ mod tests {
         let test_data = read_data_from_file("input/test/04.txt"); 
         let queue = CeresSearch::fro(&test_data);        
     
-        assert_eq!(queue.silver(), 18);
-        assert_eq!(queue.gold(), 9);
+        assert_eq!(queue.silver(), TaskResult::Usize(18));
+        assert_eq!(queue.gold(), TaskResult::Usize(9));
     }
 
     #[test]
@@ -161,8 +161,8 @@ mod tests {
         let real_data = read_data_from_file("input/real/04.txt");
         let queue = CeresSearch::fro(&real_data);        
     
-        assert_eq!(queue.silver(), 2718);
-        assert_eq!(queue.gold(), 2046);
+        assert_eq!(queue.silver(), TaskResult::Usize(2718));
+        assert_eq!(queue.gold(), TaskResult::Usize(2046));
 
     }
 }

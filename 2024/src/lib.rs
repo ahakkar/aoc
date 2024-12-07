@@ -5,10 +5,11 @@ mod day_04;
 mod day_05;
 mod day_06;
 mod day_07;
+mod day_08;
 
 mod utils;
 
-use std::time::{Duration, Instant};
+use std::{fmt::{self, Display}, time::{Duration, Instant}};
 
 
 // Preprocessing step
@@ -16,14 +17,29 @@ pub trait Fro {
     fn fro(input: &str) -> Self;
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum TaskResult {
+    Usize(usize),
+    String(String),
+}
+
+impl Display for TaskResult {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            TaskResult::Usize(value) => write!(f, "{}", value),
+            TaskResult::String(value) => write!(f, "{}", value.clone()), 
+        }
+    }
+}
+
 pub struct AocResult {
-    pub silver: (usize, Duration),
-    pub gold:   (usize, Duration),
+    pub silver: (TaskResult, Duration),
+    pub gold:   (TaskResult, Duration),
 }
 
 pub trait Solution {
-    fn silver(&self) -> usize;
-    fn gold(&self) -> usize;
+    fn silver(&self) -> TaskResult;
+    fn gold(&self) -> TaskResult;
 }
 
 pub fn run_solution(solution: Box<dyn Solution>) -> AocResult {
@@ -51,6 +67,7 @@ pub fn solve(day: &str, input: &str) -> AocResult {
         "05" => run_solution(Box::new(day_05::PrintQueue::fro(input))),
         "06" => run_solution(Box::new(day_06::GuardGallivant::fro(input))),
         "07" => run_solution(Box::new(day_07::BridgeRepair::fro(input))),
+        "08" => run_solution(Box::new(day_08::Template::fro(input))),
         _ => unreachable!(),
     }
 }

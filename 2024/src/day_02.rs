@@ -3,7 +3,7 @@
  * Author: Antti Hakkarainen
  * https://github.com/ahakkar/
 **/
-use crate::{utils::intvec_from_str, Fro, Solution};
+use crate::{utils::intvec_from_str, Fro, Solution, TaskResult};
 use std::cmp::Ordering;
 
 pub struct RedNosedReports {
@@ -17,15 +17,15 @@ impl Fro for RedNosedReports {
 }
 
 impl Solution for RedNosedReports {
-    fn silver(&self) -> usize {
-        self.data.iter()
+    fn silver(&self) -> TaskResult {
+        TaskResult::Usize(self.data.iter()
             .filter(|s| Self::is_safe(&intvec_from_str(s)))
-            .count()   
+            .count())
     }
     
     // Check also if any permutation is safe by removing one element
-    fn gold(&self) -> usize {    
-        self.data.iter()
+    fn gold(&self) -> TaskResult {    
+        TaskResult::Usize(self.data.iter()
             .filter(|s| {
                 let row: Vec<isize> = intvec_from_str(s);
                 Self::is_safe(&row) || (0..row.len()).any(|i| -> bool {
@@ -34,7 +34,7 @@ impl Solution for RedNosedReports {
                     Self::is_safe(&copy)
                 })
             })
-            .count()
+            .count())
     }
 }
 
@@ -70,8 +70,8 @@ mod tests {
         let test_data = read_data_from_file("input/test/02.txt"); 
         let queue = RedNosedReports::fro(&test_data);        
   
-        assert_eq!(queue.silver(), 2);
-        assert_eq!(queue.gold(), 4);
+        assert_eq!(queue.silver(), TaskResult::Usize(2));
+        assert_eq!(queue.gold(), TaskResult::Usize(4));
     }
 
     #[test]
@@ -79,7 +79,7 @@ mod tests {
         let real_data = read_data_from_file("input/real/02.txt");
         let queue = RedNosedReports::fro(&real_data);        
   
-        assert_eq!(queue.silver(), 639);
-        assert_eq!(queue.gold(), 674);
+        assert_eq!(queue.silver(), TaskResult::Usize(639));
+        assert_eq!(queue.gold(), TaskResult::Usize(674));
     }
 }
