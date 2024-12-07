@@ -5,7 +5,7 @@
  */
 mod utils;
 
-use std::path::Path;
+use std::{path::Path, time::Duration};
 use std::time::Instant;
 use aoc2024::{solve, AocResult};
 use clap::Parser;
@@ -63,13 +63,24 @@ fn main() {
 
             print!("║ {}   ║", day.green());       
             let res: AocResult = solve(day, &read_data_from_file(&filepath));
-            print!(" {:<23}║", res.silver.0.to_string().bright_magenta());
-            print!(" {:<23}║", res.gold.0.to_string().bright_magenta());
-            print!(" {:<14?} ║", res.silver.1);
-            println!(" {:<14?} ║", res.gold.1);
+            print!("{:>23} ║", res.silver.0.to_string().bright_magenta());
+            print!("{:>23} ║", res.gold.0.to_string().bright_magenta());
+            print!("{:>15} ║", format_duration(res.silver.1));
+            println!("{:>15} ║", format_duration(res.gold.1));
         }
 
         print_footer();
+    }
+}
+
+fn format_duration(duration: Duration) -> String {
+    let us = duration.as_micros(); // Total microseconds
+    if us < 1_000 {
+        format!("{} µs", us) // Microseconds
+    } else if us < 1_000_000 {
+        format!("{:.0} ms", us as f64 / 1_000.0) // Milliseconds
+    } else {
+        format!("{:.0} s", us as f64 / 1_000_000.0) // Seconds
     }
 }
 
