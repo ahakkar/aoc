@@ -56,17 +56,17 @@ impl Solution for BridgeRepair {
     fn gold(&self) -> TaskResult {    
         let op = Vec::from([Operation::Add, Operation::Multiply, Operation::Conc]);
         TaskResult::Usize(self.data.par_iter()            
-            .map(|row| if Self::solve(&row.0, &row.1, &op) { row.0 } else { 0 })
+            .map(|row| if Self::solve_recursive(row.0, &row.1, &op) { row.0 } else { 0 })
             .sum())
     }
 }
 
 // For assisting functions
 impl BridgeRepair {
-    fn solve(res: &usize, nums: &[usize], op: &[Operation]) -> bool {  
+    fn solve(res: &usize, nums: &[usize], ops: &[Operation]) -> bool {  
         // Use itertools to calculate all variations of operators      
         (0..nums.len() - 1)
-            .map(|_| op.iter())
+            .map(|_| ops.iter())
             .multi_cartesian_product()
             .any(|comb| {
                 let mut sum = nums[0];    
@@ -74,7 +74,7 @@ impl BridgeRepair {
                     match c {
                         Operation::Add => sum += nums[i + 1],
                         Operation::Multiply => sum *= nums[i + 1],
-                        Operation::Conc => sum = Self::conc(&sum, &nums[i + 1]),
+                        Operation::Conc => sum = Self::math_conc(&sum, &nums[i + 1]),
                     }    
                     if sum > *res { return false }
                 }    
@@ -82,8 +82,51 @@ impl BridgeRepair {
             })
     } 
 
-    fn conc(a: &usize, b: &usize) -> usize {
+    fn solve_recursive(res: usize, nums: &[usize], ops: &[Operation]) -> bool {
+        if nums.is_empty() { return false }
+        Self::try_operations(res, nums, ops, 1, nums[0])
+    }
+
+    // Recursive helper function.
+    fn try_operations(
+        res: usize,
+        nums: &[usize], 
+        ops: &[Operation],
+        idx: usize,
+        current_sum: usize,         
+    ) -> bool {
+        if idx == nums.len() { return current_sum == res }  // End of index
+        if current_sum > res { return false }     // No solution found here
+
+        for op in ops {
+            let new_sum = match op {
+                Operation::Add => current_sum + nums[idx],
+                Operation::Multiply => current_sum * nums[idx],
+                Operation::Conc => Self::math_conc(&current_sum, &nums[idx]),
+            };
+    
+            if new_sum > res { continue }   // Early pruning 
+            if Self::try_operations(res, nums, ops, idx + 1, new_sum) {
+                return true;
+            }
+        }
+        false
+    }
+
+    fn _str_conc(a: &usize, b: &usize) -> usize {
         format!("{}{}", a, b).parse::<usize>().unwrap()
+    }
+
+    fn math_conc(a: &usize, b: &usize) -> usize {
+        let mut b_temp = *b;
+        let mut multiplier = 1;
+
+            while b_temp > 0 {
+            b_temp /= 10;
+            multiplier *= 10;
+        }
+
+        a * multiplier + b
     }
 }
 

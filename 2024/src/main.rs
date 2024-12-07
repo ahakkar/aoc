@@ -56,8 +56,8 @@ fn main() {
         println!("Time elapsed in day{} is: {:?}", day, duration);
     } 
     else if args.all {
-        const RUNS: u8 = 1;
-        println!("Time is a {} run average.", RUNS);
+        const RUNS: u8 = 10;
+        print!("Time is a {} run average.", RUNS);
 
         print_header();
 
