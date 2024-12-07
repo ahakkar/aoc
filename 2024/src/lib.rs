@@ -4,6 +4,7 @@ mod day_03;
 mod day_04;
 mod day_05;
 mod day_06;
+mod day_07;
 
 mod utils;
 
@@ -20,8 +21,8 @@ pub trait Solution {
 }
 
 pub fn run_solution(solution: Box<dyn Solution>) {
-    print!(" {:<15}║", solution.silver().to_string().bright_magenta());
-    print!(" {:<15}║", solution.gold().to_string().bright_magenta());
+    print!(" {:<31}║", solution.silver().to_string().bright_magenta());
+    print!(" {:<31}║", solution.gold().to_string().bright_magenta());
 }
 
 /// Calls respective's day's struct, input is contents from a file read as str
@@ -33,6 +34,7 @@ pub fn solve(day: &str, input: &str) {
         "04" => run_solution(Box::new(day_04::CeresSearch::fro(input))),
         "05" => run_solution(Box::new(day_05::PrintQueue::fro(input))),
         "06" => run_solution(Box::new(day_06::GuardGallivant::fro(input))),
+        "07" => run_solution(Box::new(day_07::BridgeRepair::fro(input))),
         _ => unreachable!(),
     }
 }

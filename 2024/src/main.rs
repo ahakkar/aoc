@@ -54,7 +54,7 @@ fn main() {
     } 
     else if args.all {
         print_header();
-        for day in ["01", "02", "03", "04", "05", "06"] {
+        for day in ["01", "02", "03", "04", "05", "06", "07"] {
             let filepath = format!("input/real/{}.txt", day);
             if !Path::new(&filepath).is_file() {
                 println!("File {} does not exist.", filepath);
@@ -86,9 +86,9 @@ fn print_header() {
         top_left_corner,
         "═".repeat(6).yellow(),
         top_down_tee,
-        "═".repeat(16).yellow(),
+        "═".repeat(32).yellow(),
         top_down_tee,
-        "═".repeat(16).yellow(),
+        "═".repeat(32).yellow(),
         top_down_tee,
         "═".repeat(16).yellow(),
         top_right_corner,
@@ -98,10 +98,10 @@ fn print_header() {
         vert_border,
         " Day  ".bright_red(),
         vert_border,
-        " ".repeat(8),
+        " ".repeat(24),
         vert_border,
         " Gold ".yellow(),
-        " ".repeat(10),
+        " ".repeat(26),
         vert_border,
         " Time ".bright_red(),
         " ".repeat(10),
@@ -112,9 +112,9 @@ fn print_header() {
         vert_right_tee,
         "═".repeat(6).cyan(),
         cross,
-        "═".repeat(16).cyan(),
+        "═".repeat(32).cyan(),
         cross,
-        "═".repeat(16).cyan(),
+        "═".repeat(32).cyan(),
         cross,
         "═".repeat(16).cyan(),
         vert_left_tee,
@@ -125,8 +125,8 @@ fn print_footer() {
     println!(
         "╚{}╩{}╩{}╩{}╝\n",
         "═".repeat(6),
-        "═".repeat(16),
-        "═".repeat(16),
+        "═".repeat(32),
+        "═".repeat(32),
         "═".repeat(16),
     );
 }
