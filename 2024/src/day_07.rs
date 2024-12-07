@@ -4,19 +4,8 @@
  * https://github.com/ahakkar/
 **/
 
-#![allow(unused_parens)]
-#![allow(unused_imports)]
-#![allow(unused_variables)]
-#![allow(unused_mut)]
-#![allow(clippy::needless_return)]
-#![allow(clippy::needless_range_loop)]
-#![allow(dead_code)]
-#![allow(unused_assignments)]
-
-use itertools::Itertools;
-
 use crate::{Fro, Solution};
-use super::utils::*;
+use itertools::Itertools;
 use rayon::prelude::*;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -70,32 +59,30 @@ impl Solution for BridgeRepair {
             .map(|row| if Self::solve(&row.0, &row.1, &op) { row.0 } else { 0 })
             .sum()
     }
-
 }
 
 // For assisting functions
 impl BridgeRepair {
     fn solve(res: &usize, nums: &[usize], op: &[Operation]) -> bool {  
         // Use itertools to calculate all permutations of operators      
-        for combination in (0..nums.len()-1).map(|_| op.iter().cloned())
+        (0..nums.len() - 1)
+            .map(|_| op.iter())
             .multi_cartesian_product()
-        {                
-            let mut sum = nums[0];
-            let mut i = 1;
+            .any(|comb| {
+                let sum = comb.iter().enumerate().fold(nums[0], |acc, (i, c)| {
+                    match c {
+                        Operation::Add => acc + nums[i + 1],
+                        Operation::Multiply => acc * nums[i + 1],
+                        Operation::Conc => Self::conc(&acc, &nums[i + 1]),
+                    }
+                });
+                sum == *res
+            })
+    } 
 
-            for c in &combination {
-                match c {
-                    Operation::Add => sum += nums[i],
-                    Operation::Multiply => sum *= nums[i],
-                    Operation::Conc => sum = format!("{}{}", sum, nums[i]).parse::<usize>().unwrap(),               
-                }
-                i += 1;
-            }
-        
-            if sum == *res { return true }               
-        }
-        false
-    }    
+    fn conc(a: &usize, b: &usize) -> usize {
+        format!("{}{}", a, b).parse::<usize>().unwrap()
+    }
 }
 
 

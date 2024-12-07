@@ -7,7 +7,7 @@ mod utils;
 
 use std::path::Path;
 use std::time::Instant;
-use aoc2024::solve;
+use aoc2024::{solve, AocResult};
 use clap::Parser;
 use utils::read_data_from_file;
 use colored::*;
@@ -61,12 +61,12 @@ fn main() {
                 return;
             } 
 
-            print!("║ {}   ║", day.green());          
-    
-            let start = Instant::now();    
-            solve(day, &read_data_from_file(&filepath));
-            let duration = start.elapsed();
-            println!(" {:<15?}║", duration);
+            print!("║ {}   ║", day.green());       
+            let res: AocResult = solve(day, &read_data_from_file(&filepath));
+            print!(" {:<23}║", res.silver.0.to_string().bright_magenta());
+            print!(" {:<23}║", res.gold.0.to_string().bright_magenta());
+            print!(" {:<14?} ║", res.silver.1);
+            println!(" {:<14?} ║", res.gold.1);
         }
 
         print_footer();
@@ -81,40 +81,47 @@ fn print_header() {
     let vert_right_tee = "╠".cyan();
     let vert_left_tee = "╣".cyan();
     let cross = "╬".cyan();
+
     println!(
-        "\n{}{}{}{}{}{}{}{}{}",
+        "\n{}{}{}{}{}{}{}{}{}{}{}",
         top_left_corner,
         "═".repeat(6).yellow(),
         top_down_tee,
-        "═".repeat(32).yellow(),
+        "═".repeat(24).yellow(),
         top_down_tee,
-        "═".repeat(32).yellow(),
+        "═".repeat(24).yellow(),
+        top_down_tee,
+        "═".repeat(16).yellow(),
         top_down_tee,
         "═".repeat(16).yellow(),
         top_right_corner,
     );
     println!(
-        "{}{}{} Silver {}{}{}{}{}{}{}{}",
+        "{}{:<6}{}{:<24}{}{:<24}{}{}{}{}{}{}{}",
         vert_border,
-        " Day  ".bright_red(),
+        " Day".bright_red(),
         vert_border,
-        " ".repeat(24),
+        " Silver",
         vert_border,
-        " Gold ".yellow(),
-        " ".repeat(26),
+        " Gold".yellow(),    
         vert_border,
-        " Time ".bright_red(),
-        " ".repeat(10),
+        " Time 01 ".bright_red(),
+        " ".repeat(7),
+        vert_border,
+        " Time 02 ".bright_red(),
+        " ".repeat(7),
         vert_border,
     );
     println!(
-        "{}{}{}{}{}{}{}{}{}",
+        "{}{}{}{}{}{}{}{}{}{}{}",
         vert_right_tee,
         "═".repeat(6).cyan(),
         cross,
-        "═".repeat(32).cyan(),
+        "═".repeat(24).cyan(),
         cross,
-        "═".repeat(32).cyan(),
+        "═".repeat(24).cyan(),
+        cross,
+        "═".repeat(16).cyan(),
         cross,
         "═".repeat(16).cyan(),
         vert_left_tee,
@@ -123,10 +130,11 @@ fn print_header() {
 
 fn print_footer() {
     println!(
-        "╚{}╩{}╩{}╩{}╝\n",
+        "╚{}╩{}╩{}╩{}╩{}╝\n",
         "═".repeat(6),
-        "═".repeat(32),
-        "═".repeat(32),
+        "═".repeat(24),
+        "═".repeat(24),
+        "═".repeat(16),
         "═".repeat(16),
     );
 }
