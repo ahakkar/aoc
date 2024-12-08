@@ -4,22 +4,22 @@
  * https://github.com/ahakkar/
 **/
 
-use std::collections::{HashMap};
+use std::collections::{HashMap, HashSet};
 use itertools::Itertools;
 use crate::{Fro, Solution, TaskResult};
 
 // Can add more shared vars here
 pub struct ResonantCollinearity  {
-    points: HashMap<char, Vec<[usize; 2]>>,
-    rows: usize,
-    cols: usize,
+    points: HashMap<char, Vec<[isize; 2]>>,
+    rows: isize,
+    cols: isize,
 }
 
 // Can be used to implement fancier task-specific parsing
 impl Fro for ResonantCollinearity {
     // Parse data to list of Points
     fn fro(data: &str) -> Self{   
-        let mut points: HashMap<char, Vec<[usize; 2]>> = HashMap::new(); 
+        let mut points: HashMap<char, Vec<[isize; 2]>> = HashMap::new(); 
         let mut rows = 0;
         let mut cols = 0;            
         
@@ -30,60 +30,55 @@ impl Fro for ResonantCollinearity {
                 if ch != '.' {
                     points.entry(ch)
                         .or_default()
-                        .push([col_idx, row_idx]);              
+                        .push([col_idx as isize, row_idx as isize]);              
                 }    
             }
         }
 
-        Self { points, rows, cols }        
+        Self { points, rows: (rows as isize), cols: (cols as isize) }        
     }
 }
 
 // Main solvers
 impl Solution for ResonantCollinearity {
     fn silver(&self) -> TaskResult {
-        // 2D bool vec is faster than hashset
-        let mut set = vec![vec![false; self.rows]; self.cols];
-  
+        let mut u: HashSet<[isize; 2]> = HashSet::new();
+
         for point_vec in self.points.values() {
             point_vec.iter()
             .combinations(2)      
             .for_each(|pair| {    
                 let p3 = Self::point_at_line(pair[0], pair[1], 1);
-                if Self::fits_bounds(self, &p3) { set[ p3[0] ][ p3[1] ] = true }    
+                if Self::fits_bounds(self, &p3) { u.insert(p3); }    
                 let p4 = Self::point_at_line(pair[1], pair[0], 1);                            
-                if Self::fits_bounds(self, &p4) { set[ p4[0] ][ p4[1] ] = true }      
+                if Self::fits_bounds(self, &p4) { u.insert(p4); }      
             });
         } 
-        TaskResult::Usize(Self::set_size(set))   
+        TaskResult::Usize(u.len())       
     }    
 
     fn gold(&self) -> TaskResult {   
-        let mut set = vec![vec![false; self.rows]; self.cols];
+        let mut u: HashSet<[isize; 2]> = HashSet::new();
 
         for point_vec in self.points.values() {
             point_vec.iter()
             .combinations(2)      
             .for_each(|pair| {    
                 Self::points_on_line(self, pair).iter()
-                    .for_each(|point| { set[ point[0] ][ point[1] ] = true; })         
+                    .for_each(|point| { let _ = u.insert(*point); })         
             });
         } 
-        TaskResult::Usize(Self::set_size(set))  
+        TaskResult::Usize(u.len())
     }
 }
 
 // For assisting functions
 impl ResonantCollinearity {
-    fn set_size(set: Vec<Vec<bool>>) -> usize {
-        set.iter().flat_map(|r| r.iter()).filter(|&&v| v) .count()
+    fn fits_bounds(&self, p: &[isize; 2]) -> bool {
+        p[0] >= 0 && p[1] >= 0 && p[0] < self.cols && p[1] < self.rows
     }
 
-    fn fits_bounds(&self, p: &[usize; 2]) -> bool {
-        p[0] < self.cols && p[1] < self.rows
-    }
-
-    fn point_at_line(p1: &[usize; 2], p2: &[usize; 2], m: usize) -> [usize; 2] {
+    fn point_at_line(p1: &[isize; 2], p2: &[isize; 2], m: isize) -> [isize; 2] {
         let v = [p2[0] - p1[0], p2[1] - p1[1]];        
         [ 
             p1[0] - m * v[0],
@@ -91,7 +86,7 @@ impl ResonantCollinearity {
         ]   
     }
 
-    fn points_on_line(&self, pair: Vec<&[usize; 2]>) -> Vec<[usize; 2]> {
+    fn points_on_line(&self, pair: Vec<&[isize; 2]>) -> Vec<[isize; 2]> {
         std::iter::once(*pair[0])
             .chain(std::iter::once(*pair[1]))
             .chain(self.extend_line(pair[0], pair[1]))
@@ -99,7 +94,7 @@ impl ResonantCollinearity {
             .collect()
     }
 
-    fn extend_line(&self, start: &[usize; 2], end: &[usize; 2]) -> Vec<[usize; 2]> {
+    fn extend_line(&self, start: &[isize; 2], end: &[isize; 2]) -> Vec<[isize; 2]> {
         (1..)
             .map(|m| Self::point_at_line(start, end, m))
             .take_while(|np| Self::fits_bounds(self, np))

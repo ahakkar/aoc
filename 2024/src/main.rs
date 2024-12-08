@@ -9,7 +9,6 @@
 mod utils;
 
 use std::{path::Path};
-use std::time::Instant;
 use aoc2024::{solve};
 use clap::Parser;
 use utils::read_data_from_file;
@@ -50,11 +49,9 @@ fn main() {
             return;
         }
 
-        let start = Instant::now();    
         let result = solve(day, &read_data_from_file(&filepath));
         println!("Silver: {}, Gold: {}", result.silver.0, result.gold.0);
-        let duration = start.elapsed();
-        println!("Time elapsed in day{} is: {:?}", day, duration);
+        println!("Silver: {:?}, Gold: {:?}", result.silver.1, result.gold.1);
     } 
     else if args.all {
         const RUNS: u8 = 10;
