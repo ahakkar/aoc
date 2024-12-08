@@ -59,7 +59,7 @@ def manhattan_distance(a:Coord, b:Coord) -> int:
 
 
 def a_star_search(graph, start: Coord, goal: Coord, heuristic) -> list:
-    open_set = []
+    open_set:list = []
     # Priority queue, sorted by f score, with start node
     heapq.heappush(open_set, (graph[start].f, start))  
 
