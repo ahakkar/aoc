@@ -51,7 +51,8 @@ fn main() {
         }
 
         let start = Instant::now();    
-        solve(day, &read_data_from_file(&filepath));
+        let result = solve(day, &read_data_from_file(&filepath));
+        println!("Silver: {}, Gold: {}", result.silver.0, result.gold.0);
         let duration = start.elapsed();
         println!("Time elapsed in day{} is: {:?}", day, duration);
     } 

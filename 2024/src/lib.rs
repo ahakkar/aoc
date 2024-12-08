@@ -67,7 +67,7 @@ pub fn solve(day: &str, input: &str) -> AocResult {
         "05" => run_solution(Box::new(day_05::PrintQueue::fro(input))),
         "06" => run_solution(Box::new(day_06::GuardGallivant::fro(input))),
         "07" => run_solution(Box::new(day_07::BridgeRepair::fro(input))),
-        "08" => run_solution(Box::new(day_08::Template::fro(input))),
+        "08" => run_solution(Box::new(day_08::ResonantCollinearity::fro(input))),
         _ => unreachable!(),
     }
 }
