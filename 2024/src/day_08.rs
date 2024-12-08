@@ -4,22 +4,9 @@
  * https://github.com/ahakkar/
 **/
 
-#![allow(unused_parens)]
-#![allow(unused_imports)]
-#![allow(unused_variables)]
-#![allow(unused_mut)]
-#![allow(clippy::needless_return)]
-#![allow(clippy::needless_range_loop)]
-#![allow(dead_code)]
-#![allow(unused_assignments)]
-
 use std::collections::{HashMap, HashSet};
-
 use itertools::Itertools;
-
 use crate::{Fro, Solution, TaskResult};
-use super::utils::*;
-use rayon::prelude::*;
 
 // Can add more shared vars here
 pub struct ResonantCollinearity  {
@@ -57,7 +44,7 @@ impl Solution for ResonantCollinearity {
     fn silver(&self) -> TaskResult {
         let mut u: HashSet<[isize; 2]> = HashSet::new();
 
-        for (key, value) in &self.points {
+        for value in self.points.values() {
             value.iter()
             .combinations(2)      
             .for_each(|pair| {    
@@ -73,7 +60,7 @@ impl Solution for ResonantCollinearity {
     fn gold(&self) -> TaskResult {   
         let mut u: HashSet<[isize; 2]> = HashSet::new();
 
-        for (key, value) in &self.points {
+        for value in self.points.values() {
             value.iter()
             .combinations(2)      
             .for_each(|pair| {    
