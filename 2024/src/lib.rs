@@ -6,6 +6,7 @@ mod day_05;
 mod day_06;
 mod day_07;
 mod day_08;
+mod day_09;
 
 mod utils;
 
@@ -35,6 +36,7 @@ impl Display for TaskResult {
 pub struct AocResult {
     pub silver: (TaskResult, Duration),
     pub gold:   (TaskResult, Duration),
+    pub fro: Duration, // todo log preprocessing step also
 }
 
 pub trait Solution {
@@ -51,7 +53,11 @@ pub fn run_solution(solution: Box<dyn Solution>) -> AocResult {
     let gold =  solution.gold();
     let gold_duration = start.elapsed();
 
-    AocResult { silver: (silver, silver_duration), gold: (gold, gold_duration) }
+    AocResult { 
+        silver: (silver, silver_duration),
+        gold: (gold, gold_duration), 
+        fro: Duration::new(0,0)
+    }
 
     //     print!(" {:<31}║", solution.silver().to_string().bright_magenta());
     // print!(" {:<31}║", solution.gold().to_string().bright_magenta());
@@ -68,6 +74,7 @@ pub fn solve(day: &str, input: &str) -> AocResult {
         "06" => run_solution(Box::new(day_06::GuardGallivant::fro(input))),
         "07" => run_solution(Box::new(day_07::BridgeRepair::fro(input))),
         "08" => run_solution(Box::new(day_08::ResonantCollinearity::fro(input))),
+        "09" => run_solution(Box::new(day_09::DiskFragmenter::fro(input))),
         _ => unreachable!(),
     }
 }
