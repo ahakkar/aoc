@@ -59,7 +59,7 @@ fn main() {
 
         print_header();
 
-        for day in ["01", "02", "03", "04", "05", "06", "07", "08"] {
+        for day in ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10"] {
             let filepath = format!("input/real/{}.txt", day);
             if !Path::new(&filepath).is_file() {
                 println!("File {} does not exist.", filepath);

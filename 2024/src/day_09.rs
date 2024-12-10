@@ -4,20 +4,8 @@
  * https://github.com/ahakkar/
 **/
 
-#![allow(unused_parens)]
-#![allow(unused_imports)]
-#![allow(unused_variables)]
-#![allow(unused_mut)]
-#![allow(clippy::needless_return)]
-#![allow(clippy::needless_range_loop)]
-#![allow(dead_code)]
-#![allow(unused_assignments)]
-#![allow(unused_must_use)]
-
-use std::fmt::{self, Display};
-
 use crate::{Fro, Solution, TaskResult};
-use super::utils::*;
+use std::fmt::{self, Display};
 
 #[derive(Debug, Clone)]
 struct Block {
@@ -31,37 +19,40 @@ impl Display for Block {
             writeln!(f, "Empty data block")
         } else {
             writeln!(f, "{:?}", self)
-        }        
+        }
     }
 }
 
 // Can add more shared vars here
 pub struct DiskFragmenter {
-    data: Vec<Block>
+    data: Vec<Block>,
 }
 
 // Can be used to implement fancier task-specific parsing
-impl Fro for DiskFragmenter  {
-    fn fro(input: &str) -> Self{
+impl Fro for DiskFragmenter {
+    fn fro(input: &str) -> Self {
         let mut data: Vec<Block> = Vec::new();
         let mut i = 0;
         let mut data_idx = 0;
-        input
-            .chars()
-            .for_each(|c| {
-                let len = c as u8 -48;
-                let mut data_added = false;
-                for _ in (0..len) {
-                    if i % 2 == 0 {
-                        data.push(Block {id: data_idx, data: c});   
-                        data_added = true;                     
-                    } else {
-                        data.push(Block {id: i, data: '.'});
-                    }                    
-                }   
-                if data_added { data_idx += 1; }                    
-                i += 1;
-            });
+        input.chars().for_each(|c| {
+            let len = c as u8 - 48;
+            let mut data_added = false;
+            for _ in 0..len {
+                if i % 2 == 0 {
+                    data.push(Block {
+                        id: data_idx,
+                        data: c,
+                    });
+                    data_added = true;
+                } else {
+                    data.push(Block { id: i, data: '.' });
+                }
+            }
+            if data_added {
+                data_idx += 1;
+            }
+            i += 1;
+        });
         Self { data }
     }
 }
@@ -73,67 +64,54 @@ impl Solution for DiskFragmenter {
 
         // first find the next free space, and hold it in index
         let mut next_free = 0;
-        let mut next_end = defrag.len()-1;
+        let mut next_end = defrag.len() - 1;
 
         while let Some(idx) = Self::next_free_idx(&defrag, next_free) {
-            // Find next data block from end 
-            if let Some(end) = Self::next_end_idx(&defrag, next_end) {                
-                if idx >= end { break } // Finish condition
-                
+            // Find next data block from end
+            if let Some(end) = Self::next_end_idx(&defrag, next_end) {
+                if idx >= end {
+                    break;
+                } // Finish condition
+
                 // Swap the free space with data from the end
-                defrag.swap(idx, end);                
+                defrag.swap(idx, end);
                 next_free = idx + 1;
                 next_end = end - 1;
-            } 
-            else { break } // No more data blocks to process            
-        } 
-        TaskResult::Usize(Self::checksum(defrag))           
+            } else {
+                break;
+            } // No more data blocks to process
+        }
+        TaskResult::Usize(Self::checksum(defrag))
     }
-    
 
-    fn gold(&self) -> TaskResult {  
+    fn gold(&self) -> TaskResult {
         let mut defrag = self.data.clone();
-        let mut seek_start = 0;
-        let mut seek_end = defrag.len()-1;
-
-        //defrag.iter().enumerate().for_each(|(idx, d)| print!("idx: {}, {}", idx, d));
-        //println!("start processing");
+        let mut seek_end = defrag.len() - 1;
 
         // Start processing a file
         while let Some(end) = Self::next_end_idx(&defrag, seek_end) {
-            println!("end: {}", end);
-            if seek_start == end { // end condition
+            if 0 == end {
                 break;
             }
 
             // Skip empty blocks
-            if defrag[end].data == '.' {                 
+            if defrag[end].data == '.' {
                 seek_end = end.saturating_sub(1);
-                continue; 
-            } 
-                 
+                continue;
+            }
+
             // Found a file
-            let file_length = defrag[end].data.to_digit(10).unwrap() as usize;    
-            let file_start = end + 1 - file_length;       
+            let file_length = defrag[end].data.to_digit(10).unwrap() as usize;
+            let file_start = end + 1 - file_length;
 
-            //println!("seeking: start: {}, end: {}, fl: {}", seek_start, &(file_start), file_length);
             // Find room for file
-            if let Some(free_range) = 
-                Self::free_block(&defrag, &seek_start, &(file_start), &file_length)
-            {
-                //println!("defragging: free range: {:?}, end: {}, fl: {}",                     free_range, end, file_length);
-                let file_start = end+1-file_length;
-                Self::move_file(&mut defrag, &free_range, &file_start, &file_length);                 
-            }  
+            if let Some(free_range) = Self::free_block(&defrag, &0, &file_start, &file_length) {
+                let file_start = end + 1 - file_length;
+                Self::move_file(&mut defrag, &free_range, &file_start, &file_length);
+            }
             seek_end = file_start.saturating_sub(1);
-              
         }
-        //println!();
-        //defrag.iter().enumerate().for_each(|(idx, d)| print!("idx: {}, {}", idx, d));
-        TaskResult::Usize(Self::checksum(defrag))  
-
-        // 00992111777.44.333....5555.6666.....8888..
-        //TaskResult::Usize(Self::checksum(defrag))   
+        TaskResult::Usize(Self::checksum(defrag))
     }
 }
 
@@ -142,26 +120,27 @@ impl DiskFragmenter {
     // cargo test --lib tests::free_block -- --nocapture
     fn free_block(
         defrag: &[Block],
-        start: &usize,  
-        end: &usize,      
-        seek_len: &usize
-    ) 
-        -> Option<(usize, usize)>
-    {
+        start: &usize,
+        end: &usize,
+        seek_len: &usize,
+    ) -> Option<(usize, usize)> {
         let mut continuous = false;
         let mut found = 0;
 
-        for offset in (*start..=*end) {            
-            if defrag[offset].data == '.' {  
-                if !continuous { continuous = true };  
-                found += 1;          
+        #[allow(clippy::needless_range_loop)]
+        for offset in *start..=*end {
+            if defrag[offset].data == '.' {
+                if !continuous {
+                    continuous = true
+                };
+                found += 1;
 
                 if found == *seek_len {
-                    return Some( (offset + 1 - seek_len, offset) );
+                    return Some((offset + 1 - seek_len, offset));
                 }
                 continue;
-            }      
-            // Reset state            
+            }
+            // Reset state
             continuous = false;
             found = 0;
         }
@@ -175,13 +154,12 @@ impl DiskFragmenter {
         file_length: &usize,
     ) -> bool {
         //println!("{:?}, fe:{}, fl:{}", free_block, file_start, file_length);
-        (0..*file_length).for_each(|i| {   
-            defrag.swap(free_block.0+i, file_start+i);
+        (0..*file_length).for_each(|i| {
+            defrag.swap(free_block.0 + i, file_start + i);
         });
 
         true
-    } 
-    
+    }
 
     fn next_free_idx(defrag: &[Block], start: usize) -> Option<usize> {
         (start..defrag.len()).find(|&i| defrag[i].data == '.')
@@ -193,95 +171,106 @@ impl DiskFragmenter {
 
     fn checksum(defrag: Vec<Block>) -> usize {
         defrag
-        .iter()
-        .enumerate()
-        .map(|(i, val)| if val.data != '.' { val.id * i } else { 0 })
-        .sum()
+            .iter()
+            .enumerate()
+            .map(|(i, val)| if val.data != '.' { val.id * i } else { 0 })
+            .sum()
     }
 }
-
 
 // cargo test --lib day_XX
 #[cfg(test)]
 mod tests {
-    use crate::utils::read_data_from_file;   
-    use super::*;   
+    use super::*;
+    use crate::utils::read_data_from_file;
 
     #[test]
     fn free_block() {
-        //let test_data = read_data_from_file("input/test/09.txt"); 
-        //let prog = DiskFragmenter::fro(&test_data);  
+        //let test_data = read_data_from_file("input/test/09.txt");
+        //let prog = DiskFragmenter::fro(&test_data);
         let defrag: Vec<Block> = Vec::from([
-            Block {id: 0, data: '1'}, 
-            Block {id: 1, data: '.'}, 
-            Block {id: 2, data: '.'}, 
-            Block {id: 3, data: '.'}, 
-            Block {id: 4, data: '2'}, 
-            Block {id: 5, data: '2'}, 
-            Block {id: 6, data: '.'}, 
-            ]);
-        assert_eq!(DiskFragmenter::free_block(&defrag, &0, &6, &1), Some( (1,1) ) );
-        assert_eq!(DiskFragmenter::free_block(&defrag, &0, &6, &2), Some( (1,2) ) );
-        assert_eq!(DiskFragmenter::free_block(&defrag, &2, &6, &2), Some( (2,3) ) );
-        assert_eq!(DiskFragmenter::free_block(&defrag, &1, &6, &3), Some( (1,3) ) );
-        assert_eq!(DiskFragmenter::free_block(&defrag, &3, &6, &1), Some( (3,3) ) );
-        assert_eq!(DiskFragmenter::free_block(&defrag, &4, &6, &1), Some( (6,6) ) );
+            Block { id: 0, data: '1' },
+            Block { id: 1, data: '.' },
+            Block { id: 2, data: '.' },
+            Block { id: 3, data: '.' },
+            Block { id: 4, data: '2' },
+            Block { id: 5, data: '2' },
+            Block { id: 6, data: '.' },
+        ]);
+        assert_eq!(
+            DiskFragmenter::free_block(&defrag, &0, &6, &1),
+            Some((1, 1))
+        );
+        assert_eq!(
+            DiskFragmenter::free_block(&defrag, &0, &6, &2),
+            Some((1, 2))
+        );
+        assert_eq!(
+            DiskFragmenter::free_block(&defrag, &2, &6, &2),
+            Some((2, 3))
+        );
+        assert_eq!(
+            DiskFragmenter::free_block(&defrag, &1, &6, &3),
+            Some((1, 3))
+        );
+        assert_eq!(
+            DiskFragmenter::free_block(&defrag, &3, &6, &1),
+            Some((3, 3))
+        );
+        assert_eq!(
+            DiskFragmenter::free_block(&defrag, &4, &6, &1),
+            Some((6, 6))
+        );
     }
 
     #[test]
     fn move_file() {
         let mut defrag: Vec<Block> = Vec::from([
-            Block {id: 0, data: '1'}, 
-            Block {id: 1, data: '.'}, 
-            Block {id: 2, data: '.'}, 
-            Block {id: 3, data: '.'}, 
-            Block {id: 4, data: '2'}, 
-            Block {id: 5, data: '2'}, 
-            Block {id: 6, data: '1'}, 
+            Block { id: 0, data: '1' },
+            Block { id: 1, data: '.' },
+            Block { id: 2, data: '.' },
+            Block { id: 3, data: '.' },
+            Block { id: 4, data: '2' },
+            Block { id: 5, data: '2' },
+            Block { id: 6, data: '1' },
         ]);
 
-        if let Some(free_block) = 
-            DiskFragmenter::free_block(&defrag, &0, &(6-2), &2)
-        {            
-            assert!(DiskFragmenter::move_file(&mut defrag, &free_block, &6, &1));            
+        if let Some(free_block) = DiskFragmenter::free_block(&defrag, &0, &(6 - 2), &2) {
+            assert!(DiskFragmenter::move_file(&mut defrag, &free_block, &6, &1));
         }
 
         //println!("\nstate after swap 1:");
         defrag.iter().for_each(|d| print!("{}", d));
-   
-        if let Some(free_block) = 
-            DiskFragmenter::free_block(&defrag, &0, &(6-2), &2)
-        {            
-            assert!(DiskFragmenter::move_file(&mut defrag, &free_block, &4, &2));            
+
+        if let Some(free_block) = DiskFragmenter::free_block(&defrag, &0, &(6 - 2), &2) {
+            assert!(DiskFragmenter::move_file(&mut defrag, &free_block, &4, &2));
         }
 
         //println!("\nstate after swap 2:");
         defrag.iter().for_each(|d| print!("{}", d));
 
-        defrag.push(Block {id:7, data: '4'});
-        defrag.push(Block {id:8, data: '4'});
-        defrag.push(Block {id:9, data: '4'});
-        defrag.push(Block {id:10, data: '4'});
-        defrag.push(Block {id:11, data: '.'}); 
-        defrag.push(Block {id:12, data: '3'});
-        defrag.push(Block {id:13, data: '3'});
-        defrag.push(Block {id:14, data: '3'});
+        defrag.push(Block { id: 7, data: '4' });
+        defrag.push(Block { id: 8, data: '4' });
+        defrag.push(Block { id: 9, data: '4' });
+        defrag.push(Block { id: 10, data: '4' });
+        defrag.push(Block { id: 11, data: '.' });
+        defrag.push(Block { id: 12, data: '3' });
+        defrag.push(Block { id: 13, data: '3' });
+        defrag.push(Block { id: 14, data: '3' });
 
-        if let Some(free_block) = 
-            DiskFragmenter::free_block(&defrag, &0, &(14-3), &3)
-        {            
-            assert!(DiskFragmenter::move_file(&mut defrag, &free_block, &12, &3));            
+        if let Some(free_block) = DiskFragmenter::free_block(&defrag, &0, &(14 - 3), &3) {
+            assert!(DiskFragmenter::move_file(&mut defrag, &free_block, &12, &3));
         }
-            
+
         //println!("\nstate after swap 3:");
         defrag.iter().for_each(|d| print!("{}", d));
     }
 
     #[test]
-    fn test() {  
-        let test_data = read_data_from_file("input/test/09.txt"); 
-        let queue = DiskFragmenter::fro(&test_data);        
-  
+    fn test() {
+        let test_data = read_data_from_file("input/test/09.txt");
+        let queue = DiskFragmenter::fro(&test_data);
+
         assert_eq!(queue.silver(), TaskResult::Usize(1928));
         assert_eq!(queue.gold(), TaskResult::Usize(2858));
     }
@@ -289,9 +278,9 @@ mod tests {
     #[test]
     fn real() {
         let real_data = read_data_from_file("input/real/09.txt");
-        let queue = DiskFragmenter::fro(&real_data);        
-  
-        assert_eq!(queue.silver(), TaskResult::Usize(0));
-        assert_eq!(queue.gold(), TaskResult::Usize(0));
+        let queue = DiskFragmenter::fro(&real_data);
+
+        assert_eq!(queue.silver(), TaskResult::Usize(6242766523059));
+        assert_eq!(queue.gold(), TaskResult::Usize(6272188244509));
     }
 }

@@ -14,18 +14,20 @@
 #![allow(clippy::needless_return)]
 #![allow(clippy::needless_range_loop)]
 
-use crate::{Fro, Solution, TaskResult};
 use super::utils::*;
+use crate::{Fro, Solution, TaskResult};
 
 // Can add more shared vars here
 pub struct Template {
-    data: Vec<String>
+    data: Vec<String>,
 }
 
 // Can be used to implement fancier task-specific parsing
 impl Fro for Template {
-    fn fro(data: &str) -> Self{
-        Self { data: data.split('\n').map(|line| line.to_string()).collect() }
+    fn fro(input: &str) -> Self {
+        Self {
+            data: input.split('\n').map(|line| line.to_string()).collect(),
+        }
     }
 }
 
@@ -34,31 +36,26 @@ impl Solution for Template {
     fn silver(&self) -> TaskResult {
         TaskResult::String("plii".to_string())
     }
-    
 
-    fn gold(&self) -> TaskResult {    
+    fn gold(&self) -> TaskResult {
         TaskResult::String("plaa".to_string())
     }
-
 }
 
 // For assisting functions
-impl Template {
-    
-}
-
+impl Template {}
 
 // cargo test --lib day_XX
 #[cfg(test)]
 mod tests {
-    use crate::utils::read_data_from_file;   
-    use super::*;   
+    use super::*;
+    use crate::utils::read_data_from_file;
 
     #[test]
-    fn test() {  
-        let test_data = read_data_from_file("input/test/0.txt"); 
-        let queue = Template::fro(&test_data);        
-  
+    fn test() {
+        let test_data = read_data_from_file("input/test/0.txt");
+        let queue = Template::fro(&test_data);
+
         assert_eq!(queue.silver(), TaskResult::Usize(0));
         assert_eq!(queue.gold(), TaskResult::Usize(0));
     }
@@ -66,8 +63,8 @@ mod tests {
     #[test]
     fn real() {
         let real_data = read_data_from_file("input/real/0.txt");
-        let queue = Template::fro(&real_data);        
-  
+        let queue = Template::fro(&real_data);
+
         assert_eq!(queue.silver(), TaskResult::Usize(0));
         assert_eq!(queue.gold(), TaskResult::Usize(0));
     }

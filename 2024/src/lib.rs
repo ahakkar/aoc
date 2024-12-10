@@ -7,6 +7,7 @@ mod day_06;
 mod day_07;
 mod day_08;
 mod day_09;
+mod day_10;
 
 mod utils;
 
@@ -75,6 +76,7 @@ pub fn solve(day: &str, input: &str) -> AocResult {
         "07" => run_solution(Box::new(day_07::BridgeRepair::fro(input))),
         "08" => run_solution(Box::new(day_08::ResonantCollinearity::fro(input))),
         "09" => run_solution(Box::new(day_09::DiskFragmenter::fro(input))),
+        "10" => run_solution(Box::new(day_10::HoofIt::fro(input))),
         _ => unreachable!(),
     }
 }
