@@ -7,7 +7,7 @@
 use std::collections::HashSet;
 
 use crate::{
-    utils::{self, Vec2D},
+    utils::{self, Coord, Vec2D},
     Fro, Solution, TaskResult,
 };
 use grid::*;
@@ -16,19 +16,14 @@ use utils::{EAST, NORTH, SOUTH, WEST};
 // Can add more shared vars here
 pub struct HoofIt {
     map: Grid<u32>,
-    rows: usize,
-    cols: usize,
     dirs: Vec<Vec2D>,
+    starts: Vec<Coord>,
 }
 
-#[derive(Debug, Eq, PartialEq, Hash, Clone, Copy)]
-struct Point {
-    x: isize,
-    y: isize,
-}
-
+// Aggregators are used to abstract to what kind of save operation the
+// end of recursion should do (save to a set, or increment an integer)
 struct SetAggregator {
-    ends: HashSet<Point>,
+    ends: HashSet<Coord>,
 }
 
 struct CountAggregator {
@@ -36,7 +31,7 @@ struct CountAggregator {
 }
 
 trait EndAggregator {
-    fn add_end(&mut self, end: Point);
+    fn add_end(&mut self, end: Coord);
     fn result(&self) -> usize;
 }
 
@@ -49,7 +44,7 @@ impl SetAggregator {
 }
 
 impl EndAggregator for SetAggregator {
-    fn add_end(&mut self, end: Point) {
+    fn add_end(&mut self, end: Coord) {
         self.ends.insert(end);
     }
 
@@ -65,7 +60,7 @@ impl CountAggregator {
 }
 
 impl EndAggregator for CountAggregator {
-    fn add_end(&mut self, _end: Point) {
+    fn add_end(&mut self, _end: Coord) {
         self.count += 1;
     }
 
@@ -77,6 +72,19 @@ impl EndAggregator for CountAggregator {
 // Can be used to implement fancier task-specific parsing
 impl Fro for HoofIt {
     fn fro(input: &str) -> Self {
+        let starts = input
+            .lines()
+            .enumerate()
+            .flat_map(|(row, values)| {
+                values.chars().enumerate().filter_map(move |(col, ch)| {
+                    ch.to_digit(10).filter(|&digit| digit == 0).map(|_| Coord {
+                        x: col as isize,
+                        y: row as isize,
+                    })
+                })
+            })
+            .collect();
+
         let map: Grid<u32> = Grid::from_vec(
             input
                 .replace('\n', "")
@@ -85,22 +93,18 @@ impl Fro for HoofIt {
                 .collect(),
             (input.len() as f64).sqrt() as usize,
         );
+
         let dirs = Vec::from([NORTH, SOUTH, EAST, WEST]);
-        Self {
-            rows: map.rows(),
-            cols: map.cols(),
-            map,
-            dirs,
-        }
+
+        Self { map, dirs, starts }
     }
 }
 
 // Main solvers
 impl Solution for HoofIt {
     fn silver(&self) -> TaskResult {
-        let starts = Self::find_starts(self);
         TaskResult::Usize(
-            starts
+            self.starts
                 .iter()
                 .map(|start| {
                     let mut aggregator = SetAggregator::new();
@@ -112,9 +116,8 @@ impl Solution for HoofIt {
     }
 
     fn gold(&self) -> TaskResult {
-        let starts = Self::find_starts(self);
         TaskResult::Usize(
-            starts
+            self.starts
                 .iter()
                 .map(|start| {
                     let mut aggregator = CountAggregator::new();
@@ -128,30 +131,13 @@ impl Solution for HoofIt {
 
 // For assisting functions
 impl HoofIt {
-    fn find_starts(&self) -> Vec<Point> {
-        let mut starts: Vec<Point> = vec![];
-
-        for row in 0..self.rows {
-            for col in 0..self.cols {
-                if *Self::get_value(self, col as isize, row as isize).unwrap()
-                    == 0
-                {
-                    starts.push(Point {
-                        x: col as isize,
-                        y: row as isize,
-                    });
-                }
-            }
-        }
-        starts
-    }
     // Wrapper for Grid crate, it wants (row, col) = (y, x) for some reason
-    fn get_value(&self, x: isize, y: isize) -> Option<&u32> {
-        self.map.get(y, x)
+    fn get_value(&self, x: &isize, y: &isize) -> Option<&u32> {
+        self.map.get(*y, *x)
     }
 
-    fn seek_ends<A: EndAggregator>(&self, current: &Point, aggregator: &mut A) {
-        if *Self::get_value(self, current.x, current.y).unwrap() == 9 {
+    fn seek_ends<A: EndAggregator>(&self, current: &Coord, aggregator: &mut A) {
+        if *Self::get_value(self, &current.x, &current.y).unwrap() == 9 {
             aggregator.add_end(*current);
             return;
         }
@@ -160,12 +146,12 @@ impl HoofIt {
             let dx = current.x + dir.x;
             let dy = current.y + dir.y;
 
-            if let Some(neighbor) = Self::get_value(self, dx, dy) {
+            if let Some(neighbor) = Self::get_value(self, &dx, &dy) {
                 // Check for neighbours if their value is 1 higher
-                if Self::get_value(self, current.x, current.y).unwrap() + 1
+                if Self::get_value(self, &current.x, &current.y).unwrap() + 1
                     == *neighbor
                 {
-                    Self::seek_ends(self, &Point { x: dx, y: dy }, aggregator);
+                    Self::seek_ends(self, &Coord { x: dx, y: dy }, aggregator);
                 }
             }
         }
