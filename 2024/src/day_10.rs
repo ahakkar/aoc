@@ -4,17 +4,7 @@
  * https://github.com/ahakkar/
 **/
 
-#![allow(dead_code)]
-#![allow(unused_parens)]
-#![allow(unused_imports)]
-#![allow(unused_variables)]
-#![allow(unused_mut)]
-#![allow(unused_assignments)]
-#![allow(unused_must_use)]
-#![allow(clippy::needless_return)]
-#![allow(clippy::needless_range_loop)]
-
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
 use crate::{
     utils::{self, Vec2D},
@@ -32,15 +22,62 @@ pub struct HoofIt {
 }
 
 #[derive(Debug, Eq, PartialEq, Hash, Clone, Copy)]
-pub struct Point {
+struct Point {
     x: isize,
     y: isize,
+}
+
+struct SetAggregator {
+    ends: HashSet<Point>,
+}
+
+struct CountAggregator {
+    count: usize,
+}
+
+trait EndAggregator {
+    fn add_end(&mut self, end: Point);
+    fn result(&self) -> usize;
+}
+
+impl SetAggregator {
+    fn new() -> Self {
+        Self {
+            ends: HashSet::new(),
+        }
+    }
+}
+
+impl EndAggregator for SetAggregator {
+    fn add_end(&mut self, end: Point) {
+        self.ends.insert(end);
+    }
+
+    fn result(&self) -> usize {
+        self.ends.len()
+    }
+}
+
+impl CountAggregator {
+    fn new() -> Self {
+        Self { count: 0 }
+    }
+}
+
+impl EndAggregator for CountAggregator {
+    fn add_end(&mut self, _end: Point) {
+        self.count += 1;
+    }
+
+    fn result(&self) -> usize {
+        self.count
+    }
 }
 
 // Can be used to implement fancier task-specific parsing
 impl Fro for HoofIt {
     fn fro(input: &str) -> Self {
-        let mut map: Grid<u32> = Grid::from_vec(
+        let map: Grid<u32> = Grid::from_vec(
             input
                 .replace('\n', "")
                 .chars()
@@ -61,96 +98,64 @@ impl Fro for HoofIt {
 // Main solvers
 impl Solution for HoofIt {
     fn silver(&self) -> TaskResult {
-        //                           x, y     , ends found
-        let mut starts: HashMap<Point, HashSet<Point>> = HashMap::new();
-
-        // Extract into helper function
-        for row in 0..self.rows {
-            for col in 0..self.cols {
-                if *Self::get_value(self, col as isize, row as isize).unwrap()
-                    == 0
-                {
-                    starts
-                        .entry(Point {
-                            x: col as isize,
-                            y: row as isize,
-                        })
-                        .or_default();
-                }
-                /*                print!(
-                    "{}",
-                    Self::get_value(self, col as isize, row as isize).unwrap()
-                ); */
-            }
-            //println!();
-        }
-
-        for mut start in &mut starts {
-            Self::seek_silver_ends(self, start.0, start.1)
-        }
-        //println!("{:?}", starts);
-        TaskResult::Usize(Self::sum_points_silver(starts))
+        let starts = Self::find_starts(self);
+        TaskResult::Usize(
+            starts
+                .iter()
+                .map(|start| {
+                    let mut aggregator = SetAggregator::new();
+                    self.seek_ends(start, &mut aggregator);
+                    aggregator.result()
+                })
+                .sum(),
+        )
     }
 
     fn gold(&self) -> TaskResult {
-        //                           x, y     , ends found
-        let mut starts: HashMap<Point, usize> = HashMap::new();
-
-        // Extract into helper function
-        for row in 0..self.rows {
-            for col in 0..self.cols {
-                if *Self::get_value(self, col as isize, row as isize).unwrap()
-                    == 0
-                {
-                    starts
-                        .entry(Point {
-                            x: col as isize,
-                            y: row as isize,
-                        })
-                        .or_insert(0);
-                }
-            }
-        }
-
-        for mut start in &mut starts {
-            Self::seek_gold_ends(self, *start.0, start.1)
-        }
-        //println!("{:?}", starts);
-        TaskResult::Usize(Self::sum_points_gold(starts))
+        let starts = Self::find_starts(self);
+        TaskResult::Usize(
+            starts
+                .iter()
+                .map(|start| {
+                    let mut aggregator = CountAggregator::new();
+                    self.seek_ends(start, &mut aggregator);
+                    aggregator.result()
+                })
+                .sum(),
+        )
     }
 }
 
 // For assisting functions
 impl HoofIt {
-    fn sum_points_silver(starts: HashMap<Point, HashSet<Point>>) -> usize {
-        let mut sum = 0;
-        for val in starts.values() {
-            sum += val.len();
+    fn find_starts(&self) -> Vec<Point> {
+        let mut starts: Vec<Point> = vec![];
+
+        for row in 0..self.rows {
+            for col in 0..self.cols {
+                if *Self::get_value(self, col as isize, row as isize).unwrap()
+                    == 0
+                {
+                    starts.push(Point {
+                        x: col as isize,
+                        y: row as isize,
+                    });
+                }
+            }
         }
-        sum
+        starts
     }
-
-    fn sum_points_gold(starts: HashMap<Point, usize>) -> usize {
-        starts.values().sum()
-    }
-
     // Wrapper for Grid crate, it wants (row, col) = (y, x) for some reason
     fn get_value(&self, x: isize, y: isize) -> Option<&u32> {
         self.map.get(y, x)
     }
 
-    fn seek_silver_ends(
-        &self,
-        current: &Point,
-        start_value: &mut HashSet<Point>,
-    ) {
-        // End condition
+    fn seek_ends<A: EndAggregator>(&self, current: &Point, aggregator: &mut A) {
         if *Self::get_value(self, current.x, current.y).unwrap() == 9 {
-            start_value.insert(*current);
+            aggregator.add_end(*current);
             return;
         }
 
-        // Check for valid neighbours
         for dir in &self.dirs {
             let dx = current.x + dir.x;
             let dy = current.y + dir.y;
@@ -160,38 +165,7 @@ impl HoofIt {
                 if Self::get_value(self, current.x, current.y).unwrap() + 1
                     == *neighbor
                 {
-                    Self::seek_silver_ends(
-                        self,
-                        &Point { x: dx, y: dy },
-                        start_value,
-                    );
-                }
-            }
-        }
-    }
-
-    fn seek_gold_ends(&self, current: Point, start_value: &mut usize) {
-        // End condition
-        if *Self::get_value(self, current.x, current.y).unwrap() == 9 {
-            *start_value += 1;
-            return;
-        }
-
-        // Check for valid neighbours
-        for dir in &self.dirs {
-            let dx = current.x + dir.x;
-            let dy = current.y + dir.y;
-
-            if let Some(neighbor) = Self::get_value(self, dx, dy) {
-                // Check for neighbours if their value is 1 higher
-                if Self::get_value(self, current.x, current.y).unwrap() + 1
-                    == *neighbor
-                {
-                    Self::seek_gold_ends(
-                        self,
-                        Point { x: dx, y: dy },
-                        start_value,
-                    );
+                    Self::seek_ends(self, &Point { x: dx, y: dy }, aggregator);
                 }
             }
         }
