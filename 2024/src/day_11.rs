@@ -57,7 +57,7 @@ impl PlutonianPebbles {
             if *key == 0 {
                 changes.push((1, change));
                 changes.push((0, -change));
-            } else if Self::digit_count(*key) % 2 == 0 {
+            } else if Self::count_digits(*key as u64) % 2 == 0 {
                 let (l, r) = self.split_number(*key);
                 changes.push((l, change));
                 changes.push((r, change));
@@ -84,11 +84,11 @@ impl PlutonianPebbles {
         Self::process(self, nums, iter_left)
     }
 
-    fn _digit_count_str(n: usize) -> usize {
+    fn _count_digits_str(n: usize) -> usize {
         n.to_string().len()
     }
 
-    fn _digit_count_match(n: usize) -> u32 {
+    fn _count_digits_match(n: usize) -> u32 {
         match n {
             0..=9 => 1,
             10..=99 => 2,
@@ -114,7 +114,7 @@ impl PlutonianPebbles {
     }
 
     #[rustfmt::skip]
-    fn digit_count(n: usize) -> u32 {
+    fn _count_digits_ifelse(n: usize) -> u32 {
         if n < 10 { 1 }
         else if n < 100 { 2 }
         else if n < 1_000 { 3 }
@@ -137,8 +137,36 @@ impl PlutonianPebbles {
         else { panic!("Too long number") }           
     }
 
+    fn count_digits(n: u64) -> u32 {
+        const POW10: [u64; 20] = [
+            0,
+            10,
+            100,
+            1_000,
+            10_000,
+            100_000,
+            1_000_000,
+            10_000_000,
+            100_000_000,
+            1_000_000_000,
+            10_000_000_000,
+            100_000_000_000,
+            1_000_000_000_000,
+            10_000_000_000_000,
+            100_000_000_000_000,
+            1_000_000_000_000_000,
+            10_000_000_000_000_000,
+            100_000_000_000_000_000,
+            1_000_000_000_000_000_000,
+            10_000_000_000_000_000_000,
+        ];
+
+        let t = ((64 - (n | 1).leading_zeros()) * 1233) >> 12;
+        t - if n < POW10[t as usize] { 1 } else { 0 } + 1
+    }
+
     fn split_number(&self, n: usize) -> (usize, usize) {
-        let divisor = 10usize.pow(Self::digit_count(n) / 2);
+        let divisor = 10usize.pow(Self::count_digits(n as u64) / 2);
         (n / divisor, n % divisor)
     }
 }
@@ -155,7 +183,7 @@ mod tests {
         let queue = PlutonianPebbles::fro(&test_data);
 
         assert_eq!(queue.silver(), TaskResult::Usize(55312));
-        assert_eq!(queue.gold(), TaskResult::Usize(55312));
+        assert_eq!(queue.gold(), TaskResult::Usize(65601038650482));
     }
 
     #[test]

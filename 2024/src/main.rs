@@ -10,12 +10,22 @@ mod utils;
 
 use aoc2024::solve;
 use clap::{ArgGroup, Parser};
+
 use colored::*;
 use std::path::Path;
 use utils::read_data_from_file;
 
 #[derive(Parser, Debug)]
-#[command(author, version, about, long_about = None)]
+#[command(
+    author = env!("CARGO_PKG_AUTHORS"), 
+    version = env!("CARGO_PKG_VERSION"),
+    about = format!("{} v. {}\nAuthor: {} 2020-2024", 
+        env!("CARGO_PKG_DESCRIPTION"),
+        env!("CARGO_PKG_VERSION"),
+        env!("CARGO_PKG_AUTHORS"),          
+        ), 
+    long_about = None
+)]
 #[command(group = ArgGroup::new("mode").args(&["day", "all"]).required(true))]
 struct Args {
     /// [01..25] day of calendar
@@ -26,7 +36,7 @@ struct Args {
     #[arg(short, long, action)]
     all: bool,
 
-    /// Run tests
+    /// Run with test data instead of real data
     #[arg(short, long, action)]
     test: bool,
 
