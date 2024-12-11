@@ -8,11 +8,11 @@
 
 mod utils;
 
-use std::{path::Path};
-use aoc2024::{solve};
+use aoc2024::solve;
 use clap::Parser;
-use utils::read_data_from_file;
 use colored::*;
+use std::path::Path;
+use utils::read_data_from_file;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -28,16 +28,14 @@ struct Args {
     /// Run all solutions
     #[arg(short, long, action)]
     all: bool,
-
 }
-
 
 fn main() {
     // example: cargo run -- --day 01 --test
     let args = Args::parse();
 
     if let Some(day) = args.day.as_deref() {
-        if day.len() != 2 {            
+        if day.len() != 2 {
             println!("Args: [day: integer 01..25] [folder: string real/test]");
             return;
         }
@@ -50,10 +48,9 @@ fn main() {
         }
 
         let result = solve(day, &read_data_from_file(&filepath));
-        println!("Silver: {}, Gold: {}", result.silver.0, result.gold.0);
+        println!("\nSilver: {}, Gold: {}", result.silver.0, result.gold.0);
         println!("Silver: {:?}, Gold: {:?}", result.silver.1, result.gold.1);
-    } 
-    else if args.all {
+    } else if args.all {
         const RUNS: u8 = 10;
         print!("Time is a {} run average.", RUNS);
 
@@ -64,10 +61,10 @@ fn main() {
             if !Path::new(&filepath).is_file() {
                 println!("File {} does not exist.", filepath);
                 return;
-            } 
+            }
 
-            print!("║ {}   ║", day.green());  
-   
+            print!("║ {}   ║", day.green());
+
             let mut avg_silver: Vec<u128> = vec![];
             let mut avg_gold: Vec<u128> = vec![];
 
@@ -75,7 +72,7 @@ fn main() {
             let score_silver = res.silver.0;
             let score_gold = res.gold.0;
 
-            for _ in 0..RUNS {                 
+            for _ in 0..RUNS {
                 let temp = solve(day, &read_data_from_file(&filepath));
                 avg_silver.push(temp.silver.1.as_micros());
                 avg_gold.push(temp.gold.1.as_micros());
@@ -92,9 +89,7 @@ fn main() {
 }
 
 fn format_duration(duration: Vec<u128>) -> String {
-    let us: u128 = duration
-        .iter()        
-        .sum::<u128>() / duration.len() as u128;
+    let us: u128 = duration.iter().sum::<u128>() / duration.len() as u128;
 
     if us < 1_000 {
         format!("{} µs", us) // Microseconds
@@ -128,7 +123,7 @@ fn print_header() {
         "═".repeat(16).yellow(),
         top_right_corner,
     );
-    
+
     println!(
         "{}{:<6}{}{:>24}{}{:>24}{}{}{}{:>16}{}",
         vert_border,
@@ -136,11 +131,21 @@ fn print_header() {
         vert_border,
         format!("{:>16}Silver{}", "Result (".bright_red(), ") ".bright_red()),
         vert_border,
-        format!("{:>18}{}{}", "Result (".bright_red(), "Gold".yellow(), ") ".bright_red()),
+        format!(
+            "{:>18}{}{}",
+            "Result (".bright_red(),
+            "Gold".yellow(),
+            ") ".bright_red()
+        ),
         vert_border,
         format!("{:>8}Silver{}", "Time (".bright_red(), ") ".bright_red()),
         vert_border,
-        format!("{:>10}{}{}", "Time (".bright_red(), "Gold".yellow(), ") ".bright_red()),
+        format!(
+            "{:>10}{}{}",
+            "Time (".bright_red(),
+            "Gold".yellow(),
+            ") ".bright_red()
+        ),
         vert_border,
     );
     println!(

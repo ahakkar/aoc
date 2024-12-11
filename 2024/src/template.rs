@@ -13,6 +13,7 @@
 #![allow(unused_must_use)]
 #![allow(clippy::needless_return)]
 #![allow(clippy::needless_range_loop)]
+#![allow(clippy::only_used_in_recursion)]
 
 use super::utils::*;
 use crate::{Fro, Solution, TaskResult};

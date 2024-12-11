@@ -8,11 +8,14 @@ mod day_07;
 mod day_08;
 mod day_09;
 mod day_10;
+mod day_11;
 
 mod utils;
 
-use std::{fmt::{self, Display}, time::{Duration, Instant}};
-
+use std::{
+    fmt::{self, Display},
+    time::{Duration, Instant},
+};
 
 // Preprocessing step
 pub trait Fro {
@@ -29,14 +32,14 @@ impl Display for TaskResult {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             TaskResult::Usize(value) => write!(f, "{}", value),
-            TaskResult::String(value) => write!(f, "{}", value.clone()), 
+            TaskResult::String(value) => write!(f, "{}", value.clone()),
         }
     }
 }
 
 pub struct AocResult {
     pub silver: (TaskResult, Duration),
-    pub gold:   (TaskResult, Duration),
+    pub gold: (TaskResult, Duration),
     pub fro: Duration, // todo log preprocessing step also
 }
 
@@ -46,18 +49,18 @@ pub trait Solution {
 }
 
 pub fn run_solution(solution: Box<dyn Solution>) -> AocResult {
-    let mut start = Instant::now();   
-    let silver =  solution.silver();
+    let mut start = Instant::now();
+    let silver = solution.silver();
     let silver_duration = start.elapsed();
 
-    start = Instant::now();   
-    let gold =  solution.gold();
+    start = Instant::now();
+    let gold = solution.gold();
     let gold_duration = start.elapsed();
 
-    AocResult { 
+    AocResult {
         silver: (silver, silver_duration),
-        gold: (gold, gold_duration), 
-        fro: Duration::new(0,0)
+        gold: (gold, gold_duration),
+        fro: Duration::new(0, 0),
     }
 
     //     print!(" {:<31}║", solution.silver().to_string().bright_magenta());
@@ -77,6 +80,7 @@ pub fn solve(day: &str, input: &str) -> AocResult {
         "08" => run_solution(Box::new(day_08::ResonantCollinearity::fro(input))),
         "09" => run_solution(Box::new(day_09::DiskFragmenter::fro(input))),
         "10" => run_solution(Box::new(day_10::HoofIt::fro(input))),
+        "11" => run_solution(Box::new(day_11::PlutonianPebbles::fro(input))),
         _ => unreachable!(),
     }
 }
