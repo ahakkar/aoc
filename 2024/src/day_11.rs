@@ -4,28 +4,12 @@
  * https://github.com/ahakkar/
 **/
 
-#![allow(dead_code)]
-#![allow(unused_parens)]
-#![allow(unused_imports)]
-#![allow(unused_variables)]
-#![allow(unused_mut)]
-#![allow(unused_assignments)]
-#![allow(unused_must_use)]
-#![allow(clippy::needless_return)]
-#![allow(clippy::needless_range_loop)]
-#![allow(clippy::only_used_in_recursion)]
-
-use std::{collections::HashMap, iter, os::unix::process};
-
-use rayon::vec;
-
-use super::utils::*;
 use crate::{Fro, Solution, TaskResult};
+use std::collections::HashMap;
 
 // Can add more shared vars here
 pub struct PlutonianPebbles {
     data: Vec<usize>,
-    digit_count_count: usize,
 }
 
 // Can be used to implement fancier task-specific parsing
@@ -36,7 +20,6 @@ impl Fro for PlutonianPebbles {
                 .split_ascii_whitespace()
                 .map(|c| c.parse::<usize>().unwrap())
                 .collect(),
-            digit_count_count: 0,
         }
     }
 }
@@ -44,7 +27,11 @@ impl Fro for PlutonianPebbles {
 // Main solvers
 impl Solution for PlutonianPebbles {
     fn silver(&self) -> TaskResult {
-        TaskResult::Usize(Self::process_a(self, self.data.clone(), &mut 25))
+        let mut hash: HashMap<usize, usize> = HashMap::new();
+        for val in &self.data {
+            *hash.entry(*val).or_insert(1) = 1;
+        }
+        TaskResult::Usize(Self::process(self, &mut hash, &mut 25))
     }
 
     fn gold(&self) -> TaskResult {
@@ -52,56 +39,13 @@ impl Solution for PlutonianPebbles {
         for val in &self.data {
             *hash.entry(*val).or_insert(1) = 1;
         }
-
-        println!("Gold data: {:?}", hash);
-
-        TaskResult::Usize(Self::process_b(self, &mut hash, &mut 75))
-        //TaskResult::Usize(0)
+        TaskResult::Usize(Self::process(self, &mut hash, &mut 75))
     }
 }
 
-/*
- 0 -> 1.
-
-  even number of digits -> it is replaced by two stones.
-  The left half of the digits are engraved on
-  the new left stone, and the right half of the digits are engraved on the
-  new right stone. (The new numbers don't keep extra leading zeroes: 1000
-  would become stones 10 and 0.)
-
-  else = old * 2024
-*/
-
 // For assisting functions
 impl PlutonianPebbles {
-    fn process_a(&self, nums: Vec<usize>, iter_left: &mut usize) -> usize {
-        if *iter_left == 0 {
-            return nums.len();
-        }
-
-        let mut process: Vec<usize> = Vec::with_capacity(nums.len() * 2);
-
-        for val in nums {
-            if val == 0 {
-                process.push(1);
-            } else if Self::digit_count(val) % 2 == 0 {
-                let (l, r) = Self::split_number(self, val);
-                process.push(l);
-                process.push(r);
-            } else {
-                process.push(val * 2024);
-            }
-        }
-
-        *iter_left -= 1;
-        return Self::process_a(self, process, iter_left);
-    }
-
-    fn process_b(
-        &self,
-        nums: &mut HashMap<usize, usize>,
-        iter_left: &mut usize,
-    ) -> usize {
+    fn process(&self, nums: &mut HashMap<usize, usize>, iter_left: &mut usize) -> usize {
         if *iter_left == 0 {
             return nums.values().sum();
         }
@@ -137,51 +81,60 @@ impl PlutonianPebbles {
         }
 
         *iter_left -= 1;
-        return Self::process_b(self, nums, iter_left);
+        Self::process(self, nums, iter_left)
     }
 
-    fn digit_count(n: usize) -> u32 {
-        if n < 10 {
-            1
-        } else if n < 100 {
-            2
-        } else if n < 1_000 {
-            3
-        } else if n < 10_000 {
-            4
-        } else if n < 100_000 {
-            5
-        } else if n < 1_000_000 {
-            6
-        } else if n < 10_000_000 {
-            7
-        } else if n < 100_000_000 {
-            8
-        } else if n < 1_000_000_000 {
-            9
-        } else if n < 10_000_000_000 {
-            10
-        } else if n < 100_000_000_000 {
-            11
-        } else if n < 1_000_000_000_000 {
-            12
-        } else if n < 10_000_000_000_000 {
-            13
-        } else if n < 100_000_000_000_000 {
-            14
-        } else if n < 1_000_000_000_000_000 {
-            15
-        } else if n < 10_000_000_000_000_000 {
-            16
-        } else if n < 100_000_000_000_000_000 {
-            17
-        } else if n < 1_000_000_000_000_000_000 {
-            18
-        } else if n < 10_000_000_000_000_000_000 {
-            19
-        } else {
-            20
+    fn _digit_count_str(n: usize) -> usize {
+        n.to_string().len()
+    }
+
+    fn _digit_count_match(n: usize) -> u32 {
+        match n {
+            0..=9 => 1,
+            10..=99 => 2,
+            100..=999 => 3,
+            1_000..=9_999 => 4,
+            10_000..=99_999 => 5,
+            100_000..=999_999 => 6,
+            1_000_000..=9_999_999 => 7,
+            10_000_000..=99_999_999 => 8,
+            100_000_000..=999_999_999 => 9,
+            1_000_000_000..=9_999_999_999 => 10,
+            10_000_000_000..=99_999_999_999 => 11,
+            100_000_000_000..=999_999_999_999 => 12,
+            1_000_000_000_000..=9_999_999_999_999 => 13,
+            10_000_000_000_000..=99_999_999_999_999 => 14,
+            100_000_000_000_000..=999_999_999_999_999 => 15,
+            1_000_000_000_000_000..=9_999_999_999_999_999 => 16,
+            10_000_000_000_000_000..=99_999_999_999_999_999 => 17,
+            100_000_000_000_000_000..=999_999_999_999_999_999 => 18,
+            1_000_000_000_000_000_000..=9_999_999_999_999_999_999 => 19,
+            _ => panic!("Too big number"),
         }
+    }
+
+    #[rustfmt::skip]
+    fn digit_count(n: usize) -> u32 {
+        if n < 10 { 1 }
+        else if n < 100 { 2 }
+        else if n < 1_000 { 3 }
+        else if n < 10_000 { 4 }
+        else if n < 100_000 { 5 }
+        else if n < 1_000_000 { 6 }
+        else if n < 10_000_000 { 7 }
+        else if n < 100_000_000 { 8 }
+        else if n < 1_000_000_000 { 9 }
+        else if n < 10_000_000_000 { 10 }
+        else if n < 100_000_000_000 { 11 }
+        else if n < 1_000_000_000_000 { 12 }
+        else if n < 10_000_000_000_000 { 13 }
+        else if n < 100_000_000_000_000 { 14 }
+        else if n < 1_000_000_000_000_000 { 15 }
+        else if n < 10_000_000_000_000_000 { 16 }
+        else if n < 100_000_000_000_000_000 { 17 }
+        else if n < 1_000_000_000_000_000_000 { 18 }
+        else if n < 10_000_000_000_000_000_000 { 19 }
+        else { panic!("Too long number") }           
     }
 
     fn split_number(&self, n: usize) -> (usize, usize) {
@@ -211,6 +164,6 @@ mod tests {
         let queue = PlutonianPebbles::fro(&real_data);
 
         assert_eq!(queue.silver(), TaskResult::Usize(189167));
-        assert_eq!(queue.gold(), TaskResult::Usize(0));
+        assert_eq!(queue.gold(), TaskResult::Usize(225253278506288));
     }
 }
