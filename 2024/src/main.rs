@@ -77,20 +77,23 @@ fn run_one_day(day: &str, n: &usize, test: &bool) {
 
     let mut avg_silver: Vec<u128> = vec![];
     let mut avg_gold: Vec<u128> = vec![];
+    let mut avg_fro: Vec<u128> = vec![];
 
     for _ in 0..*n {
         let temp = solve(day, &read_data_from_file(&filepath));
         avg_silver.push(temp.silver.1.as_micros());
         avg_gold.push(temp.gold.1.as_micros());
+        avg_fro.push(temp.fro.as_micros());
     }
 
     let result = solve(day, &read_data_from_file(&filepath));
     println!("Silver: {}, Gold: {}", result.silver.0, result.gold.0);
     print!("Ran solutions {} times, avg: ", n);
     println!(
-        "Silver: {}, Gold: {}",
+        "Silver: {}, Gold: {}, Input: {}",
         format_duration(avg_silver),
-        format_duration(avg_gold)
+        format_duration(avg_gold),
+        format_duration(avg_fro),
     );
 }
 
@@ -110,6 +113,7 @@ fn run_all(n: &usize, _test: &bool) {
 
         let mut avg_silver: Vec<u128> = vec![];
         let mut avg_gold: Vec<u128> = vec![];
+        let mut avg_fro: Vec<u128> = vec![];
 
         let res = solve(day, &read_data_from_file(&filepath));
         let score_silver = res.silver.0;
@@ -119,12 +123,14 @@ fn run_all(n: &usize, _test: &bool) {
             let temp = solve(day, &read_data_from_file(&filepath));
             avg_silver.push(temp.silver.1.as_micros());
             avg_gold.push(temp.gold.1.as_micros());
+            avg_fro.push(temp.fro.as_micros());
         }
 
         print!("{:>23} ║", score_silver.to_string().bright_magenta());
         print!("{:>23} ║", score_gold.to_string().bright_magenta());
-        print!("{:>15} ║", format_duration(avg_silver));
-        println!("{:>15} ║", format_duration(avg_gold));
+        print!("{:>10} ║", format_duration(avg_silver));
+        print!("{:>10} ║", format_duration(avg_gold));
+        println!("{:>10} ║", format_duration(avg_fro));
     }
 
     print_footer();
@@ -152,7 +158,7 @@ fn print_header() {
     let cross = "╬".cyan();
 
     println!(
-        "\n{}{}{}{}{}{}{}{}{}{}{}",
+        "\n{}{}{}{}{}{}{}{}{}{}{}{}{}",
         top_left_corner,
         "═".repeat(6).yellow(),
         top_down_tee,
@@ -160,14 +166,16 @@ fn print_header() {
         top_down_tee,
         "═".repeat(24).yellow(),
         top_down_tee,
-        "═".repeat(16).yellow(),
+        "═".repeat(11).yellow(),
         top_down_tee,
-        "═".repeat(16).yellow(),
+        "═".repeat(11).yellow(),
+        top_down_tee,
+        "═".repeat(11).yellow(),
         top_right_corner,
     );
 
     println!(
-        "{}{:<6}{}{:>24}{}{:>24}{}{}{}{:>16}{}",
+        "{}{:<6}{}{:>24}{}{:>24}{}{}{}{:>16}{}{}{}",
         vert_border,
         " Day".bright_red(),
         vert_border,
@@ -180,18 +188,25 @@ fn print_header() {
             ") ".bright_red()
         ),
         vert_border,
-        format!("{:>8}Silver{}", "Time (".bright_red(), ") ".bright_red()),
+        format!("{:>8}S{}", "Time (".bright_red(), ") ".bright_red()),
         vert_border,
         format!(
-            "{:>10}{}{}",
+            "{:>8}{}{}",
             "Time (".bright_red(),
-            "Gold".yellow(),
+            "G".yellow(),
+            ") ".bright_red()
+        ),
+        vert_border,
+        format!(
+            "{:>8}{}{}",
+            "Time (".bright_red(),
+            "I",
             ") ".bright_red()
         ),
         vert_border,
     );
     println!(
-        "{}{}{}{}{}{}{}{}{}{}{}",
+        "{}{}{}{}{}{}{}{}{}{}{}{}{}",
         vert_right_tee,
         "═".repeat(6).cyan(),
         cross,
@@ -199,20 +214,23 @@ fn print_header() {
         cross,
         "═".repeat(24).cyan(),
         cross,
-        "═".repeat(16).cyan(),
+        "═".repeat(11).cyan(),
         cross,
-        "═".repeat(16).cyan(),
+        "═".repeat(11).cyan(),
+        cross,
+        "═".repeat(11).cyan(),
         vert_left_tee,
     );
 }
 
 fn print_footer() {
     println!(
-        "╚{}╩{}╩{}╩{}╩{}╝\n",
+        "╚{}╩{}╩{}╩{}╩{}╩{}╝\n",
         "═".repeat(6),
         "═".repeat(24),
         "═".repeat(24),
-        "═".repeat(16),
-        "═".repeat(16),
+        "═".repeat(11),
+        "═".repeat(11),
+        "═".repeat(11),
     );
 }

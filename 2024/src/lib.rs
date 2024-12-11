@@ -40,7 +40,7 @@ impl Display for TaskResult {
 pub struct AocResult {
     pub silver: (TaskResult, Duration),
     pub gold: (TaskResult, Duration),
-    pub fro: Duration, // todo log preprocessing step also
+    pub fro: Duration,
 }
 
 pub trait Solution {
@@ -48,8 +48,11 @@ pub trait Solution {
     fn gold(&self) -> TaskResult;
 }
 
-pub fn run_solution(solution: Box<dyn Solution>) -> AocResult {
+pub fn run_solution<S: Fro + Solution + 'static>(input: &str) -> AocResult {
     let mut start = Instant::now();
+    let solution = S::fro(input);
+    let fro_duration = start.elapsed();
+
     let silver = solution.silver();
     let silver_duration = start.elapsed();
 
@@ -60,27 +63,24 @@ pub fn run_solution(solution: Box<dyn Solution>) -> AocResult {
     AocResult {
         silver: (silver, silver_duration),
         gold: (gold, gold_duration),
-        fro: Duration::new(0, 0),
+        fro: fro_duration,
     }
-
-    //     print!(" {:<31}║", solution.silver().to_string().bright_magenta());
-    // print!(" {:<31}║", solution.gold().to_string().bright_magenta());
 }
 
 /// Calls respective's day's struct, input is contents from a file read as str
 pub fn solve(day: &str, input: &str) -> AocResult {
     match day {
-        "01" => run_solution(Box::new(day_01::HistorianHysteria::fro(input))),
-        "02" => run_solution(Box::new(day_02::RedNosedReports::fro(input))),
-        "03" => run_solution(Box::new(day_03::MullItOver::fro(input))),
-        "04" => run_solution(Box::new(day_04::CeresSearch::fro(input))),
-        "05" => run_solution(Box::new(day_05::PrintQueue::fro(input))),
-        "06" => run_solution(Box::new(day_06::GuardGallivant::fro(input))),
-        "07" => run_solution(Box::new(day_07::BridgeRepair::fro(input))),
-        "08" => run_solution(Box::new(day_08::ResonantCollinearity::fro(input))),
-        "09" => run_solution(Box::new(day_09::DiskFragmenter::fro(input))),
-        "10" => run_solution(Box::new(day_10::HoofIt::fro(input))),
-        "11" => run_solution(Box::new(day_11::PlutonianPebbles::fro(input))),
+        "01" => run_solution::<day_01::HistorianHysteria>(input),
+        "02" => run_solution::<day_02::RedNosedReports>(input),
+        "03" => run_solution::<day_03::MullItOver>(input),
+        "04" => run_solution::<day_04::CeresSearch>(input),
+        "05" => run_solution::<day_05::PrintQueue>(input),
+        "06" => run_solution::<day_06::GuardGallivant>(input),
+        "07" => run_solution::<day_07::BridgeRepair>(input),
+        "08" => run_solution::<day_08::ResonantCollinearity>(input),
+        "09" => run_solution::<day_09::DiskFragmenter>(input),
+        "10" => run_solution::<day_10::HoofIt>(input),
+        "11" => run_solution::<day_11::PlutonianPebbles>(input),
         _ => unreachable!(),
     }
 }
