@@ -10,12 +10,22 @@
 //! [must_use] is not used, the compiler emits a warning.
 //!
 
+use std::ops::Add;
+
+pub const ORIGIN: Point = Point::new(0, 0);
+
 pub const NORTH: Point = Point::new(0, -1);
 pub const SOUTH: Point = Point::new(0, 1);
 pub const EAST: Point = Point::new(1, 0);
 pub const WEST: Point = Point::new(-1, 0);
-pub const ORIGIN: Point = Point::new(0, 0);
+
+pub const NORTHEAST: Point = Point::new(1, -1);
+pub const NORTHWEST: Point = Point::new(-1, -1);
+pub const SOUTHEAST: Point = Point::new(1, 1);
+pub const SOUTHWEST: Point = Point::new(-1, 1);
+
 pub const ORTHOGONAL: [Point; 4] = [NORTH, SOUTH, EAST, WEST];
+pub const DIAGONAL: [Point; 4] = [NORTHEAST, NORTHWEST, SOUTHEAST, SOUTHWEST];
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub struct Point {
@@ -28,5 +38,15 @@ impl Point {
     #[must_use]
     pub const fn new(x: i32, y: i32) -> Self {
         Point { x, y }
+    }
+}
+
+impl Add for Point {
+    type Output = Self;
+
+    #[inline]
+    #[must_use]
+    fn add(self, rhs: Self) -> Self {
+        Point::new(self.x + rhs.x, self.y + rhs.y)
     }
 }

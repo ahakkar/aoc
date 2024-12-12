@@ -20,7 +20,7 @@ use core::net;
 use crate::{
     util::{
         self,
-        point::{self, EAST, NORTH, NORTHEAST, SOUTH, SOUTHEAST, WEST},
+        point::{self, EAST, NORTH, SOUTH, WEST},
     },
     Fro, Solution, TaskResult,
 };
@@ -55,17 +55,15 @@ struct Area {
     size: usize,
     region_id: usize,
     sides: usize,
-    start: Point,
 }
 
 impl Area {
-    pub const fn new(region_id: usize, start: Point) -> Area {
+    pub const fn new(region_id: usize) -> Area {
         Area {
             p_len: 0,
             size: 0,
             region_id,
             sides: 0,
-            start,
         }
     }
 }
@@ -103,9 +101,14 @@ impl Solution for GardenGroups {
             for x in 0..cols {
                 if let Some(l) = map.get(y, x) {
                     if !l.visited && !visited_regions.contains(&l.region_id) {
-                        let start = Point::new(x as i32, y as i32);
-                        let mut area = Area::new(region_id, start);
-                        Self::flood_fill(self, start, l.ptype, &mut area, &mut map);
+                        let mut area = Area::new(region_id);
+                        Self::flood_fill(
+                            self,
+                            Point::new(x as i32, y as i32),
+                            l.ptype,
+                            &mut area,
+                            &mut map,
+                        );
                         region_id += 1;
                         visited_regions.push(region_id);
                         results.push(area);
@@ -135,10 +138,14 @@ impl Solution for GardenGroups {
             for x in 0..cols {
                 if let Some(l) = map.get(y, x) {
                     if !l.visited && !visited_regions.contains(&l.region_id) {
-                        let start = Point::new(x as i32, y as i32);
-                        let mut area = Area::new(region_id, start);
-
-                        Self::flood_fill(self, start, l.ptype, &mut area, &mut map);
+                        let mut area = Area::new(region_id);
+                        Self::flood_fill(
+                            self,
+                            Point::new(x as i32, y as i32),
+                            l.ptype,
+                            &mut area,
+                            &mut map,
+                        );
                         region_id += 1;
                         visited_regions.push(region_id);
                         results.push(area);
@@ -147,59 +154,21 @@ impl Solution for GardenGroups {
             }
         }
 
-        /*         for area in results {
-            area.sides += Self::walk_edges(area.start);
-        } */
+        for y in 0..rows {
+            for x in 0..cols {
+                if let Some(plot) = map.get(y, x) {
+                    results[plot.region_id].sides += Self::count_corners(
+                        self,
+                        Point::new(x as i32, y as i32),
+                        plot.ptype,
+                        plot.region_id,
+                        &map,
+                    );
+                }
+            }
+        }
 
-        for i in 0..4 {
-            for y in 0..rows {
-                for x in 0..cols {
-                    let mut continuous = true;
-                    if let Some(current) = map.get(y, x) {
-                        let point = Point::new(x as i32, y as i32);
-                        let mut we_have_north_edge = false;
-                        // IF we have a north edge, investigate further
-                        if let Some(north) = Self::get_value_at_point(&map, point + NORTH)
-                        {
-                            if north.region_id != current.region_id {
-                                we_have_north_edge = true;
-                            }
-                        } else {
-                            we_have_north_edge = true;
-                        }
-
-                        if we_have_north_edge {
-                            let east = Self::get_value_at_point(&map, point + EAST);
-                            let northeast =
-                                Self::get_value_at_point(&map, point + NORTHEAST);
-
-                            if let Some(e) = &east {
-                                if e.region_id != current.region_id {
-                                    continuous = false;
-                                } else if let Some(ne) = northeast {
-                                    if ne.region_id == current.region_id {
-                                        continuous = false;
-                                    }
-                                }
-                            } else {
-                                continuous = false;
-                            }
-
-                            if !continuous {
-                                results[current.region_id].sides += 1;
-                                continuous = true;
-                            }
-                        }
-                    } // end some
-                } // end cols
-            } // end rows
-            if i < 3 {
-                println!("\nrotating!\n");
-                map.rotate_right();
-            } // Rotate only 3 times
-        } // end rotations
-
-        //results.iter().for_each(|r| println!("{:?}", r));
+        results.iter().for_each(|r| println!("{:?}", r));
         //println!("{:?}", map);
 
         TaskResult::Usize(results.iter().map(|r| r.sides * r.size).sum())
@@ -208,6 +177,37 @@ impl Solution for GardenGroups {
 
 // For assisting functions
 impl GardenGroups {
+    fn count_corners(
+        &self,
+        cur: Point,
+        ptype: char,
+        region_id: usize,
+        map: &Grid<Plot>,
+    ) -> usize {
+        let mut count = 0;
+        let n = Self::get_value_at_point(map, &(cur + NORTH));
+        let w = Self::get_value_at_point(map, &(cur + WEST));
+        let s = Self::get_value_at_point(map, &(cur + SOUTH));
+        let e = Self::get_value_at_point(map, &(cur + EAST));
+
+        for (a, b) in [(&n, &e), (&n, &w), (&s, &e), (&s, &w)] {
+            let a_diff = match a {
+                Some(plot) => plot.ptype != ptype && plot.region_id != region_id,
+                None => true,
+            };
+            let b_diff = match b {
+                Some(plot) => plot.ptype != ptype && plot.region_id != region_id,
+                None => true,
+            };
+
+            if a_diff && b_diff {
+                count += 1;
+            }
+        }
+
+        count
+    }
+
     // Visits connected plots and return the area's perimeter len
     fn flood_fill(
         &self,
@@ -260,7 +260,7 @@ impl GardenGroups {
         map.get_mut(*y, *x)
     }
 
-    fn get_value_at_point(map: &Grid<Plot>, p: Point) -> Option<Plot> {
+    fn get_value_at_point(map: &Grid<Plot>, p: &Point) -> Option<Plot> {
         map.get(p.y, p.x).cloned()
     }
 }
