@@ -31,21 +31,33 @@ pub struct GardenGroups {
 struct Plot {
     ptype: char,
     visited: bool,
+    region_id: usize,
 }
 
 impl Plot {
-    pub const fn new(ptype: char, visited: bool) -> Plot {
-        Plot { ptype, visited }
+    pub const fn new(ptype: char, visited: bool, region_id: usize) -> Plot {
+        Plot {
+            ptype,
+            visited,
+            region_id,
+        }
     }
 }
+
+#[derive(Debug, Clone)]
 struct Area {
     p_len: usize,
     size: usize,
+    region_id: usize,
 }
 
 impl Area {
-    pub const fn new() -> Area {
-        Area { p_len: 0, size: 0 }
+    pub const fn new(region_id: usize) -> Area {
+        Area {
+            p_len: 0,
+            size: 0,
+            region_id,
+        }
     }
 }
 
@@ -57,7 +69,7 @@ impl Fro for GardenGroups {
                 input
                     .replace('\n', "")
                     .chars()
-                    .map(|c| Plot::new(c, false))
+                    .map(|c| Plot::new(c, false, usize::MAX))
                     .collect(),
                 (input.len() as f64).sqrt() as usize,
             ),
@@ -73,14 +85,16 @@ impl Solution for GardenGroups {
         let mut results: Vec<Area> = Vec::new();
         let mut map = self.map.clone();
         let (rows, cols) = map.size();
+        let mut region_id = 0;
+        let mut visited_regions: Vec<usize> = Vec::new();
 
         // Iterate through the map and flood fill each unvisited plot
         // Calculate perimeter length on the same go
         for y in 0..rows {
             for x in 0..cols {
                 if let Some(l) = map.get(y, x) {
-                    if !l.visited {
-                        let mut area = Area::new();
+                    if !l.visited && !visited_regions.contains(&l.region_id) {
+                        let mut area = Area::new(region_id);
                         Self::flood_fill(
                             self,
                             Point::new(x as i32, y as i32),
@@ -88,11 +102,18 @@ impl Solution for GardenGroups {
                             &mut area,
                             &mut map,
                         );
+                        region_id += 1;
+                        visited_regions.push(region_id);
                         results.push(area);
                     }
                 }
             }
         }
+
+        results.iter().for_each(|r| println!("{:?}", r));
+        println!("{:?}", map);
+        println!("end!");
+
         TaskResult::Usize(results.iter().map(|r| r.p_len * r.size).sum())
     }
 
@@ -113,29 +134,38 @@ impl GardenGroups {
     ) {
         // Mark current as visited
         if let Some(current) = Self::get_value(map, &cur.x, &cur.y) {
-            current.visited = true;
-            if current.ptype == ptype {
-                result.size += 1;
-            }
-        }
-
-        for dir in ORTHOGONAL {
-            let dx = cur.x + dir.x;
-            let dy = cur.y + dir.y;
-
-            if let Some(neighbor) = Self::get_value(map, &dx, &dy) {
-                if neighbor.ptype == ptype {
-                    if !neighbor.visited {
-                        Self::flood_fill(self, Point::new(dx, dy), ptype, result, map);
-                    }
-                } else {
-                    // Was a different type
-                    result.p_len += 1;
+            if !current.visited {
+                current.visited = true;
+                current.region_id = result.region_id;
+                if current.ptype == ptype {
+                    result.size += 1;
                 }
-            } else {
-                // Was a map border
-                result.p_len += 1;
-            }
+
+                for dir in ORTHOGONAL {
+                    let dx = cur.x + dir.x;
+                    let dy = cur.y + dir.y;
+
+                    if let Some(neighbor) = Self::get_value(map, &dx, &dy) {
+                        if neighbor.ptype == ptype {
+                            if !neighbor.visited {
+                                Self::flood_fill(
+                                    self,
+                                    Point::new(dx, dy),
+                                    ptype,
+                                    result,
+                                    map,
+                                );
+                            }
+                        } else {
+                            // Was a different type
+                            result.p_len += 1;
+                        }
+                    } else {
+                        // Was a map border
+                        result.p_len += 1;
+                    }
+                } // end for
+            } // !end current.visited
         }
     }
 

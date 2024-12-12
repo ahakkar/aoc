@@ -67,7 +67,37 @@ fn main() {
     }
 }
 
+struct RunResult {
+    score_silver: TaskResult,
+    total_silver: Vec<u128>,
+    score_gold: TaskResult,
+    total_gold: Vec<u128>,
+    total_fro: Vec<u128>,
+}
 
+fn run(day: &str, n: &usize, filepath: &str) -> RunResult {
+    let mut total_silver: Vec<u128> = vec![];
+    let mut total_gold: Vec<u128> = vec![];
+    let mut total_fro: Vec<u128> = vec![];  
+
+    // Run solution once to get the score
+    let temp = solve(day, &read_data_from_file(filepath));
+    total_silver.push(temp.silver.1.as_micros());
+    total_gold.push(temp.gold.1.as_micros());
+    total_fro.push(temp.fro.as_micros());
+    let score_silver = temp.silver.0;
+    let score_gold = temp.gold.0;
+
+    // Collect runtimes across leftover iterations
+    for _ in 0..*n-1 {
+        let temp = solve(day, &read_data_from_file(filepath));
+        total_silver.push(temp.silver.1.as_micros());
+        total_gold.push(temp.gold.1.as_micros());
+        total_fro.push(temp.fro.as_micros());
+    }
+
+    RunResult { score_silver, total_silver, score_gold, total_gold, total_fro }
+}
 
 
 fn run_one_day(year: &str, day: &str, n: &usize, test: &bool) {
@@ -83,25 +113,17 @@ fn run_one_day(year: &str, day: &str, n: &usize, test: &bool) {
         return;
     }
 
-    let mut avg_silver: Vec<u128> = vec![];
-    let mut avg_gold: Vec<u128> = vec![];
-    let mut avg_fro: Vec<u128> = vec![];
+    if *n == 0 { return } // todo complain about this
 
-    for _ in 0..*n {
-        let temp = solve(day, &read_data_from_file(&filepath));
-        avg_silver.push(temp.silver.1.as_micros());
-        avg_gold.push(temp.gold.1.as_micros());
-        avg_fro.push(temp.fro.as_micros());
-    }
+    let res = run(day, n, &filepath);
 
-    let result = solve(day, &read_data_from_file(&filepath));
-    println!("Silver: {}, Gold: {}", result.silver.0, result.gold.0);
+    println!("Silver: {}, Gold: {}", res.score_silver, res.score_gold);
     print!("Ran solutions {} times, avg: ", n);
     println!(
         "Silver: {}, Gold: {}, Input: {}",
-        format_duration(avg_silver),
-        format_duration(avg_gold),
-        format_duration(avg_fro),
+        format_duration(res.total_silver),
+        format_duration(res.total_gold),
+        format_duration(res.total_fro),
     );
 }
 
@@ -119,26 +141,13 @@ fn run_all(year: &str, n: &usize, _test: &bool) {
 
         print!("║ {}   ║", day.green());
 
-        let mut avg_silver: Vec<u128> = vec![];
-        let mut avg_gold: Vec<u128> = vec![];
-        let mut avg_fro: Vec<u128> = vec![];
+        let res = run(day, n, &filepath);
 
-        let res = solve(day, &read_data_from_file(&filepath));
-        let score_silver = res.silver.0;
-        let score_gold = res.gold.0;
-
-        for _ in 0..*n {
-            let temp = solve(day, &read_data_from_file(&filepath));
-            avg_silver.push(temp.silver.1.as_micros());
-            avg_gold.push(temp.gold.1.as_micros());
-            avg_fro.push(temp.fro.as_micros());
-        }
-
-        print!("{:>23} ║", score_silver.to_string().bright_magenta());
-        print!("{:>23} ║", score_gold.to_string().bright_magenta());
-        print!("{:>10} ║", format_duration(avg_silver));
-        print!("{:>10} ║", format_duration(avg_gold));
-        println!("{:>10} ║", format_duration(avg_fro));
+        print!("{:>23} ║", res.score_silver.to_string().bright_magenta());
+        print!("{:>23} ║", res.score_gold.to_string().bright_magenta());
+        print!("{:>10} ║", format_duration(res.total_silver));
+        print!("{:>10} ║", format_duration(res.total_gold));
+        println!("{:>10} ║", format_duration(res.total_fro));
     }
 
     print_footer();
