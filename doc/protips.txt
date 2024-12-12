@@ -1,0 +1,35 @@
+Tip#1 from MrQueasy on 18.12.2023
+
+To add on, there's a few "classic" algorithms that these problems like to play with.
+
+The big ones: (yes, I'm repeating what others have said)
+
+common:
+
+- memoization of recursive functions (the canonical learning example is fibbonaci)
+- DFS/tree construction and traversal
+- BFS/shortest path and their pruning
+- least common multiple
+- hash maps
+- priority queues
+- flood fill/disjoint subsets
+
+Less common but fun to learn about:
+
+- the mathematical properties of iterative sequences. (e.g. the sum of 1..n is n*(n+1)*0.5, the sum of 1^2, 2^2 .. n^2 is (1/6)*n*(n+1)*(2n+1) ) as well as being able to identify them
+- modulo arithmetic and the existence of reverse modulo arithmetic
+- converting assembly language to higher level language constructs
+- obscure math puzzles (the Josephus problem)
+- cryptography concepts
+
+My general tips:
+- Learn to be able to identify what big O something you wrote is. N^2 is usually the upper limit of what can be accomplished in a couple minutes.
+- Learn to enjoy the joy of solving puzzles in general. Sudoku, nonogram, crosswords, etc. The more comfortable you are at thinking about things for fun that have no real benefit other than the solve, the more comfortable you will be sitting down and solving problems.
+- Watch a lot of numberphile and 3blue1brown and mathologer
+- Don't get down about not knowing the solution. If I can't solve it in 24 hours, I have no shame looking at hints and other people's solutions to learn new approaches. Especially in languages other than the one you're solving in, as IMO learning how other languages handle things is valuable in general.
+- Learn a functional focused language like lisp, haskell, or ocaml or whatever. Being able to think in terms of recursion is more valuable than it appears.
+- Search wikipedia for things like "shortest path" and such. They have pseudocode examples of a LOT of algorithms.
+- Don't be ashamed about brute forcing a solution!
+- Don't get competitive. There's literally nothing to gain by being "fast" other than smug self-satisfaction. (Which while a good feeling usually means you finished the fun part, which is learning cool tricks)
+- Talk about things with friends. Make them explain how they solved something.
+- (if you're a masochist) read Cnuth's algorithm books.

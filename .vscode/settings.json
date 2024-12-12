@@ -1,5 +1,10 @@
 {
     "files.associations": {
-        "string.h": "c"
-    }
+        "string.h": "c",
+    },    
+    "[rust]": {
+        "editor.defaultFormatter": "rust-lang.rust-analyzer",
+        "editor.inlayHints.enabled": "offUnlessPressed",
+    },
+    "editor.formatOnSave": true,    
 }
