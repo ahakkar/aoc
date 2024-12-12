@@ -4,23 +4,10 @@
  * https://github.com/ahakkar/
 **/
 
-#![allow(dead_code)]
-#![allow(unused_parens)]
-#![allow(unused_imports)]
-#![allow(unused_variables)]
-#![allow(unused_mut)]
-#![allow(unused_assignments)]
-#![allow(unused_must_use)]
-#![allow(clippy::needless_return)]
-#![allow(clippy::needless_range_loop)]
-#![allow(clippy::only_used_in_recursion)]
-
-use core::net;
-
 use crate::{
     util::{
         self,
-        point::{self, EAST, NORTH, NORTHEAST, SOUTH, SOUTHEAST, WEST},
+        point::{EAST, NORTH, NORTHEAST},
     },
     Fro, Solution, TaskResult,
 };
@@ -55,17 +42,15 @@ struct Area {
     size: usize,
     region_id: usize,
     sides: usize,
-    start: Point,
 }
 
 impl Area {
-    pub const fn new(region_id: usize, start: Point) -> Area {
+    pub const fn new(region_id: usize) -> Area {
         Area {
             p_len: 0,
             size: 0,
             region_id,
             sides: 0,
-            start,
         }
     }
 }
@@ -131,7 +116,6 @@ impl Solution for GardenGroups {
 
                         if !continuous {
                             results[current.region_id].sides += 1;
-                            continuous = true;
                         }
                     } // end some
                 } // end cols
@@ -154,21 +138,21 @@ impl GardenGroups {
         let mut map = self.map.clone();
         let (rows, cols) = map.size();
         let mut region_id = 0;
-        let mut visited_regions: Vec<usize> = Vec::new();
+        let mut visited_flags = Vec::with_capacity(1024); // data had 604 regions
 
         // Iterate through the map and flood fill each unvisited plot
         // Calculate perimeter length on the same go
         for y in 0..rows {
             for x in 0..cols {
                 if let Some(l) = map.get(y, x) {
-                    if !l.visited && !visited_regions.contains(&l.region_id) {
+                    if !l.visited && !visited_flags.get(l.region_id).unwrap_or(&false) {
                         let start = Point::new(x as i32, y as i32);
-                        let mut area = Area::new(region_id, start);
+                        let mut area = Area::new(region_id);
 
-                        Self::flood_fill(self, start, l.ptype, &mut area, &mut map);
+                        Self::flood_fill(start, l.ptype, &mut area, &mut map);
                         region_id += 1;
-                        visited_regions.push(region_id);
                         results.push(area);
+                        visited_flags.push(true);
                     }
                 }
             }
@@ -177,13 +161,7 @@ impl GardenGroups {
     }
 
     // Visits connected plots and return the area's perimeter len
-    fn flood_fill(
-        &self,
-        cur: Point,
-        ptype: char,
-        result: &mut Area,
-        map: &mut Grid<Plot>,
-    ) {
+    fn flood_fill(cur: Point, ptype: char, result: &mut Area, map: &mut Grid<Plot>) {
         // Mark current as visited
         if let Some(cur_plot) = Self::get_value(map, &cur.x, &cur.y) {
             match cur_plot.visited {
@@ -203,13 +181,7 @@ impl GardenGroups {
                 if let Some(neighbor) = Self::get_value(map, &dx, &dy) {
                     if neighbor.ptype == ptype {
                         if !neighbor.visited {
-                            Self::flood_fill(
-                                self,
-                                Point::new(dx, dy),
-                                ptype,
-                                result,
-                                map,
-                            );
+                            Self::flood_fill(Point::new(dx, dy), ptype, result, map);
                         }
                     } else {
                         // Was a different type
