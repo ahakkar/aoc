@@ -54,7 +54,7 @@ mod tests {
 
     #[test]
     fn test() {
-        let test_data = read_data_from_file("input/test/0.txt");
+        let test_data = read_data_from_file("input/2024/test/0.txt");
         let queue = Template::fro(&test_data);
 
         assert_eq!(queue.silver(), TaskResult::Usize(0));
@@ -63,7 +63,7 @@ mod tests {
 
     #[test]
     fn real() {
-        let real_data = read_data_from_file("input/real/0.txt");
+        let real_data = read_data_from_file("input/2024/real/0.txt");
         let queue = Template::fro(&real_data);
 
         assert_eq!(queue.silver(), TaskResult::Usize(0));

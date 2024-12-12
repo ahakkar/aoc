@@ -7,6 +7,7 @@
 use crate::{
     util::{
         self,
+        grid::XyGrid,
         point::{EAST, NORTH, NORTHEAST},
     },
     Fro, Solution, TaskResult,
@@ -83,47 +84,38 @@ impl Solution for GardenGroups {
         let (rows, cols) = map.size();
 
         // Calculate the amount of distinct continous edges for each region
-        // By checking north edges and rotating the map 3 times to effectively
-        // Check all 4 edges
+        // by checking north edges and rotating the map 3 times to effectively
+        // check all 4 edges.
         for i in 0..4 {
             for y in 0..rows {
                 for x in 0..cols {
-                    let mut continuous = true;
                     if let Some(current) = map.get(y, x) {
                         let point = Point::new(x as i32, y as i32);
 
                         // IF we don't have a north edge, continue
-                        if let Some(n) = Self::get_value_at_point(&map, point + NORTH) {
+                        if let Some(n) = map.get_point(point + NORTH) {
                             if n.region_id == current.region_id {
                                 continue;
                             }
                         }
 
-                        let east = Self::get_value_at_point(&map, point + EAST);
-                        let northeast = Self::get_value_at_point(&map, point + NORTHEAST);
-
-                        if let Some(e) = &east {
-                            if e.region_id != current.region_id {
-                                continuous = false;
-                            } else if let Some(ne) = northeast {
-                                if ne.region_id == current.region_id {
-                                    continuous = false;
-                                }
-                            }
-                        } else {
-                            continuous = false;
-                        }
-
-                        if !continuous {
+                        // Based on e and ne cells decide if edge continues
+                        if map
+                            .get_point(point + EAST)
+                            .map_or(true, |e| e.region_id != current.region_id)
+                            || map
+                                .get_point(point + NORTHEAST)
+                                .map_or(false, |ne| ne.region_id == current.region_id)
+                        {
                             results[current.region_id].sides += 1;
                         }
-                    } // end some
-                } // end cols
-            } // end rows
+                    }
+                }
+            }
             if i < 3 {
-                map.rotate_right();
-            } // Rotate only 3 times
-        } // end rotations
+                map.rotate_right()
+            }
+        }
 
         TaskResult::Usize(results.iter().map(|r| r.sides * r.size).sum())
     }
@@ -163,7 +155,7 @@ impl GardenGroups {
     // Visits connected plots and return the area's perimeter len
     fn flood_fill(cur: Point, ptype: char, result: &mut Area, map: &mut Grid<Plot>) {
         // Mark current as visited
-        if let Some(cur_plot) = Self::get_value(map, &cur.x, &cur.y) {
+        if let Some(cur_plot) = map.get_xy_mut(&cur.x, &cur.y) {
             match cur_plot.visited {
                 true => return,
                 false => cur_plot.visited = true,
@@ -175,33 +167,21 @@ impl GardenGroups {
             }
 
             for dir in ORTHOGONAL {
-                let dx = cur.x + dir.x;
-                let dy = cur.y + dir.y;
+                let neighbor_point = Point::new(cur.x + dir.x, cur.y + dir.y);
 
-                if let Some(neighbor) = Self::get_value(map, &dx, &dy) {
-                    if neighbor.ptype == ptype {
+                match map.get_point(neighbor_point) {
+                    Some(neighbor) if neighbor.ptype == ptype => {
                         if !neighbor.visited {
-                            Self::flood_fill(Point::new(dx, dy), ptype, result, map);
+                            Self::flood_fill(neighbor_point, ptype, result, map);
                         }
-                    } else {
-                        // Was a different type
+                    }
+                    _ => {
+                        // Either out of bounds or a different plot type
                         result.p_len += 1;
                     }
-                } else {
-                    // Was a map border
-                    result.p_len += 1;
                 }
-            } // end for
-        } // !end current.visited
-    }
-
-    // Workaround for Grid crate's broken coordinate order
-    fn get_value<'a>(map: &'a mut Grid<Plot>, x: &i32, y: &i32) -> Option<&'a mut Plot> {
-        map.get_mut(*y, *x)
-    }
-
-    fn get_value_at_point(map: &Grid<Plot>, p: Point) -> Option<Plot> {
-        map.get(p.y, p.x).cloned()
+            }
+        }
     }
 }
 
@@ -213,7 +193,7 @@ mod tests {
 
     #[test]
     fn test() {
-        let test_data = read_data_from_file("input/test/12.txt");
+        let test_data = read_data_from_file("input/2024/test/12.txt");
         let queue = GardenGroups::fro(&test_data);
 
         assert_eq!(queue.silver(), TaskResult::Usize(1930));
@@ -222,7 +202,7 @@ mod tests {
 
     #[test]
     fn real() {
-        let real_data = read_data_from_file("input/real/12.txt");
+        let real_data = read_data_from_file("input/2024/real/12.txt");
         let queue = GardenGroups::fro(&real_data);
 
         assert_eq!(queue.silver(), TaskResult::Usize(1352976));

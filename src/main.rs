@@ -82,11 +82,13 @@ fn run(day: &str, n: &usize, filepath: &str) -> RunResult {
 
     // Run solution once to get the score
     let temp = solve(day, &read_data_from_file(filepath));
+    let score_silver = temp.silver.0;
+    let score_gold = temp.gold.0;
+    
     total_silver.push(temp.silver.1.as_micros());
     total_gold.push(temp.gold.1.as_micros());
     total_fro.push(temp.fro.as_micros());
-    let score_silver = temp.silver.0;
-    let score_gold = temp.gold.0;
+    
 
     // Collect runtimes across leftover iterations
     for _ in 0..*n-1 {
@@ -132,7 +134,7 @@ fn run_all(year: &str, n: &usize, _test: &bool) {
 
     print_header();
 
-    for day in ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10"] {
+    for day in ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"] {
         let filepath = format!("input/{}/real/{}.txt", year, day);
         if !Path::new(&filepath).is_file() {
             println!("File {} does not exist.", filepath);
