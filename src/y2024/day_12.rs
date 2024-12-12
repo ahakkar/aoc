@@ -89,118 +89,57 @@ impl Fro for GardenGroups {
 // Main solvers
 impl Solution for GardenGroups {
     fn silver(&self) -> TaskResult {
-        // Each new unvisited plot is assigned a new unique id as an index
-        // Area's perimeter length is the value
-        let mut results: Vec<Area> = Vec::new();
-        let mut map = self.map.clone();
-        let (rows, cols) = map.size();
-        let mut region_id = 0;
-        let mut visited_regions: Vec<usize> = Vec::new();
-
-        // Iterate through the map and flood fill each unvisited plot
-        // Calculate perimeter length on the same go
-        for y in 0..rows {
-            for x in 0..cols {
-                if let Some(l) = map.get(y, x) {
-                    if !l.visited && !visited_regions.contains(&l.region_id) {
-                        let start = Point::new(x as i32, y as i32);
-                        let mut area = Area::new(region_id, start);
-                        Self::flood_fill(self, start, l.ptype, &mut area, &mut map);
-                        region_id += 1;
-                        visited_regions.push(region_id);
-                        results.push(area);
-                    }
-                }
-            }
-        }
-
-        // results.iter().for_each(|r| println!("{:?}", r));
-        //println!("{:?}", map);
-
+        let (results, _) = Self::process_regions(self);
         TaskResult::Usize(results.iter().map(|r| r.p_len * r.size).sum())
     }
 
     fn gold(&self) -> TaskResult {
-        // Each new unvisited plot is assigned a new unique id as an index
-        // Area's perimeter length is the value
-        let mut results: Vec<Area> = Vec::new();
-        let mut map = self.map.clone();
+        let (mut results, mut map) = Self::process_regions(self);
         let (rows, cols) = map.size();
-        let mut region_id = 0;
-        let mut visited_regions: Vec<usize> = Vec::new();
 
-        // Iterate through the map and flood fill each unvisited plot
-        // Calculate perimeter length on the same go
-        for y in 0..rows {
-            for x in 0..cols {
-                if let Some(l) = map.get(y, x) {
-                    if !l.visited && !visited_regions.contains(&l.region_id) {
-                        let start = Point::new(x as i32, y as i32);
-                        let mut area = Area::new(region_id, start);
-
-                        Self::flood_fill(self, start, l.ptype, &mut area, &mut map);
-                        region_id += 1;
-                        visited_regions.push(region_id);
-                        results.push(area);
-                    }
-                }
-            }
-        }
-
-        /*         for area in results {
-            area.sides += Self::walk_edges(area.start);
-        } */
-
+        // Calculate the amount of distinct continous edges for each region
+        // By checking north edges and rotating the map 3 times to effectively
+        // Check all 4 edges
         for i in 0..4 {
             for y in 0..rows {
                 for x in 0..cols {
                     let mut continuous = true;
                     if let Some(current) = map.get(y, x) {
                         let point = Point::new(x as i32, y as i32);
-                        let mut we_have_north_edge = false;
-                        // IF we have a north edge, investigate further
-                        if let Some(north) = Self::get_value_at_point(&map, point + NORTH)
-                        {
-                            if north.region_id != current.region_id {
-                                we_have_north_edge = true;
+
+                        // IF we don't have a north edge, continue
+                        if let Some(n) = Self::get_value_at_point(&map, point + NORTH) {
+                            if n.region_id == current.region_id {
+                                continue;
                             }
-                        } else {
-                            we_have_north_edge = true;
                         }
 
-                        if we_have_north_edge {
-                            let east = Self::get_value_at_point(&map, point + EAST);
-                            let northeast =
-                                Self::get_value_at_point(&map, point + NORTHEAST);
+                        let east = Self::get_value_at_point(&map, point + EAST);
+                        let northeast = Self::get_value_at_point(&map, point + NORTHEAST);
 
-                            if let Some(e) = &east {
-                                if e.region_id != current.region_id {
-                                    continuous = false;
-                                } else if let Some(ne) = northeast {
-                                    if ne.region_id == current.region_id {
-                                        continuous = false;
-                                    }
-                                }
-                            } else {
+                        if let Some(e) = &east {
+                            if e.region_id != current.region_id {
                                 continuous = false;
+                            } else if let Some(ne) = northeast {
+                                if ne.region_id == current.region_id {
+                                    continuous = false;
+                                }
                             }
+                        } else {
+                            continuous = false;
+                        }
 
-                            if !continuous {
-                                results[current.region_id].sides += 1;
-                                continuous = true;
-                            }
+                        if !continuous {
+                            results[current.region_id].sides += 1;
+                            continuous = true;
                         }
                     } // end some
                 } // end cols
             } // end rows
             if i < 3 {
-                println!("\nrotating!\n");
                 map.rotate_right();
             } // Rotate only 3 times
         } // end rotations
-
-        //results.iter().for_each(|r| println!("{:?}", r));
-        //println!("{:?}", map);
 
         TaskResult::Usize(results.iter().map(|r| r.sides * r.size).sum())
     }
@@ -208,6 +147,35 @@ impl Solution for GardenGroups {
 
 // For assisting functions
 impl GardenGroups {
+    fn process_regions(&self) -> (Vec<Area>, Grid<Plot>) {
+        // Each new unvisited plot is assigned a new unique id as an index
+        // Area's perimeter length is the value
+        let mut results: Vec<Area> = Vec::new();
+        let mut map = self.map.clone();
+        let (rows, cols) = map.size();
+        let mut region_id = 0;
+        let mut visited_regions: Vec<usize> = Vec::new();
+
+        // Iterate through the map and flood fill each unvisited plot
+        // Calculate perimeter length on the same go
+        for y in 0..rows {
+            for x in 0..cols {
+                if let Some(l) = map.get(y, x) {
+                    if !l.visited && !visited_regions.contains(&l.region_id) {
+                        let start = Point::new(x as i32, y as i32);
+                        let mut area = Area::new(region_id, start);
+
+                        Self::flood_fill(self, start, l.ptype, &mut area, &mut map);
+                        region_id += 1;
+                        visited_regions.push(region_id);
+                        results.push(area);
+                    }
+                }
+            }
+        }
+        (results, map)
+    }
+
     // Visits connected plots and return the area's perimeter len
     fn flood_fill(
         &self,
@@ -285,7 +253,7 @@ mod tests {
         let real_data = read_data_from_file("input/real/12.txt");
         let queue = GardenGroups::fro(&real_data);
 
-        assert_eq!(queue.silver(), TaskResult::Usize(0));
-        assert_eq!(queue.gold(), TaskResult::Usize(0));
+        assert_eq!(queue.silver(), TaskResult::Usize(1352976));
+        assert_eq!(queue.gold(), TaskResult::Usize(808796));
     }
 }
