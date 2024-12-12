@@ -2,5 +2,8 @@
 *.txt
 *.input
 .venv/
+.vscode/
 __pycache__/
 .pytest_cache
+**/target/
+**/input/

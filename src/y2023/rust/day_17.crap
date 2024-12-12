@@ -1,0 +1,245 @@
+/*
+ * 2023 Advent of Code with Rust
+ * Author: Antti Hakkarainen
+ * https://github.com/ahakkar/
+**/
+
+#![allow(unused_parens)]
+#![allow(unused_imports)]
+#![allow(unused_variables)]
+#![allow(unused_mut)]
+#![allow(clippy::needless_return)]
+#![allow(clippy::needless_range_loop)]
+#![allow(dead_code)]
+#![allow(unused_assignments)]
+
+use std::cmp::{Reverse, Ordering};
+use std::collections::{HashMap, VecDeque, BinaryHeap, HashSet, BTreeSet};
+use std::fs::create_dir;
+use binary_tree::Node;
+use petgraph::{graph::{DiGraph, NodeIndex}, algo::dijkstra, Direction::Incoming, visit::EdgeRef};
+use super::utils::*;
+
+const MAX_DIST: usize = 3;
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+struct Agent {
+    cost: usize,
+    pos: Coord,
+    idx: NodeIndex,
+    dir: Vec2D,
+    steps: usize,
+    prev: Coord,
+}
+
+impl Agent {
+    pub fn new(
+        cost: usize, pos: Coord, idx: NodeIndex, 
+        dir: Vec2D, steps: usize, prev: Coord
+    ) -> Agent {
+        Agent {cost, pos, idx, dir, steps, prev}
+    }
+}
+
+impl Ord for Agent {
+    fn cmp(&self, other: &Agent) -> std::cmp::Ordering {
+        other.cost.cmp(&self.cost)
+    }
+}
+
+impl PartialOrd for Agent {
+    fn partial_cmp(&self, other: &Agent) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+pub fn solve(data: Vec<String>) {    
+    let map:GridMap<u8> = GridMap::new(data_as_intmap(&data));
+    let mut node_indices:NodeMap = HashMap::new();
+    let graph:DiGraph<Coord, usize> = build_graph(&map, &mut node_indices);
+
+    println!("Silver: {}", silver(&map, &graph, &node_indices)); // 936 too high
+    //println!("Gold: {}", gold(&data));
+}
+
+// Build a graph where each node will have direct edges to other
+// nodes up to 3 tiles away in each direction
+fn build_graph(map: &GridMap<u8>, node_indices: &mut NodeMap) -> DiGraph<Coord, usize> {
+    let mut graph:DiGraph<Coord, usize> = DiGraph::new();    
+    let top_left: Coord = Coord::new(0,0);
+    let bot_rght: Coord = Coord::new((map.get_height()-1) as isize, (map.get_width()-1) as isize);
+
+    for (y, row) in map.get_data().iter().enumerate() {
+        for (x, _) in row.iter().enumerate() {
+            let node_index = graph.add_node(Coord::new(x as isize, y as isize));
+            node_indices.insert(Coord::new(x as isize, y as isize), node_index);
+        }
+    }
+
+    // create edges up to 4 tiles away. This adds up to 12 edges for each node
+    for (cur_coord, &cur_index) in node_indices.iter() {
+        // potential nodes in X in 1 to 3 steps away to either left or right
+        for dx in -3..=3 {
+            if dx == 0 { continue }
+            let t_coord:Coord = Coord::new(cur_coord.x + dx as isize, cur_coord.y);
+            if t_coord.fits_bounds(&top_left, &bot_rght) {
+                let cost = calculate_edge_cost(map, cur_coord, &t_coord);
+                if let Some(t_index) = node_indices.get(&t_coord) {
+                    graph.add_edge(cur_index, *t_index, cost);
+                } 
+            }   
+        }
+
+        // potential nodes in Y in 1 to 3 steps away to either up or down
+        for dy in -3..=3 {
+            if dy == 0 { continue }
+            let t_coord:Coord = Coord::new(cur_coord.x, cur_coord.y + dy as isize);
+            if t_coord.fits_bounds(&top_left, &bot_rght) {
+                let cost = calculate_edge_cost(map, cur_coord, &t_coord);
+                if let Some(t_index) = node_indices.get(&t_coord) {
+                    graph.add_edge(cur_index, *t_index, cost);
+                }     
+            }            
+        }     
+    }
+    println!("Node count: {}", graph.node_count());
+    graph
+}
+
+// Get an appropriate cost for a edge, the sum of all nodes' weights between a-b
+fn calculate_edge_cost(grid: &GridMap<u8>, a: &Coord, b: &Coord) -> usize {
+    let mut sum: usize = 0;
+    let x_dist = (b.x - a.x).abs();
+    let y_dist = (b.y - a.y).abs();
+    
+    if (x_dist != 0 && y_dist != 0) {
+        panic!("Should create only horizontal or vertical edges between nodes");
+    }
+    if x_dist != 0 {
+        // Horizontal line
+        let step = if b.x > a.x { 1 } else { -1 };
+        for i in 0..=x_dist {
+            let coord = Coord::new(a.x + i * step, a.y);
+            sum += grid.get_cell(&coord).unwrap_or(0) as usize;
+        }
+    } else {
+        // Vertical line
+        let step = if b.y > a.y { 1 } else { -1 };
+        for i in 0..=y_dist {
+            let coord = Coord::new(a.x, a.y + i * step);
+            sum += grid.get_cell(&coord).unwrap_or(0) as usize;
+        }
+    }
+    //println!("a: {:?}, b: {:?}, sum: {}", a, b, sum);
+    sum
+}
+
+fn calc_dir(a: &Coord, b: &Coord) -> Vec2D {
+    match (a.x.cmp(&b.x), a.y.cmp(&b.y)) {
+        (Ordering::Equal,   Ordering::Less)     => NORTH,
+        (Ordering::Equal,   Ordering::Greater)  => SOUTH,
+        (Ordering::Less,    Ordering::Equal)    => EAST,
+        (Ordering::Greater, Ordering::Equal)    => WEST,
+         _                                      => STILL,
+    }
+}   
+
+fn custom_djikstra(
+    map:    &GridMap<u8>,
+    graph:  &DiGraph<Coord, usize>,
+    node_indices: &NodeMap,
+    start:  &Coord,
+    end:    &Coord
+) -> usize {
+    if let (Some(&start_idx), Some(&end_idx)) = (
+        node_indices.get(start), 
+        node_indices.get(end)
+    ) {
+        let mut prioq = BinaryHeap::new();
+        let mut visited:BTreeSet<NodeIndex> = BTreeSet::new();
+
+        prioq.push(Reverse(Agent::new(0,*start, start_idx, STILL, 0, *start)));
+
+        while let Some(Reverse(agent)) = prioq.pop() {
+            if agent.pos == *end { return agent.cost; } // end cond
+ 
+            for edge in graph.edges(agent.idx) {
+                if visited.contains(&edge.target()) { continue; }
+                let next_coord = graph.node_weight(edge.target()).unwrap();  
+                let d_btwn_nodes = (
+                    (next_coord.x - agent.pos.x).abs() + 
+                    (next_coord.y - agent.pos.y).abs()
+                ) as usize;
+
+                let new_dir = calc_dir(&agent.pos, next_coord);    
+                let mut new_steps = 0;            
+                if new_dir == agent.dir { 
+                    new_steps =  agent.steps + d_btwn_nodes;
+                }
+                else { 
+                    new_steps = d_btwn_nodes;
+                };
+
+                // Enforce movement restrictions
+                if new_steps > 3 { continue; }
+
+                let new_cost = agent.cost + edge.weight();
+                println!("{} {:?}", new_cost, next_coord);
+                let new_agent = Agent {
+                    cost: new_cost,
+                    pos: *next_coord,
+                    idx: edge.target(),
+                    dir: new_dir,
+                    steps: new_steps,
+                    prev: agent.pos,
+                };
+
+                visited.insert(edge.target());
+                prioq.push(Reverse(new_agent));
+            }            
+        }        
+    } 
+    panic!("No path found");
+}
+
+fn silver(
+    map: &GridMap<u8>,
+    graph: &DiGraph<Coord, usize>,
+    node_indices: &NodeMap
+) -> usize { 
+    let start: Coord = Coord::new(0,0);
+    let end: Coord = Coord::new((map.get_height()-1) as isize, (map.get_width()-1) as isize);
+    println!("start: {:?}, end: {:?}", start, end);
+    custom_djikstra(map, graph, node_indices, &start, &end)    
+}
+
+
+// run these with cargo test --bin main -- day_XX::tests
+/* #[cfg(test)]
+mod tests {
+    use crate::utils::read_data_from_file;
+    use super::*;   
+
+    #[test]
+    fn test_test() {
+        let test_data:Vec<String> = read_data_from_file("input/test/17.txt");
+        let map:GridMap<u8> = GridMap::new(data_as_intmap(&test_data));
+        let mut node_indices:NodeMap = HashMap::new();
+        let graph:DiGraph<Coord, usize> = build_graph(&map, &mut node_indices); 
+        
+        assert_eq!(silver(&map, &graph, &node_indices), 102);
+        //assert_eq!(gold(&test_data), 145);
+    }
+
+/*     #[test]
+    fn test_silver() {
+        let test_data:Vec<String> = read_data_from_file("input/real/17.txt");
+        //assert_eq!(silver(&test_data), 510801);
+    }
+
+    #[test]
+    fn test_gold() {
+        let test_data:Vec<String> = read_data_from_file("input/real/17.txt");
+        //assert_eq!(gold(&test_data), 212763);
+    } */
+} */
