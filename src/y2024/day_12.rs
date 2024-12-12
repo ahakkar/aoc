@@ -20,13 +20,14 @@ use crate::{
     Fro, Solution, TaskResult,
 };
 use grid::*;
-use util::point::{EAST, NORTH, SOUTH, WEST};
+use util::point::{Point, ORTHOGONAL};
 
 // Can add more shared vars here
 pub struct GardenGroups {
     map: Grid<Plot>,
 }
 
+#[derive(Debug, Clone)]
 struct Plot {
     ptype: char,
     visited: bool,
@@ -35,6 +36,16 @@ struct Plot {
 impl Plot {
     pub const fn new(ptype: char, visited: bool) -> Plot {
         Plot { ptype, visited }
+    }
+}
+struct Area {
+    p_len: usize,
+    size: usize,
+}
+
+impl Area {
+    pub const fn new() -> Area {
+        Area { p_len: 0, size: 0 }
     }
 }
 
@@ -57,13 +68,32 @@ impl Fro for GardenGroups {
 // Main solvers
 impl Solution for GardenGroups {
     fn silver(&self) -> TaskResult {
-        /*   Noh kokeilen flood fillata ei-visited tilet
+        // Each new unvisited plot is assigned a new unique id as an index
+        // Area's perimeter length is the value
+        let mut results: Vec<Area> = Vec::new();
+        let mut map = self.map.clone();
+        let (rows, cols) = map.size();
 
-        ja annan joka regionille juoksevan id:n ja tallennan sen esim vektoriin jossa on sen indeksin takana perimeterin pituus.
-
-        Sen voi laskea flood fillatessa sivuista jotka kuuluu eri regioniin tai kartan reunaan */
-
-        TaskResult::String("plii".to_string())
+        // Iterate through the map and flood fill each unvisited plot
+        // Calculate perimeter length on the same go
+        for y in 0..rows {
+            for x in 0..cols {
+                if let Some(l) = map.get(y, x) {
+                    if !l.visited {
+                        let mut area = Area::new();
+                        Self::flood_fill(
+                            self,
+                            Point::new(x as i32, y as i32),
+                            l.ptype,
+                            &mut area,
+                            &mut map,
+                        );
+                        results.push(area);
+                    }
+                }
+            }
+        }
+        TaskResult::Usize(results.iter().map(|r| r.p_len * r.size).sum())
     }
 
     fn gold(&self) -> TaskResult {
@@ -72,7 +102,48 @@ impl Solution for GardenGroups {
 }
 
 // For assisting functions
-impl GardenGroups {}
+impl GardenGroups {
+    // Visits connected plots and return the area's perimeter len
+    fn flood_fill(
+        &self,
+        cur: Point,
+        ptype: char,
+        result: &mut Area,
+        map: &mut Grid<Plot>,
+    ) {
+        // Mark current as visited
+        if let Some(current) = Self::get_value(map, &cur.x, &cur.y) {
+            current.visited = true;
+            if current.ptype == ptype {
+                result.size += 1;
+            }
+        }
+
+        for dir in ORTHOGONAL {
+            let dx = cur.x + dir.x;
+            let dy = cur.y + dir.y;
+
+            if let Some(neighbor) = Self::get_value(map, &dx, &dy) {
+                if neighbor.ptype == ptype {
+                    if !neighbor.visited {
+                        Self::flood_fill(self, Point::new(dx, dy), ptype, result, map);
+                    }
+                } else {
+                    // Was a different type
+                    result.p_len += 1;
+                }
+            } else {
+                // Was a map border
+                result.p_len += 1;
+            }
+        }
+    }
+
+    // Workaround for Grid crate's broken coordinate order
+    fn get_value<'a>(map: &'a mut Grid<Plot>, x: &i32, y: &i32) -> Option<&'a mut Plot> {
+        map.get_mut(*y, *x)
+    }
+}
 
 // cargo test --lib day_XX
 #[cfg(test)]
@@ -85,7 +156,7 @@ mod tests {
         let test_data = read_data_from_file("input/test/12.txt");
         let queue = GardenGroups::fro(&test_data);
 
-        assert_eq!(queue.silver(), TaskResult::Usize(0));
+        assert_eq!(queue.silver(), TaskResult::Usize(1930));
         assert_eq!(queue.gold(), TaskResult::Usize(0));
     }
 
