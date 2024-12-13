@@ -90,7 +90,7 @@ impl Solution for GardenGroups {
             for y in 0..rows {
                 for x in 0..cols {
                     if let Some(current) = map.get(y, x) {
-                        let point = Point::new(x as i32, y as i32);
+                        let point = Point::new(x as i64, y as i64);
 
                         // IF we don't have a north edge, continue
                         if let Some(n) = map.get_point(point + NORTH) {
@@ -138,7 +138,7 @@ impl GardenGroups {
             for x in 0..cols {
                 if let Some(l) = map.get(y, x) {
                     if !l.visited && !visited_flags.get(l.region_id).unwrap_or(&false) {
-                        let start = Point::new(x as i32, y as i32);
+                        let start = Point::new(x as i64, y as i64);
                         let mut area = Area::new(region_id);
 
                         Self::flood_fill(start, l.ptype, &mut area, &mut map);
@@ -155,7 +155,7 @@ impl GardenGroups {
     // Visits connected plots and return the area's perimeter len
     fn flood_fill(cur: Point, ptype: char, result: &mut Area, map: &mut Grid<Plot>) {
         // Mark current as visited
-        if let Some(cur_plot) = map.get_xy_mut(&cur.x, &cur.y) {
+        if let Some(cur_plot) = map.get_xy_mut(cur.x, cur.y) {
             match cur_plot.visited {
                 true => return,
                 false => cur_plot.visited = true,

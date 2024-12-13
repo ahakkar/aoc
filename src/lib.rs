@@ -17,6 +17,7 @@ pub mod y2024 {
     pub mod day_10;
     pub mod day_11;
     pub mod day_12;
+    pub mod day_13;
 }
 
 use std::{
@@ -89,6 +90,7 @@ pub fn solve(day: &str, input: &str) -> AocResult {
         "10" => run_solution::<y2024::day_10::HoofIt>(input),
         "11" => run_solution::<y2024::day_11::PlutonianPebbles>(input),
         "12" => run_solution::<y2024::day_12::GardenGroups>(input),
+        "13" => run_solution::<y2024::day_13::ClawContraption>(input),
         _ => unreachable!(),
     }
 }
