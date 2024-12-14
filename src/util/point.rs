@@ -27,7 +27,7 @@ pub const SOUTHWEST: Point = Point::new(-1, 1);
 pub const ORTHOGONAL: [Point; 4] = [NORTH, SOUTH, EAST, WEST];
 pub const DIAGONAL: [Point; 4] = [NORTHEAST, NORTHWEST, SOUTHEAST, SOUTHWEST];
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct Point {
     pub x: i64,
     pub y: i64,

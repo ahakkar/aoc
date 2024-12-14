@@ -14,8 +14,9 @@
 #![allow(clippy::needless_return)]
 #![allow(clippy::needless_range_loop)]
 #![allow(clippy::only_used_in_recursion)]
+#![allow(clippy::never_loop)]
+#![allow(clippy::useless_vec)]
 
-use super::utils::*;
 use crate::{Fro, Solution, TaskResult};
 
 // Can add more shared vars here
@@ -50,7 +51,7 @@ impl Template {}
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::utils::read_data_from_file;
+    use crate::util::utils::read_data_from_file;
 
     #[test]
     fn test() {
