@@ -4,41 +4,15 @@
  * https://github.com/ahakkar/
 **/
 
-#![allow(dead_code)]
-#![allow(unused_parens)]
-#![allow(unused_imports)]
-#![allow(unused_variables)]
-#![allow(unused_mut)]
-#![allow(unused_assignments)]
-#![allow(unused_must_use)]
-#![allow(clippy::needless_return)]
-#![allow(clippy::needless_range_loop)]
-#![allow(clippy::only_used_in_recursion)]
-#![allow(clippy::never_loop)]
-#![allow(clippy::useless_vec)]
-
+use crate::{
+    util::{point::Point, regex::MyCaptures},
+    Fro, Solution, TaskResult,
+};
+use regex::Regex;
 use std::collections::HashSet;
-
-use regex::{Captures, Regex};
-
-use crate::{util::point::Point, Fro, Solution, TaskResult};
 
 pub struct RestroomRedoubt {
     data: Vec<(Point, Point)>,
-}
-
-pub trait MyCaptures {
-    fn get_i64(&self, i: usize) -> i64;
-}
-
-impl MyCaptures for Captures<'_> {
-    fn get_i64(&self, i: usize) -> i64 {
-        self.get(i)
-            .expect("Capture group does not exist")
-            .as_str()
-            .parse::<i64>()
-            .expect("Failed to parse capture group str to i64")
-    }
 }
 
 impl Fro for RestroomRedoubt {
@@ -74,8 +48,8 @@ impl Solution for RestroomRedoubt {
             let vx = pair.1.x;
             let vy = pair.1.y;
 
-            let xn = Self::modulo((x0 + vx * n), w);
-            let yn = Self::modulo((y0 + vy * n), h);
+            let xn = Self::modulo(x0 + vx * n, w);
+            let yn = Self::modulo(y0 + vy * n, h);
 
             // Ignore middle row
             if xn != (w - 1) / 2 && yn != (h - 1) / 2 {
@@ -92,12 +66,9 @@ impl Solution for RestroomRedoubt {
     }
 
     fn gold(&self) -> TaskResult {
-        let mut end: Vec<usize> = vec![0; 4];
         let w = 101; // width
         let h = 103; // height
         let mut set = HashSet::new();
-        // used to collect data for the map to print
-        //let mut test_results: Vec<Point> = vec![];
 
         // Try to fish for a loop where all objects are in diff pos
         let mut n = 0;
@@ -111,9 +82,8 @@ impl Solution for RestroomRedoubt {
                 let vx = pair.1.x;
                 let vy = pair.1.y;
 
-                let xn = Self::modulo((x0 + vx * n), w);
-                let yn = Self::modulo((y0 + vy * n), h);
-                //test_results.push(Point::new(xn, yn));
+                let xn = Self::modulo(x0 + vx * n, w);
+                let yn = Self::modulo(y0 + vy * n, h);
 
                 // Break outer loop too
                 if !set.insert(Point::new(xn, yn)) {
@@ -126,8 +96,6 @@ impl Solution for RestroomRedoubt {
             }
             n += 1;
         }
-
-        // Self::build_map(&test_results, w as usize, h as usize);
         TaskResult::Usize(n as usize)
     }
 }
@@ -135,7 +103,7 @@ impl Solution for RestroomRedoubt {
 impl RestroomRedoubt {
     // TODO Should initialize a w,h char map with . and just change the
     // value of the cell for each object
-    fn build_map(tr: &[Point], w: usize, h: usize) {
+    fn _build_map(tr: &[Point], w: usize, h: usize) {
         for row in 0..h {
             for col in 0..w {
                 let mut obj: usize = 0;

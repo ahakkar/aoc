@@ -1,6 +1,7 @@
 pub mod util {
     pub mod grid;
     pub mod point;
+    pub mod regex;
     pub mod utils;
 }
 
