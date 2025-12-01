@@ -37,28 +37,91 @@ impl Fro for SecretEntrance {
 impl Solution for SecretEntrance {
     fn silver(&self) -> TaskResult {
         let mut result = 0;
+        let mut dial: i32 = 50;
+        let lo: i32 = 0;
+        let hi: i32 = 99;
 
         for row in &self.data {
-            println!("dir: {}, amount: {}", &row[0..1], &row[1..]);
+            //println!("dir: {}, amount: {}", &row[0..1], &row[1..]);
+            let amt = &row[1..].parse::<i32>().unwrap();
+
             match &row[0..1] {
-                "L" => (),
-                "R" => (),
+                "L" => SecretEntrance::wrapping_sub(&mut dial, amt, &lo, &hi),
+                "R" => SecretEntrance::wrapping_add(&mut dial, amt, &lo, &hi),
                 _ => panic!("not expected direction"),
+            };
+            if dial == 0 {
+                result += 1;
             }
+            //println!("{}", dial);
         }
 
         TaskResult::Usize(result)
     }
 
     fn gold(&self) -> TaskResult {
-        TaskResult::Usize(232)
+        let mut result = 0;
+        let mut dial: i32 = 50;
+        let lo: i32 = 0;
+        let hi: i32 = 99;
+
+        for row in &self.data {
+            //println!("dir: {}, amount: {}", &row[0..1], &row[1..]);
+            let amt = &row[1..].parse::<i32>().unwrap();
+
+            match &row[0..1] {
+                "L" => {
+                    SecretEntrance::wrapping_sub2(&mut dial, amt, &mut result, &lo, &hi)
+                }
+                "R" => {
+                    SecretEntrance::wrapping_add2(&mut dial, amt, &mut result, &lo, &hi)
+                }
+                _ => panic!("not expected direction"),
+            };
+            //println!("{}", dial);
+        }
+
+        //println!("{}", dial);
+        TaskResult::Usize(result)
     }
 }
 
 // For assisting functions
 impl SecretEntrance {
-    fn wrapping_add(a: &i32, b: &i32, lo: &i32, hi: &i32) -> i32 {
-        *a
+    fn wrapping_add(a: &mut i32, b: &i32, lo: &i32, hi: &i32) {
+        //println!("adding: {} {}", a, b);
+        let width = hi - lo + 1;
+        *a = ((*a + b) % width + width) % width;
+    }
+
+    fn wrapping_sub(a: &mut i32, b: &i32, lo: &i32, hi: &i32) {
+        //println!("subbing: {} {}", a, b);
+        let width = hi - lo + 1;
+        *a = ((*a - b) % width + width) % width;
+    }
+
+    fn wrapping_add2(a: &mut i32, b: &i32, result: &mut usize, lo: &i32, hi: &i32) {
+        //println!("adding: {} {}", a, b);
+        for _ in 0..*b {
+            *a += 1;
+            if *a == 100 {
+                *a = 0;
+                *result += 1;
+            }
+        }
+    }
+
+    fn wrapping_sub2(a: &mut i32, b: &i32, result: &mut usize, lo: &i32, hi: &i32) {
+        //println!("subbing: {} {}", a, b);
+        for _ in 0..*b {
+            *a -= 1;
+            if *a == 0 {
+                *result += 1;
+            }
+            if *a == -1 {
+                *a = 99;
+            }
+        }
     }
 }
 
@@ -70,19 +133,25 @@ mod tests {
 
     #[test]
     fn test() {
-        let test_data = read_data_from_file("input/2025/test/01.txt");
-        let queue = SecretEntrance::fro(&test_data);
+        let mut test_data = read_data_from_file("input/2025/test/01.txt");
+        let mut queue = SecretEntrance::fro(&test_data);
+        assert_eq!(queue.silver(), TaskResult::Usize(3));
 
-        assert_eq!(queue.silver(), TaskResult::Usize(0));
-        assert_eq!(queue.gold(), TaskResult::Usize(0));
+        test_data = read_data_from_file("input/2025/test/01b.txt");
+        queue = SecretEntrance::fro(&test_data);
+        assert_eq!(queue.gold(), TaskResult::Usize(10));
+
+        test_data = read_data_from_file("input/2025/test/01.txt");
+        queue = SecretEntrance::fro(&test_data);
+        assert_eq!(queue.gold(), TaskResult::Usize(6));
     }
 
-    #[test]
+    /*     #[test]
     fn real() {
         let real_data = read_data_from_file("input/2025/real/01.txt");
         let queue = SecretEntrance::fro(&real_data);
 
         assert_eq!(queue.silver(), TaskResult::Usize(0));
         assert_eq!(queue.gold(), TaskResult::Usize(0));
-    }
+    } */
 }
