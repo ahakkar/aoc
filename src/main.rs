@@ -134,7 +134,13 @@ fn run_all(year: &str, n: &usize, _test: &bool) {
 
     print_header();
 
-    for day in ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13"] {
+    let  days:Vec<&str> = match year {
+        "2024" => { vec!["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13"] },
+        "2025" => { vec!["01"] },
+        _ => panic!("undefined year"),
+    };
+
+    for day in days {
         let filepath = format!("input/{}/real/{}.txt", year, day);
         if !Path::new(&filepath).is_file() {
             println!("File {} does not exist.", filepath);
