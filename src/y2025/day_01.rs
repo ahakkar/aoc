@@ -4,19 +4,6 @@
  * https://github.com/ahakkar/
 **/
 
-#![allow(dead_code)]
-#![allow(unused_parens)]
-#![allow(unused_imports)]
-#![allow(unused_variables)]
-#![allow(unused_mut)]
-#![allow(unused_assignments)]
-#![allow(unused_must_use)]
-#![allow(clippy::needless_return)]
-#![allow(clippy::needless_range_loop)]
-#![allow(clippy::only_used_in_recursion)]
-#![allow(clippy::never_loop)]
-#![allow(clippy::useless_vec)]
-
 use crate::{Fro, Solution, TaskResult};
 
 // Can add more shared vars here
@@ -42,7 +29,6 @@ impl Solution for SecretEntrance {
         let hi: i32 = 99;
 
         for row in &self.data {
-            //println!("dir: {}, amount: {}", &row[0..1], &row[1..]);
             let amt = &row[1..].parse::<i32>().unwrap();
 
             match &row[0..1] {
@@ -53,9 +39,7 @@ impl Solution for SecretEntrance {
             if dial == 0 {
                 result += 1;
             }
-            //println!("{}", dial);
         }
-
         TaskResult::Usize(result)
     }
 
@@ -66,7 +50,6 @@ impl Solution for SecretEntrance {
         let hi: i32 = 99;
 
         for row in &self.data {
-            //println!("dir: {}, amount: {}", &row[0..1], &row[1..]);
             let amt = &row[1..].parse::<i32>().unwrap();
 
             match &row[0..1] {
@@ -78,10 +61,7 @@ impl Solution for SecretEntrance {
                 }
                 _ => panic!("not expected direction"),
             };
-            //println!("{}", dial);
         }
-
-        //println!("{}", dial);
         TaskResult::Usize(result)
     }
 }
@@ -89,37 +69,35 @@ impl Solution for SecretEntrance {
 // For assisting functions
 impl SecretEntrance {
     fn wrapping_add(a: &mut i32, b: &i32, lo: &i32, hi: &i32) {
-        //println!("adding: {} {}", a, b);
         let width = hi - lo + 1;
         *a = ((*a + b) % width + width) % width;
     }
 
     fn wrapping_sub(a: &mut i32, b: &i32, lo: &i32, hi: &i32) {
-        //println!("subbing: {} {}", a, b);
         let width = hi - lo + 1;
         *a = ((*a - b) % width + width) % width;
     }
 
+    // Brute force!
     fn wrapping_add2(a: &mut i32, b: &i32, result: &mut usize, lo: &i32, hi: &i32) {
-        //println!("adding: {} {}", a, b);
         for _ in 0..*b {
             *a += 1;
-            if *a == 100 {
-                *a = 0;
+            if *a == hi + 1 {
+                *a = *lo;
                 *result += 1;
             }
         }
     }
 
+    // Brute force!
     fn wrapping_sub2(a: &mut i32, b: &i32, result: &mut usize, lo: &i32, hi: &i32) {
-        //println!("subbing: {} {}", a, b);
         for _ in 0..*b {
             *a -= 1;
             if *a == 0 {
                 *result += 1;
             }
-            if *a == -1 {
-                *a = 99;
+            if *a == lo - 1 {
+                *a = *hi;
             }
         }
     }
