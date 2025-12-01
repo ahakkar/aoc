@@ -23,7 +23,7 @@ use util::utils::read_data_from_file;
         ), 
     long_about = None
 )]
-#[command(group = ArgGroup::new("mode").args(&["day", "all"]).required(true))]
+#[command(group = ArgGroup::new("solution").args(&["year","day"]).multiple(true))]
 struct Args {
     /// Run all solutions, can not be run at same time with day
     #[arg(short, long, action)]
@@ -41,7 +41,7 @@ struct Args {
     #[arg(short, long, action)]
     test: bool,
 
-    /// [2015..2024] calendar year
+    /// [0000-9999] calendar year
     #[arg(short, long)]
     year: Option<String>,
 }
@@ -75,13 +75,13 @@ struct RunResult {
     total_fro: Vec<u128>,
 }
 
-fn run(day: &str, n: &usize, filepath: &str) -> RunResult {
+fn run(year: &str, day: &str, n: &usize, filepath: &str) -> RunResult {
     let mut total_silver: Vec<u128> = vec![];
     let mut total_gold: Vec<u128> = vec![];
     let mut total_fro: Vec<u128> = vec![];  
 
     // Run solution once to get the score
-    let temp = solve(day, &read_data_from_file(filepath));
+    let temp = solve(year, day, &read_data_from_file(filepath));
     let score_silver = temp.silver.0;
     let score_gold = temp.gold.0;
     
@@ -92,7 +92,7 @@ fn run(day: &str, n: &usize, filepath: &str) -> RunResult {
 
     // Collect runtimes across leftover iterations
     for _ in 0..*n-1 {
-        let temp = solve(day, &read_data_from_file(filepath));
+        let temp = solve(year, day, &read_data_from_file(filepath));
         total_silver.push(temp.silver.1.as_micros());
         total_gold.push(temp.gold.1.as_micros());
         total_fro.push(temp.fro.as_micros());
@@ -117,7 +117,7 @@ fn run_one_day(year: &str, day: &str, n: &usize, test: &bool) {
 
     if *n == 0 { return } // todo complain about this
 
-    let res = run(day, n, &filepath);
+    let res = run(year, day, n, &filepath);
 
     println!("Silver: {}, Gold: {}", res.score_silver, res.score_gold);
     print!("Ran solutions {} times, avg: ", n);
@@ -143,7 +143,7 @@ fn run_all(year: &str, n: &usize, _test: &bool) {
 
         print!("║ {}   ║", day.green());
 
-        let res = run(day, n, &filepath);
+        let res = run(year, day, n, &filepath);
 
         print!("{:>23} ║", res.score_silver.to_string().bright_magenta());
         print!("{:>23} ║", res.score_gold.to_string().bright_magenta());

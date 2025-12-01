@@ -20,12 +20,12 @@
 use crate::{Fro, Solution, TaskResult};
 
 // Can add more shared vars here
-pub struct Template {
+pub struct SecretEntrance {
     data: Vec<String>,
 }
 
 // Can be used to implement fancier task-specific parsing
-impl Fro for Template {
+impl Fro for SecretEntrance {
     fn fro(input: &str) -> Self {
         Self {
             data: input.split('\n').map(|line| line.to_string()).collect(),
@@ -34,18 +34,33 @@ impl Fro for Template {
 }
 
 // Main solvers
-impl Solution for Template {
+impl Solution for SecretEntrance {
     fn silver(&self) -> TaskResult {
-        TaskResult::String("plii".to_string())
+        let mut result = 0;
+
+        for row in &self.data {
+            println!("dir: {}, amount: {}", &row[0..1], &row[1..]);
+            match &row[0..1] {
+                "L" => (),
+                "R" => (),
+                _ => panic!("not expected direction"),
+            }
+        }
+
+        TaskResult::Usize(result)
     }
 
     fn gold(&self) -> TaskResult {
-        TaskResult::String("plaa".to_string())
+        TaskResult::Usize(232)
     }
 }
 
 // For assisting functions
-impl Template {}
+impl SecretEntrance {
+    fn wrapping_add(a: &i32, b: &i32, lo: &i32, hi: &i32) -> i32 {
+        *a
+    }
+}
 
 // cargo test --lib day_XX
 #[cfg(test)]
@@ -55,8 +70,8 @@ mod tests {
 
     #[test]
     fn test() {
-        let test_data = read_data_from_file("input/2025/test/0.txt");
-        let queue = Template::fro(&test_data);
+        let test_data = read_data_from_file("input/2025/test/01.txt");
+        let queue = SecretEntrance::fro(&test_data);
 
         assert_eq!(queue.silver(), TaskResult::Usize(0));
         assert_eq!(queue.gold(), TaskResult::Usize(0));
@@ -64,8 +79,8 @@ mod tests {
 
     #[test]
     fn real() {
-        let real_data = read_data_from_file("input/2025/real/0.txt");
-        let queue = Template::fro(&real_data);
+        let real_data = read_data_from_file("input/2025/real/01.txt");
+        let queue = SecretEntrance::fro(&real_data);
 
         assert_eq!(queue.silver(), TaskResult::Usize(0));
         assert_eq!(queue.gold(), TaskResult::Usize(0));

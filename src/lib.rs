@@ -20,6 +20,11 @@ pub mod y2024 {
     pub mod day_12;
     pub mod day_13;
     pub mod day_14;
+    pub mod day_15;
+}
+
+pub mod y2025 {
+    pub mod day_01;
 }
 
 use std::{
@@ -78,22 +83,30 @@ pub fn run_solution<S: Fro + Solution + 'static>(input: &str) -> AocResult {
 }
 
 /// Calls respective's day's struct, input is contents from a file read as str
-pub fn solve(day: &str, input: &str) -> AocResult {
-    match day {
-        "01" => run_solution::<y2024::day_01::HistorianHysteria>(input),
-        "02" => run_solution::<y2024::day_02::RedNosedReports>(input),
-        "03" => run_solution::<y2024::day_03::MullItOver>(input),
-        "04" => run_solution::<y2024::day_04::CeresSearch>(input),
-        "05" => run_solution::<y2024::day_05::PrintQueue>(input),
-        "06" => run_solution::<y2024::day_06::GuardGallivant>(input),
-        "07" => run_solution::<y2024::day_07::BridgeRepair>(input),
-        "08" => run_solution::<y2024::day_08::ResonantCollinearity>(input),
-        "09" => run_solution::<y2024::day_09::DiskFragmenter>(input),
-        "10" => run_solution::<y2024::day_10::HoofIt>(input),
-        "11" => run_solution::<y2024::day_11::PlutonianPebbles>(input),
-        "12" => run_solution::<y2024::day_12::GardenGroups>(input),
-        "13" => run_solution::<y2024::day_13::ClawContraption>(input),
-        "14" => run_solution::<y2024::day_14::RestroomRedoubt>(input),
+pub fn solve(year: &str, day: &str, input: &str) -> AocResult {
+    match year {
+        "2024" => match day {
+            "01" => run_solution::<y2024::day_01::HistorianHysteria>(input),
+            "02" => run_solution::<y2024::day_02::RedNosedReports>(input),
+            "03" => run_solution::<y2024::day_03::MullItOver>(input),
+            "04" => run_solution::<y2024::day_04::CeresSearch>(input),
+            "05" => run_solution::<y2024::day_05::PrintQueue>(input),
+            "06" => run_solution::<y2024::day_06::GuardGallivant>(input),
+            "07" => run_solution::<y2024::day_07::BridgeRepair>(input),
+            "08" => run_solution::<y2024::day_08::ResonantCollinearity>(input),
+            "09" => run_solution::<y2024::day_09::DiskFragmenter>(input),
+            "10" => run_solution::<y2024::day_10::HoofIt>(input),
+            "11" => run_solution::<y2024::day_11::PlutonianPebbles>(input),
+            "12" => run_solution::<y2024::day_12::GardenGroups>(input),
+            "13" => run_solution::<y2024::day_13::ClawContraption>(input),
+            "14" => run_solution::<y2024::day_14::RestroomRedoubt>(input),
+            "15" => run_solution::<y2024::day_15::WarehouseWoes>(input),
+            _ => unreachable!(),
+        },
+        "2025" => match day {
+            "01" => run_solution::<y2025::day_01::SecretEntrance>(input),
+            _ => unreachable!(),
+        },
         _ => unreachable!(),
     }
 }

@@ -4,6 +4,8 @@
  * https://github.com/ahakkar/
 **/
 
+#![allow(clippy::unnecessary_map_or)]
+
 use crate::{
     util::{
         self,

@@ -10,7 +10,7 @@
 //! [must_use] is not used, the compiler emits a warning.
 //!
 
-use std::ops::Add;
+use std::ops::{Add, Sub};
 
 pub const ORIGIN: Point = Point::new(0, 0);
 
@@ -45,8 +45,16 @@ impl Add for Point {
     type Output = Self;
 
     #[inline]
-    #[must_use]
     fn add(self, rhs: Self) -> Self {
         Point::new(self.x + rhs.x, self.y + rhs.y)
+    }
+}
+
+impl Sub for Point {
+    type Output = Self;
+
+    #[inline]
+    fn sub(self, rhs: Self) -> Self {
+        Point::new(self.x - rhs.x, self.y - rhs.y)
     }
 }
