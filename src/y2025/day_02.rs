@@ -7,15 +7,28 @@
 use crate::{Fro, Solution, TaskResult};
 
 // Can add more shared vars here
+pub struct Range {
+    start: usize,
+    end: usize,
+}
 pub struct GiftShop {
-    data: Vec<String>,
+    data: Vec<Range>,
 }
 
 // Can be used to implement fancier task-specific parsing
 impl Fro for GiftShop {
     fn fro(input: &str) -> Self {
         Self {
-            data: input.split(',').map(|line| line.to_string()).collect(),
+            data: input
+                .split(',')
+                .map(|range| {
+                    let (a, b) = range.split_once('-').expect("invalid format");
+                    Range {
+                        start: a.parse().unwrap(),
+                        end: b.parse().unwrap(),
+                    }
+                })
+                .collect(),
         }
     }
 }
@@ -24,21 +37,17 @@ impl Fro for GiftShop {
 impl Solution for GiftShop {
     fn silver(&self) -> TaskResult {
         let mut silver: usize = 0;
-        for item in &self.data {
-            let (a, b) = item.split_once('-').expect("delimiter");
-            let mut cur_str = a.to_string();
-            let mut cur_int = a.parse::<usize>().unwrap();
-            let end = b.parse::<usize>().unwrap();
 
-            while cur_int <= end {
+        for item in &self.data {
+            let mut cur_str = item.start.to_string();
+
+            for cur_int in item.start..=item.end {
                 if cur_str.len() % 2 == 0
                     && cur_str[0..cur_str.len() / 2] == cur_str[cur_str.len() / 2..]
                 {
                     silver += cur_int;
                 }
-
-                cur_int += 1;
-                cur_str = cur_int.to_string();
+                cur_str = (cur_int + 1).to_string();
             }
         }
         TaskResult::Usize(silver)
@@ -46,13 +55,11 @@ impl Solution for GiftShop {
 
     fn gold(&self) -> TaskResult {
         let mut gold: usize = 0;
-        for item in &self.data {
-            let (a, b) = item.split_once('-').expect("delimiter");
-            let mut cur_str = a.to_string();
-            let mut cur_int = a.parse::<usize>().unwrap();
-            let end = b.parse::<usize>().unwrap();
 
-            while cur_int <= end {
+        for item in &self.data {
+            let mut cur_str = item.start.to_string();
+
+            for cur_int in item.start..=item.end {
                 for substr_len in 1..=cur_str.len() / 2 {
                     if cur_str.len() % substr_len != 0 {
                         continue;
@@ -63,9 +70,7 @@ impl Solution for GiftShop {
                         break;
                     }
                 }
-
-                cur_int += 1;
-                cur_str = cur_int.to_string();
+                cur_str = (cur_int + 1).to_string();
             }
         }
         TaskResult::Usize(gold)
