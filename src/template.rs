@@ -16,6 +16,7 @@
 #![allow(clippy::only_used_in_recursion)]
 #![allow(clippy::never_loop)]
 #![allow(clippy::useless_vec)]
+#![allow(clippy::collapsible_if)]
 
 use crate::{Fro, Solution, TaskResult};
 
