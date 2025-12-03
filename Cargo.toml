@@ -2,23 +2,23 @@
 name = "aoc"
 authors = ["Antti Hakkarainen"]
 description = "Advent of Code solution runner"
-version = "0.3.0"
-edition = "2021"
-rust-version = "1.83"
+version = "0.4.0"
+edition = "2024"
+rust-version = "1.91.1"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-clap = { version = "4.5.21", features = ["derive", "cargo"] }
-colored = "2.1.0"
-grid = "0.15.0"
-itertools = "0.13.0"
+clap = { version = "4.5.53", features = ["derive", "cargo"] }
+colored = "3.0.0"
+grid = "1.0.0"
+itertools = "0.14.0"
 lazy_static = "1.5.0"
 num-integer = "0.1.46"
-pathfinding = "4.12.0"
-petgraph = "0.6.5"
-rayon = "1.10.0"
-regex = "1.11.1"
+pathfinding = "4.14.0"
+petgraph = "0.8.3"
+rayon = "1.11.0"
+regex = "1.12.2"
 
 #[profile.release]
 #codegen-units = 1
