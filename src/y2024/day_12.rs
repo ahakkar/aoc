@@ -7,15 +7,15 @@
 #![allow(clippy::unnecessary_map_or)]
 
 use crate::{
+    Fro, Solution, TaskResult,
     util::{
         self,
         grid::XyGrid,
         point::{EAST, NORTH, NORTHEAST},
     },
-    Fro, Solution, TaskResult,
 };
 use grid::*;
-use util::point::{Point, ORTHOGONAL};
+use util::point::{ORTHOGONAL, Point};
 
 // Can add more shared vars here
 pub struct GardenGroups {
@@ -95,10 +95,10 @@ impl Solution for GardenGroups {
                         let point = Point::new(x as i64, y as i64);
 
                         // IF we don't have a north edge, continue
-                        if let Some(n) = map.get_point(point + NORTH) {
-                            if n.region_id == current.region_id {
-                                continue;
-                            }
+                        if let Some(n) = map.get_point(point + NORTH)
+                            && n.region_id == current.region_id
+                        {
+                            continue;
                         }
 
                         // Based on e and ne cells decide if edge continues
@@ -138,16 +138,17 @@ impl GardenGroups {
         // Calculate perimeter length on the same go
         for y in 0..rows {
             for x in 0..cols {
-                if let Some(l) = map.get(y, x) {
-                    if !l.visited && !visited_flags.get(l.region_id).unwrap_or(&false) {
-                        let start = Point::new(x as i64, y as i64);
-                        let mut area = Area::new(region_id);
+                if let Some(l) = map.get(y, x)
+                    && !l.visited
+                    && !visited_flags.get(l.region_id).unwrap_or(&false)
+                {
+                    let start = Point::new(x as i64, y as i64);
+                    let mut area = Area::new(region_id);
 
-                        Self::flood_fill(start, l.ptype, &mut area, &mut map);
-                        region_id += 1;
-                        results.push(area);
-                        visited_flags.push(true);
-                    }
+                    Self::flood_fill(start, l.ptype, &mut area, &mut map);
+                    region_id += 1;
+                    results.push(area);
+                    visited_flags.push(true);
                 }
             }
         }

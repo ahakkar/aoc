@@ -57,7 +57,7 @@ impl PlutonianPebbles {
             if *key == 0 {
                 changes.push((1, change));
                 changes.push((0, -change));
-            } else if Self::count_digits(*key as u64) % 2 == 0 {
+            } else if Self::count_digits(*key as u64).is_multiple_of(2) {
                 let (l, r) = self.split_number(*key);
                 changes.push((l, change));
                 changes.push((r, change));

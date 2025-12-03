@@ -90,10 +90,10 @@ impl PrintQueue {
         if a == b {
             return Ordering::Equal;
         }
-        if let Some(rules) = rules.get(a) {
-            if rules.contains(b) {
-                return Ordering::Less;
-            }
+        if let Some(rules) = rules.get(a)
+            && rules.contains(b)
+        {
+            return Ordering::Less;
         }
         Ordering::Greater
     }
@@ -103,7 +103,7 @@ impl PrintQueue {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{util::utils::read_data_from_file, TaskResult};
+    use crate::{TaskResult, util::utils::read_data_from_file};
 
     #[test]
     fn test_test() {
