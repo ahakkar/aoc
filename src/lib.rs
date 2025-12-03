@@ -54,6 +54,12 @@ impl Display for TaskResult {
     }
 }
 
+impl From<usize> for TaskResult {
+    fn from(v: usize) -> Self {
+        TaskResult::Usize(v)
+    }
+}
+
 pub struct AocResult {
     pub silver: (TaskResult, Duration),
     pub gold: (TaskResult, Duration),

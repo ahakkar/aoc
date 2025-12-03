@@ -23,67 +23,58 @@ impl Fro for Lobby {
 // Main solvers
 impl Solution for Lobby {
     fn silver(&self) -> TaskResult {
-        let mut result = 0;
+        self.data
+            .iter()
+            .map(|line| {
+                let mut a = 0;
+                let mut b = 0;
 
-        for line in &self.data {
-            let mut a = 0;
-            let mut b = 0;
+                for (idx, chr) in line.chars().enumerate() {
+                    let n = chr.to_digit(10).unwrap();
 
-            for (idx, chr) in line.chars().enumerate() {
-                let n = chr.to_digit(10).unwrap();
-
-                if n > a && idx < line.len() - 1 {
-                    a = n;
-                    b = 0;
-                } else if n > b {
-                    b = n;
+                    if n > a && idx < line.len() - 1 {
+                        a = n;
+                        b = 0;
+                    } else if n > b {
+                        b = n;
+                    }
                 }
-            }
 
-            let nums = format!("{}{}", a, b).parse::<usize>().unwrap();
-            // println!("line: {}\nnums: {}", line, nums);
-            result += nums;
-        }
-
-        TaskResult::Usize(result)
+                (a * 10 + b) as usize
+            })
+            .sum::<usize>()
+            .into()
     }
 
     fn gold(&self) -> TaskResult {
-        let mut gold = 0;
-
         // Monotonic decreasing stack
-        for line in &self.data {
-            let mut stack: Vec<i32> = vec![];
-            let digits: Vec<i32> = line
-                .chars()
-                .map(|c| c.to_digit(10).unwrap() as i32)
-                .collect();
+        self.data
+            .iter()
+            .map(|line| {
+                let mut stack: Vec<usize> = vec![];
+                let digits: Vec<usize> = line
+                    .chars()
+                    .map(|c| c.to_digit(10).unwrap() as usize)
+                    .collect();
 
-            let mut to_remove = digits.len() - 12;
-
-            for d in digits {
-                while let Some(&last) = stack.last() {
-                    if to_remove > 0 && last < d {
-                        stack.pop();
-                        to_remove -= 1;
-                    } else {
-                        break;
+                let mut to_remove = digits.len() - 12;
+                for d in digits {
+                    while let Some(&last) = stack.last() {
+                        if to_remove > 0 && last < d {
+                            stack.pop();
+                            to_remove -= 1;
+                        } else {
+                            break;
+                        }
                     }
+                    stack.push(d);
                 }
-                stack.push(d);
-            }
 
-            stack.truncate(12);
-
-            gold += stack
-                .into_iter()
-                .map(|n| n.to_string())
-                .collect::<String>()
-                .parse::<usize>()
-                .unwrap();
-        }
-
-        TaskResult::Usize(gold)
+                stack.truncate(12);
+                stack.iter().fold(0, |acc, n| acc * 10 + n)
+            })
+            .sum::<usize>()
+            .into()
     }
 }
 
