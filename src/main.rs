@@ -134,9 +134,10 @@ fn run_all(year: &str, n: &usize, _test: &bool) {
 
     print_header();
 
-    let  days:Vec<&str> = match year {
+    // move to global variable or something?
+    let days:Vec<&str> = match year {
         "2024" => { vec!["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13"] },
-        "2025" => { vec!["01", "02"] },
+        "2025" => { vec!["01", "02", "03"] },
         _ => panic!("undefined year"),
     };
 
