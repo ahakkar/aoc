@@ -51,11 +51,8 @@ impl Solution for Lobby {
         self.data
             .iter()
             .map(|line| {
-                let mut stack: Vec<usize> = vec![];
-                let digits: Vec<usize> = line
-                    .chars()
-                    .map(|c| c.to_digit(10).unwrap() as usize)
-                    .collect();
+                let mut stack: Vec<char> = vec![];
+                let digits: Vec<char> = line.chars().collect();
 
                 let mut to_remove = digits.len() - 12;
                 for d in digits {
@@ -71,7 +68,9 @@ impl Solution for Lobby {
                 }
 
                 stack.truncate(12);
-                stack.iter().fold(0, |acc, n| acc * 10 + n)
+                stack
+                    .iter()
+                    .fold(0, |acc, n| acc * 10 + n.to_digit(10).unwrap() as usize)
             })
             .sum::<usize>()
             .into()
