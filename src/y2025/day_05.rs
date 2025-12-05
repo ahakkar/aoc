@@ -4,23 +4,8 @@
  * https://github.com/ahakkar/
 **/
 
-#![allow(dead_code)]
-#![allow(unused_parens)]
-#![allow(unused_imports)]
-#![allow(unused_variables)]
-#![allow(unused_mut)]
-#![allow(unused_assignments)]
-#![allow(unused_must_use)]
-#![allow(clippy::needless_return)]
-#![allow(clippy::needless_range_loop)]
-#![allow(clippy::only_used_in_recursion)]
-#![allow(clippy::never_loop)]
-#![allow(clippy::useless_vec)]
-#![allow(clippy::collapsible_if)]
-
-use std::cmp::{Ordering, max};
-
 use crate::{Fro, Solution, TaskResult};
+use std::cmp::{Ordering, max};
 
 // Can add more shared vars here
 pub struct Cafeteria {
@@ -31,40 +16,33 @@ pub struct Cafeteria {
 // Can be used to implement fancier task-specific parsing
 impl Fro for Cafeteria {
     fn fro(input: &str) -> Self {
-        let mut toggle = true;
-        let mut ranges: Vec<(usize, usize)> = vec![];
-        let mut ids: Vec<usize> = vec![];
+        let mut iter = input.split("\n\n");
 
         // parse data
-        for row in input.split('\n') {
-            if row.is_empty() {
-                toggle = false;
-                continue;
-            }
-            if toggle {
-                let (a, b) = row
-                    .split_once('-')
-                    .map(|(s1, s2)| {
-                        (s1.parse::<usize>().unwrap(), s2.parse::<usize>().unwrap())
-                    })
-                    .unwrap();
-                ranges.push((a, b));
-            } else {
-                ids.push(row.parse::<usize>().unwrap());
-            }
-        }
-
-        // sort & merge ranges
+        let mut ranges: Vec<(usize, usize)> = iter
+            .next()
+            .unwrap()
+            .lines()
+            .map(|line| {
+                let (a, b) = line.split_once('-').unwrap();
+                (a.parse().unwrap(), b.parse().unwrap())
+            })
+            .collect();
         ranges.sort_by_key(|&(a, _)| a);
-        let mut merged: Vec<(usize, usize)> = vec![];
 
+        let ids: Vec<usize> = iter
+            .next()
+            .unwrap()
+            .lines()
+            .map(|id| id.parse::<usize>().unwrap())
+            .collect();
+
+        let mut merged: Vec<(usize, usize)> = vec![];
         for range in ranges {
-            if let Some(last) = merged.last_mut() {
-                if range.0 <= last.1 {
-                    last.1 = max(last.1, range.1);
-                } else {
-                    merged.push(range);
-                }
+            if let Some(last) = merged.last_mut()
+                && range.0 <= last.1
+            {
+                last.1 = max(last.1, range.1);
             } else {
                 merged.push(range);
             }
@@ -79,12 +57,9 @@ impl Solution for Cafeteria {
     fn silver(&self) -> TaskResult {
         self.ids
             .iter()
-            .fold(0, |acc, id| {
-                if self.is_id_in_any_range(id) {
-                    acc + 1
-                } else {
-                    acc
-                }
+            .fold(0, |acc, id| match self.is_id_in_any_range(id) {
+                true => acc + 1,
+                false => acc,
             })
             .into()
     }
@@ -100,8 +75,7 @@ impl Solution for Cafeteria {
 // For assisting functions
 impl Cafeteria {
     fn is_id_in_any_range(&self, id: &usize) -> bool {
-        if self
-            .merged
+        self.merged
             .binary_search_by(|&(start, end)| {
                 if *id > end {
                     Ordering::Less
@@ -112,10 +86,6 @@ impl Cafeteria {
                 }
             })
             .is_ok()
-        {
-            return true;
-        }
-        false
     }
 }
 
