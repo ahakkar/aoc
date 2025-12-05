@@ -54,9 +54,8 @@ impl Fro for Cafeteria {
             }
         }
 
+        // sort & merge ranges
         ranges.sort_by_key(|&(a, _)| a);
-
-        // merge sorted ranges
         let mut merged: Vec<(usize, usize)> = vec![];
 
         for range in ranges {
@@ -81,22 +80,11 @@ impl Solution for Cafeteria {
         self.ids
             .iter()
             .fold(0, |acc, id| {
-                if self
-                    .merged
-                    .binary_search_by(|&(start, end)| {
-                        if *id > end {
-                            Ordering::Less
-                        } else if *id < start {
-                            Ordering::Greater
-                        } else {
-                            Ordering::Equal
-                        }
-                    })
-                    .is_ok()
-                {
-                    return acc + 1;
+                if self.is_id_in_any_range(id) {
+                    acc + 1
+                } else {
+                    acc
                 }
-                acc
             })
             .into()
     }
@@ -110,7 +98,26 @@ impl Solution for Cafeteria {
 }
 
 // For assisting functions
-impl Cafeteria {}
+impl Cafeteria {
+    fn is_id_in_any_range(&self, id: &usize) -> bool {
+        if self
+            .merged
+            .binary_search_by(|&(start, end)| {
+                if *id > end {
+                    Ordering::Less
+                } else if *id < start {
+                    Ordering::Greater
+                } else {
+                    Ordering::Equal
+                }
+            })
+            .is_ok()
+        {
+            return true;
+        }
+        false
+    }
+}
 
 // cargo test --lib day_XX
 #[cfg(test)]
