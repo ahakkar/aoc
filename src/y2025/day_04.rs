@@ -61,7 +61,6 @@ impl Solution for PrintingDepartment {
                 }
                 // Check if a paper cell has at most 3 paper neighbors
                 if let Some(n) = self.map.get_neighbors(col, row) {
-                    //println!("{}{} n: {:?}", col, row, n);
                     if n.iter().filter(|c| ***c == '@').count() < 4 {
                         silver += 1;
                     }
