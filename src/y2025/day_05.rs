@@ -34,7 +34,7 @@ impl Fro for Cafeteria {
             .next()
             .unwrap()
             .lines()
-            .map(|id| id.parse::<usize>().unwrap())
+            .map(|id| id.parse().unwrap())
             .collect();
 
         let mut merged: Vec<(usize, usize)> = vec![];
