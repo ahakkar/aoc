@@ -5,20 +5,11 @@
 **/
 
 #![allow(dead_code)]
-#![allow(unused_parens)]
-#![allow(unused_imports)]
-#![allow(unused_variables)]
-#![allow(unused_mut)]
-#![allow(unused_assignments)]
-#![allow(unused_must_use)]
-#![allow(clippy::needless_return)]
-#![allow(clippy::needless_range_loop)]
-#![allow(clippy::only_used_in_recursion)]
-#![allow(clippy::never_loop)]
-#![allow(clippy::useless_vec)]
-#![allow(clippy::collapsible_if)]
 
-use std::{cell::RefCell, collections::HashSet};
+use std::{
+    cell::RefCell,
+    collections::{HashMap, HashSet},
+};
 
 use crate::{
     Fro, Solution, TaskResult,
@@ -33,8 +24,6 @@ use util::point::{EAST, SOUTH, WEST};
 pub struct Laboratories {
     grid: Grid<char>,
     silver: RefCell<usize>,
-    gold: RefCell<usize>,
-    grid_size: usize,
     start: Point,
     visited: RefCell<HashSet<Point>>,
 }
@@ -49,9 +38,7 @@ impl Fro for Laboratories {
         Self {
             grid: Grid::from_vec(data, grid_size),
             silver: RefCell::new(0),
-            gold: RefCell::new(0),
-            grid_size,
-            start: Point::new((grid_size / 2 + 1) as i64, 0),
+            start: Point::new((grid_size / 2) as i64, 0),
             visited: RefCell::new(HashSet::new()),
         }
     }
@@ -60,53 +47,80 @@ impl Fro for Laboratories {
 // Main solvers
 impl Solution for Laboratories {
     fn silver(&self) -> TaskResult {
-        //println!("{:?}", self.grid.print());
-        println!("width:{}, start:{:?}", self.grid_size, self.start);
-        self.trace_ray(&self.start);
-
-        // 1501 too low
+        self.trace_ray(&(self.start + SOUTH));
         TaskResult::Usize(*self.silver.borrow())
     }
 
     fn gold(&self) -> TaskResult {
-        TaskResult::String("plaa".to_string())
+        self.count_paths(&self.start, &mut HashMap::new()).into()
     }
 }
 
 // For assisting functions
 impl Laboratories {
     fn trace_ray(&self, current: &Point) {
-        let next: Point = *current + SOUTH;
-        if let Some(cell) = self.grid.get_point(next) {
-            // Ray has visited current cell
+        // Have we visited this cell already?
+        if self.visited.borrow().contains(current) {
+            return;
+        }
+
+        // Are we in a cell at all?
+        if let Some(cell) = self.grid.get_point(*current) {
+            // Current cell exists and ray has visited it
             self.visited.borrow_mut().insert(*current);
 
-            // println!("at cell: {:?}, next: {:?}", current, next);
             // Divide or continue ray
             match cell {
                 '^' => {
-                    let left = *current + WEST;
-                    let right = *current + EAST;
-
-                    // Left not visited
-                    if self.visited.borrow().get(&left).is_none() {
-                        *self.silver.borrow_mut() += 1;
-                        self.visited.borrow_mut().insert(left);
-                        self.trace_ray(&(*current + WEST));
-                    }
-                    // Right not visited
-                    if self.visited.borrow().get(&right).is_none() {
-                        *self.silver.borrow_mut() += 1;
-                        self.visited.borrow_mut().insert(right);
-                        self.trace_ray(&(*current + EAST));
-                    }
+                    *self.silver.borrow_mut() += 1;
+                    self.trace_ray(&(*current + WEST));
+                    self.trace_ray(&(*current + EAST));
                 }
                 '.' => {
-                    self.trace_ray(&next);
+                    self.trace_ray(&(*current + SOUTH));
                 }
                 _ => panic!("Unsupported cell type"),
             }
         }
+    }
+
+    fn count_paths(&self, current: &Point, cache: &mut HashMap<Point, usize>) -> usize {
+        if self.grid.get_point(*current + SOUTH).is_none() {
+            return 1;
+        }
+
+        if let Some(&result) = cache.get(current) {
+            return result;
+        }
+
+        // Peek at the cell below
+        let below = *current + SOUTH;
+        let cell = self.grid.get_point(below).unwrap();
+
+        // Splitter, go from the splitter cell left or right
+        let result = if *cell == '^' {
+            let left = self.count_paths(&(below + WEST), cache);
+            let right = self.count_paths(&(below + EAST), cache);
+            left + right
+        } else {
+            self.count_paths(&below, cache)
+        };
+
+        cache.insert(*current, result);
+        result
+    }
+
+    fn print_ray(&self) {
+        let mut map: Grid<char> = self.grid.clone();
+        for point in self.visited.borrow().iter() {
+            // Dont overlap splitters with beam gfx
+            if self.grid.get_point(*point).unwrap() != &'^' {
+                *map.get_point_mut(*point).unwrap() = '|';
+            }
+        }
+
+        map.print();
+        println!();
     }
 }
 
@@ -122,7 +136,7 @@ mod tests {
         let queue = Laboratories::fro(&test_data);
 
         assert_eq!(queue.silver(), TaskResult::Usize(21));
-        assert_eq!(queue.gold(), TaskResult::Usize(0));
+        assert_eq!(queue.gold(), TaskResult::Usize(40));
     }
 
     #[test]
@@ -130,7 +144,7 @@ mod tests {
         let real_data = read_data_from_file("input/2025/real/07.txt");
         let queue = Laboratories::fro(&real_data);
 
-        assert_eq!(queue.silver(), TaskResult::Usize(0));
-        assert_eq!(queue.gold(), TaskResult::Usize(0));
+        assert_eq!(queue.silver(), TaskResult::Usize(1594));
+        assert_eq!(queue.gold(), TaskResult::Usize(15650261281478));
     }
 }
