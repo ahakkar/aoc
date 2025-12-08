@@ -4,19 +4,7 @@
  * https://github.com/ahakkar/
 **/
 
-#![allow(dead_code)]
-#![allow(unused_parens)]
-#![allow(unused_imports)]
-#![allow(unused_variables)]
-#![allow(unused_mut)]
-#![allow(unused_assignments)]
-#![allow(unused_must_use)]
-#![allow(clippy::needless_return)]
 #![allow(clippy::needless_range_loop)]
-#![allow(clippy::only_used_in_recursion)]
-#![allow(clippy::never_loop)]
-#![allow(clippy::useless_vec)]
-#![allow(clippy::collapsible_if)]
 
 use crate::{
     Fro, Solution, TaskResult,
@@ -25,9 +13,9 @@ use crate::{
 use std::collections::{BinaryHeap, HashMap};
 
 /*
-floor euclid distance between a & b
-point_a_idx (in the data vec)
-point_b_idx (in the data vec)
+squared distance between a,b (precise, easy to sort)
+an index for Point3d in the data vec
+an index for Point3d in the data vec
 */
 type HeapItem = (i64, usize, usize);
 
@@ -53,7 +41,6 @@ impl Fro for Playground {
 impl Solution for Playground {
     fn silver(&self) -> TaskResult {
         let mut dsu = DSU::new(self.data.len());
-        let mut result = 0;
         let mut heap: BinaryHeap<HeapItem> = BinaryHeap::new();
         let mut groups: HashMap<usize, Vec<usize>> = HashMap::new();
         let mut product: Vec<usize> = vec![];
@@ -62,15 +49,15 @@ impl Solution for Playground {
         // Find k closest connections with brute force
         for i in 0..self.data.len() {
             for j in i + 1..self.data.len() {
-                let dist = Point3d::euclid_floor(self.data[i], self.data[j]);
+                let dist2 = Point3d::squared_distance(self.data[i], self.data[j]);
 
                 if heap.len() < k {
-                    heap.push((dist, i, j));
-                } else if let Some(value) = heap.peek() {
-                    if dist < value.0 {
-                        heap.pop();
-                        heap.push((dist, i, j));
-                    }
+                    heap.push((dist2, i, j));
+                } else if let Some(value) = heap.peek()
+                    && dist2 < value.0
+                {
+                    heap.pop();
+                    heap.push((dist2, i, j));
                 }
             }
         }
@@ -153,7 +140,7 @@ mod tests {
         let real_data = read_data_from_file("input/2025/real/08.txt");
         let queue = Playground::fro(&real_data);
 
-        assert_eq!(queue.silver(), TaskResult::Usize(0));
-        assert_eq!(queue.gold(), TaskResult::Usize(0));
+        assert_eq!(queue.silver(), TaskResult::Usize(54600));
+        assert_eq!(queue.gold(), TaskResult::Usize(107256172));
     }
 }
