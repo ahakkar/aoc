@@ -1,6 +1,7 @@
 pub mod util {
     pub mod grid;
     pub mod point;
+    pub mod point3d;
     pub mod regex;
     pub mod utils;
 }
@@ -31,6 +32,11 @@ pub mod y2025 {
     pub mod day_05;
     pub mod day_06;
     pub mod day_07;
+    pub mod day_08;
+    //pub mod day_09;
+    //pub mod day_10;
+    //pub mod day_11;
+    //pub mod day_12;
 }
 
 use std::{
@@ -123,6 +129,11 @@ pub fn solve(year: &str, day: &str, input: &str) -> AocResult {
             "05" => run_solution::<y2025::day_05::Cafeteria>(input),
             "06" => run_solution::<y2025::day_06::TrashCompactor>(input),
             "07" => run_solution::<y2025::day_07::Laboratories>(input),
+            "08" => run_solution::<y2025::day_08::Playground>(input),
+            //"09" => run_solution::<y2025::day_09::Laboratories>(input),
+            //"10" => run_solution::<y2025::day_10::Laboratories>(input),
+            //"11" => run_solution::<y2025::day_11::Laboratories>(input),
+            //"12" => run_solution::<y2025::day_12::Laboratories>(input),
             _ => unreachable!(),
         },
         _ => unreachable!(),

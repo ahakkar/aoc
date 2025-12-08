@@ -95,10 +95,10 @@ impl Laboratories {
 
         // Peek at the cell below
         let below = *current + SOUTH;
-        let cell = self.grid.get_point(below).unwrap();
+        let cell_below = self.grid.get_point(below).unwrap();
 
         // Splitter, go from the splitter cell left or right
-        let result = if *cell == '^' {
+        let result = if *cell_below == '^' {
             let left = self.count_paths(&(below + WEST), cache);
             let right = self.count_paths(&(below + EAST), cache);
             left + right
