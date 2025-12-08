@@ -10,6 +10,7 @@
 //! [must_use] is not used, the compiler emits a warning.
 //!
 
+use libm;
 use num_integer::sqrt;
 use std::ops::{Add, Sub};
 
@@ -22,8 +23,16 @@ pub struct Point3d {
 
 impl Point3d {
     // d(p,q)=sqrt (p1-q1)^2+(p2-q2)^2+(p3-q3)^2
-    pub fn euclid_floor(&self, p: Point3d, q: Point3d) -> i64 {
+    pub fn euclid_floor(p: Point3d, q: Point3d) -> i64 {
         sqrt((p.x - q.x).pow(2) + (p.y - q.y).pow(2) + (p.z - q.z).pow(2))
+    }
+
+    pub fn euclid(p: Point3d, q: Point3d) -> f64 {
+        libm::sqrt(((p.x - q.x).pow(2) + (p.y - q.y).pow(2) + (p.z - q.z).pow(2)) as f64)
+    }
+
+    pub fn squared_distance(p: Point3d, q: Point3d) -> i64 {
+        (p.x - q.x).pow(2) + (p.y - q.y).pow(2) + (p.z - q.z).pow(2)
     }
 }
 

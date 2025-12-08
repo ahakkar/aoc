@@ -18,7 +18,18 @@
 #![allow(clippy::useless_vec)]
 #![allow(clippy::collapsible_if)]
 
-use crate::{Fro, Solution, TaskResult, util::point3d::Point3d};
+use crate::{
+    Fro, Solution, TaskResult,
+    util::{dsu::DSU, point3d::Point3d},
+};
+use std::collections::{BinaryHeap, HashMap};
+
+/*
+floor euclid distance between a & b
+point_a_idx (in the data vec)
+point_b_idx (in the data vec)
+*/
+type HeapItem = (i64, usize, usize);
 
 // Can add more shared vars here
 pub struct Playground {
@@ -29,7 +40,7 @@ pub struct Playground {
 impl Fro for Playground {
     fn fro(input: &str) -> Self {
         Self {
-            // Discards bad input
+            // Discards bad input silently
             data: input
                 .split('\n')
                 .filter_map(Point3d::new_from_str)
@@ -41,12 +52,81 @@ impl Fro for Playground {
 // Main solvers
 impl Solution for Playground {
     fn silver(&self) -> TaskResult {
-        println!("{:?}, len: {}", self.data, self.data.len());
-        TaskResult::String("plii".to_string())
+        let mut dsu = DSU::new(self.data.len());
+        let mut result = 0;
+        let mut heap: BinaryHeap<HeapItem> = BinaryHeap::new();
+        let mut groups: HashMap<usize, Vec<usize>> = HashMap::new();
+        let mut product: Vec<usize> = vec![];
+        let k = 1000; // 10 = test, 1000=real
+
+        // Find k closest connections with brute force
+        for i in 0..self.data.len() {
+            for j in i + 1..self.data.len() {
+                let dist = Point3d::euclid_floor(self.data[i], self.data[j]);
+
+                if heap.len() < k {
+                    heap.push((dist, i, j));
+                } else if let Some(value) = heap.peek() {
+                    if dist < value.0 {
+                        heap.pop();
+                        heap.push((dist, i, j));
+                    }
+                }
+            }
+        }
+
+        let sorted = heap.into_sorted_vec();
+
+        // Make sets from points with equal distances to each other with DSU
+        for (_, a, b) in sorted {
+            dsu.union(a, b);
+        }
+
+        for i in 0..self.data.len() {
+            let root = dsu.find(i);
+            groups.entry(root).or_default().push(i);
+        }
+
+        // Find and product top 3 set sizes
+        let mut items: Vec<(&usize, &Vec<usize>)> = groups.iter().collect();
+        items.sort_by_key(|(_, v)| std::cmp::Reverse(v.len()));
+
+        for i in 0..3 {
+            product.push(items[i].1.len());
+        }
+
+        TaskResult::Usize(product.iter().product())
     }
 
     fn gold(&self) -> TaskResult {
-        TaskResult::String("plaa".to_string())
+        let mut dsu = DSU::new(self.data.len());
+        let mut edges: Vec<HeapItem> = vec![];
+        let mut mst_edges = vec![];
+
+        // Calculate all distances between points and sort them
+        for i in 0..self.data.len() {
+            for j in i + 1..self.data.len() {
+                let dist2 = Point3d::squared_distance(self.data[i], self.data[j]);
+                edges.push((dist2, i, j));
+            }
+        }
+        edges.sort();
+
+        // https://cp-algorithms.com/graph/mst_kruskal.html
+        // Minimum Spanning Tree edges - creates a tree where all nodes are connected
+        for &(dist2, a, b) in &edges {
+            if dsu.find(a) != dsu.find(b) {
+                dsu.union(a, b);
+                mst_edges.push((dist2, a, b));
+
+                if mst_edges.len() == self.data.len() - 1 {
+                    break;
+                }
+            }
+        }
+
+        let (_, last_a, last_b) = mst_edges.last().unwrap();
+        ((self.data[*last_a].x * self.data[*last_b].x) as usize).into()
     }
 }
 
@@ -64,8 +144,8 @@ mod tests {
         let test_data = read_data_from_file("input/2025/test/08.txt");
         let queue = Playground::fro(&test_data);
 
-        assert_eq!(queue.silver(), TaskResult::Usize(0));
-        assert_eq!(queue.gold(), TaskResult::Usize(0));
+        assert_eq!(queue.silver(), TaskResult::Usize(40));
+        assert_eq!(queue.gold(), TaskResult::Usize(25272));
     }
 
     #[test]
