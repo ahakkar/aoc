@@ -4,27 +4,42 @@
  * https://github.com/ahakkar/
 **/
 
-#![allow(dead_code)]
-#![allow(unused_parens)]
-#![allow(unused_imports)]
-#![allow(unused_variables)]
-#![allow(unused_mut)]
-#![allow(unused_assignments)]
-#![allow(unused_must_use)]
-#![allow(clippy::needless_return)]
-#![allow(clippy::needless_range_loop)]
-#![allow(clippy::only_used_in_recursion)]
-#![allow(clippy::never_loop)]
-#![allow(clippy::useless_vec)]
-#![allow(clippy::collapsible_if)]
-
-use std::cell::RefCell;
+use std::{cell::RefCell, collections::HashSet};
 
 use crate::{
     Fro, Solution, TaskResult,
-    util::{grid::XyGrid, point::Point, utils::Orientation},
+    util::{grid::XyGrid, point::Point},
 };
+use geo::{Contains, LineString, Polygon};
+use geo::{Coord, Rect};
 use grid::Grid;
+use itertools::Itertools;
+//use rayon::prelude::*;
+
+// Can add more shared vars here
+pub struct MovieTheater {
+    points: Vec<Point>,
+    /*     min_x: RefCell<i64>,
+    max_x: RefCell<i64>,
+    min_y: RefCell<i64>,
+    max_y: RefCell<i64>, */
+    largest: RefCell<BestRectangle>,
+}
+
+// Can be used to implement fancier task-specific parsing
+impl Fro for MovieTheater {
+    fn fro(input: &str) -> Self {
+        Self {
+            // Discards bad input silently
+            points: input.split('\n').filter_map(Point::new_from_str).collect(),
+            /*             min_x: RefCell::new(i64::MAX),
+            min_y: RefCell::new(i64::MAX),
+            max_x: RefCell::new(0),
+            max_y: RefCell::new(0), */
+            largest: RefCell::new(BestRectangle::new()),
+        }
+    }
+}
 
 #[derive(Debug)]
 struct BestRectangle {
@@ -51,38 +66,23 @@ impl BestRectangle {
     }
 }
 
-// Can add more shared vars here
-pub struct MovieTheater {
-    points: Vec<Point>,
-    max_x: RefCell<i64>,
-    max_y: RefCell<i64>,
-    largest: RefCell<BestRectangle>,
-}
-
-// Can be used to implement fancier task-specific parsing
-impl Fro for MovieTheater {
-    fn fro(input: &str) -> Self {
-        Self {
-            // Discards bad input silently
-            points: input.split('\n').filter_map(Point::new_from_str).collect(),
-            max_x: RefCell::new(0),
-            max_y: RefCell::new(0),
-            largest: RefCell::new(BestRectangle::new()),
-        }
-    }
-}
-
 // Main solvers
 impl Solution for MovieTheater {
     fn silver(&self) -> TaskResult {
         for i in 0..self.points.len() {
             for j in i + 1..self.points.len() {
-                if self.points[i].x > *self.max_x.borrow() {
+                /*                 if self.points[i].x > *self.max_x.borrow() {
                     *self.max_x.borrow_mut() = self.points[i].x;
                 }
                 if self.points[i].y > *self.max_y.borrow() {
                     *self.max_y.borrow_mut() = self.points[i].y;
                 }
+                if self.points[i].x < *self.min_x.borrow() {
+                    *self.min_x.borrow_mut() = self.points[i].x;
+                }
+                if self.points[i].y < *self.min_y.borrow() {
+                    *self.min_y.borrow_mut() = self.points[i].y;
+                } */
 
                 let area = Point::square_area(&self.points[i], &self.points[j]);
                 if area > self.largest.borrow().area {
@@ -94,32 +94,123 @@ impl Solution for MovieTheater {
                 }
             }
         }
-        //println!("min_x: {:?}, max_y: {:?}", self.min_x, self.max_y);
 
-        TaskResult::String("plii".to_string())
+        TaskResult::Usize(self.largest.borrow().area)
     }
 
     fn gold(&self) -> TaskResult {
-        // Computed during silver
-        println!("{:?}", self.largest);
-        let a = &self.largest.borrow().a;
-        let b = &self.largest.borrow().b;
-        let height: usize = (*self.max_y.borrow()).try_into().unwrap();
-        let width: usize = (*self.max_x.borrow()).try_into().unwrap();
+        let (xs, ys) = self.compress_coordinates();
 
-        println!("w: {:?}, h: {:?}", width, height);
+        let outer: LineString<f64> = self
+            .points
+            .iter()
+            .map(|p| (p.x as f64, p.y as f64))
+            .collect::<LineString<f64>>();
 
-        let mut grid: Grid<char> = Grid::init(height + 1, width + 1, '.');
+        let poly: Polygon<f64> = Polygon::new(outer, vec![]);
+        let allowed_points: HashSet<(i64, i64)> =
+            self.points.iter().map(|p| (p.x, p.y)).collect();
 
-        self.trace_edges_to_grid(&mut grid, '#');
+        let mut best: Option<((i64, i64, i64, i64), i64)> = None;
 
-        TaskResult::String("plaa".to_string())
+        for i in 0..xs.len() {
+            for k in (i + 1)..xs.len() {
+                let x0 = xs[i];
+                let x1 = xs[k];
+
+                for j in 0..ys.len() {
+                    for l in (j + 1)..ys.len() {
+                        let y0 = ys[j];
+                        let y1 = ys[l];
+
+                        // Reject if rect isn't formed by diags in the points list
+                        let bottom_left = (x0, y0);
+                        let top_right = (x1, y1);
+
+                        let bottom_right = (x1, y0);
+                        let top_left = (x0, y1);
+
+                        let diagonal1_ok = allowed_points.contains(&bottom_left)
+                            && allowed_points.contains(&top_right);
+                        let diagonal2_ok = allowed_points.contains(&bottom_right)
+                            && allowed_points.contains(&top_left);
+
+                        if !diagonal1_ok && !diagonal2_ok {
+                            continue;
+                        }
+
+                        let rect_poly = self.rect_from_coords(x0, x1, y0, y1);
+
+                        if poly.contains(&rect_poly) {
+                            let area = (x1 - x0 + 1) * (y1 - y0 + 1);
+
+                            if best.is_none_or(|(_, best_area)| area > best_area) {
+                                best = Some(((x0, x1, y0, y1), area));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if let Some(results) = best {
+            return TaskResult::Usize(results.1 as usize);
+        }
+
+        0.into()
     }
 }
 
 // For assisting functions
 impl MovieTheater {
-    fn trace_edges_to_grid(&self, grid: &mut Grid<char>, tile: char) {
+    fn rect_from_coords(&self, x0: i64, x1: i64, y0: i64, y1: i64) -> Polygon<f64> {
+        let rect = Rect::new(
+            Coord {
+                x: x0 as f64,
+                y: y0 as f64,
+            },
+            Coord {
+                x: x1 as f64,
+                y: y1 as f64,
+            },
+        );
+        rect.to_polygon()
+    }
+
+    /*
+    edges = []
+    for i in 0 .. points.length-1:
+        a = points[i]
+        b = points[(i+1) % points.length]   // wrap around
+        edges.append((a, b)) */
+
+    // Not used
+    fn _build_edges(&self) -> Vec<(Point, Point)> {
+        let mut edges: Vec<(Point, Point)> = vec![];
+        for i in 0..self.points.len() {
+            let a = self.points[i];
+            let b = self.points[(i + 1) % self.points.len()];
+            edges.push((a, b));
+        }
+        edges
+    }
+
+    // In English: build lists of sorted unique coordinates, removing doubles
+    fn compress_coordinates(&self) -> (Vec<i64>, Vec<i64>) {
+        let mut xs: HashSet<i64> = HashSet::new();
+        let mut ys: HashSet<i64> = HashSet::new();
+        for p in &self.points {
+            xs.insert(p.x);
+            ys.insert(p.y);
+        }
+        (
+            xs.into_iter().sorted_unstable().collect::<Vec<i64>>(),
+            ys.into_iter().sorted_unstable().collect::<Vec<i64>>(),
+        )
+    }
+
+    // Not used
+    fn _trace_edges_to_grid(&self, grid: &mut Grid<char>, tile: char) {
         for i in 1..self.points.len() {
             let current = self.points[i];
             let prev = self.points[i - 1];
@@ -162,7 +253,7 @@ mod tests {
         let real_data = read_data_from_file("input/2025/real/09.txt");
         let queue = MovieTheater::fro(&real_data);
 
-        assert_eq!(queue.silver(), TaskResult::Usize(0));
-        assert_eq!(queue.gold(), TaskResult::Usize(0));
+        assert_eq!(queue.silver(), TaskResult::Usize(4740155680));
+        assert_eq!(queue.gold(), TaskResult::Usize(1543501936));
     }
 }
