@@ -4,7 +4,7 @@
  * https://github.com/ahakkar/
 **/
 
-use std::{cell::RefCell, collections::HashSet};
+use std::collections::HashSet;
 
 use crate::{
     Fro, Solution, TaskResult,
@@ -14,29 +14,24 @@ use geo::{Contains, LineString, Polygon};
 use geo::{Coord, Rect};
 use grid::Grid;
 use itertools::Itertools;
-//use rayon::prelude::*;
+use rayon::prelude::*;
 
 // Can add more shared vars here
 pub struct MovieTheater {
     points: Vec<Point>,
-    /*     min_x: RefCell<i64>,
-    max_x: RefCell<i64>,
-    min_y: RefCell<i64>,
-    max_y: RefCell<i64>, */
-    largest: RefCell<BestRectangle>,
+    allowed_points: HashSet<(i64, i64)>,
 }
 
 // Can be used to implement fancier task-specific parsing
 impl Fro for MovieTheater {
     fn fro(input: &str) -> Self {
+        // Discards bad input silently
+        let points: Vec<Point> =
+            input.split('\n').filter_map(Point::new_from_str).collect();
+
         Self {
-            // Discards bad input silently
-            points: input.split('\n').filter_map(Point::new_from_str).collect(),
-            /*             min_x: RefCell::new(i64::MAX),
-            min_y: RefCell::new(i64::MAX),
-            max_x: RefCell::new(0),
-            max_y: RefCell::new(0), */
-            largest: RefCell::new(BestRectangle::new()),
+            allowed_points: points.iter().map(|p| (p.x, p.y)).collect(),
+            points,
         }
     }
 }
@@ -69,100 +64,83 @@ impl BestRectangle {
 // Main solvers
 impl Solution for MovieTheater {
     fn silver(&self) -> TaskResult {
+        let mut largest: BestRectangle = BestRectangle::new();
+
         for i in 0..self.points.len() {
             for j in i + 1..self.points.len() {
-                /*                 if self.points[i].x > *self.max_x.borrow() {
-                    *self.max_x.borrow_mut() = self.points[i].x;
-                }
-                if self.points[i].y > *self.max_y.borrow() {
-                    *self.max_y.borrow_mut() = self.points[i].y;
-                }
-                if self.points[i].x < *self.min_x.borrow() {
-                    *self.min_x.borrow_mut() = self.points[i].x;
-                }
-                if self.points[i].y < *self.min_y.borrow() {
-                    *self.min_y.borrow_mut() = self.points[i].y;
-                } */
-
                 let area = Point::square_area(&self.points[i], &self.points[j]);
-                if area > self.largest.borrow().area {
-                    self.largest.borrow_mut().update(
-                        area,
-                        self.points[i],
-                        self.points[j],
-                    );
+                if area > largest.area {
+                    largest.update(area, self.points[i], self.points[j]);
                 }
             }
         }
 
-        TaskResult::Usize(self.largest.borrow().area)
+        TaskResult::Usize(largest.area)
     }
 
     fn gold(&self) -> TaskResult {
-        let (xs, ys) = self.compress_coordinates();
-
-        let outer: LineString<f64> = self
+        let outer_points: LineString<f64> = self
             .points
             .iter()
             .map(|p| (p.x as f64, p.y as f64))
             .collect::<LineString<f64>>();
 
-        let poly: Polygon<f64> = Polygon::new(outer, vec![]);
-        let allowed_points: HashSet<(i64, i64)> =
-            self.points.iter().map(|p| (p.x, p.y)).collect();
+        let poly: Polygon<f64> = Polygon::new(outer_points, vec![]);
+        let (xs, ys) = self.compress_coordinates();
 
-        let mut best: Option<((i64, i64, i64, i64), i64)> = None;
+        let best_area = (0..xs.len())
+            .into_par_iter()
+            .map(|i| {
+                let mut thread_best = 0;
 
-        for i in 0..xs.len() {
-            for k in (i + 1)..xs.len() {
-                let x0 = xs[i];
-                let x1 = xs[k];
+                for k in (i + 1)..xs.len() {
+                    let x0 = xs[i];
+                    let x1 = xs[k];
 
-                for j in 0..ys.len() {
-                    for l in (j + 1)..ys.len() {
-                        let y0 = ys[j];
-                        let y1 = ys[l];
+                    for j in 0..ys.len() {
+                        for l in (j + 1)..ys.len() {
+                            let y0 = ys[j];
+                            let y1 = ys[l];
 
-                        // Reject if rect isn't formed by diags in the points list
-                        let bottom_left = (x0, y0);
-                        let top_right = (x1, y1);
+                            if !self.is_valid_rect(&x0, &x1, &y0, &y1) {
+                                continue;
+                            }
 
-                        let bottom_right = (x1, y0);
-                        let top_left = (x0, y1);
+                            let rect_poly = self.rect_from_coords(x0, x1, y0, y1);
 
-                        let diagonal1_ok = allowed_points.contains(&bottom_left)
-                            && allowed_points.contains(&top_right);
-                        let diagonal2_ok = allowed_points.contains(&bottom_right)
-                            && allowed_points.contains(&top_left);
-
-                        if !diagonal1_ok && !diagonal2_ok {
-                            continue;
-                        }
-
-                        let rect_poly = self.rect_from_coords(x0, x1, y0, y1);
-
-                        if poly.contains(&rect_poly) {
-                            let area = (x1 - x0 + 1) * (y1 - y0 + 1);
-
-                            if best.is_none_or(|(_, best_area)| area > best_area) {
-                                best = Some(((x0, x1, y0, y1), area));
+                            if poly.contains(&rect_poly) {
+                                let area = (x1 - x0 + 1) * (y1 - y0 + 1);
+                                if area > thread_best {
+                                    thread_best = area;
+                                }
                             }
                         }
                     }
                 }
-            }
-        }
 
-        if let Some(results) = best {
-            return TaskResult::Usize(results.1 as usize);
-        }
+                thread_best
+            })
+            .reduce(|| 0, |a, b| a.max(b));
 
-        0.into()
+        TaskResult::Usize(best_area as usize)
     }
 }
 
 // For assisting functions
 impl MovieTheater {
+    // Reject if rect isn't formed by diags in the points list
+    fn is_valid_rect(&self, x0: &i64, x1: &i64, y0: &i64, y1: &i64) -> bool {
+        let diagonal1_ok = self.allowed_points.contains(&(*x0, *y0))
+            && self.allowed_points.contains(&(*x1, *y1));
+        let diagonal2_ok = self.allowed_points.contains(&(*x1, *y0))
+            && self.allowed_points.contains(&(*x0, *y1));
+
+        if !diagonal1_ok && !diagonal2_ok {
+            return false;
+        }
+        true
+    }
+
     fn rect_from_coords(&self, x0: i64, x1: i64, y0: i64, y1: i64) -> Polygon<f64> {
         let rect = Rect::new(
             Coord {
