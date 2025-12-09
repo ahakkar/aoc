@@ -99,7 +99,7 @@ impl Solution for Playground {
         }
         edges.sort();
 
-        // https://cp-algorithms.com/graph/mst_kruskal.html
+        // https://www.baeldung.com/java-spanning-trees-kruskal
         // Minimum Spanning Tree edges - creates a tree where all nodes are connected
         for &(dist2, a, b) in &edges {
             if dsu.find(a) != dsu.find(b) {

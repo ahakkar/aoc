@@ -39,6 +39,36 @@ impl Point {
     pub const fn new(x: i64, y: i64) -> Self {
         Point { x, y }
     }
+
+    #[inline]
+    #[must_use]
+    pub fn new_from_str(str: &str) -> Option<Self> {
+        let v: Option<Vec<i64>> = str
+            .trim()
+            .split(',')
+            .map(|s| s.parse::<i64>().ok())
+            .collect();
+
+        if let Some(success) = v {
+            return Some(Point {
+                x: success[0],
+                y: success[1],
+            });
+        }
+        None
+    }
+
+    pub const fn square_area(a: &Point, b: &Point) -> usize {
+        ((a.x - b.x + 1).abs() * (a.y - b.y + 1).abs()) as usize
+    }
+
+    pub const fn width(a: &Point, b: &Point) -> usize {
+        (a.x - b.x).unsigned_abs() as usize + 1
+    }
+
+    pub const fn height(a: &Point, b: &Point) -> usize {
+        (a.y - b.y).unsigned_abs() as usize + 1
+    }
 }
 
 impl Add for Point {

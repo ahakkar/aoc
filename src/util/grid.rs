@@ -1,8 +1,8 @@
-use std::fmt::Display;
+use std::{cmp::min, fmt::Display};
 
 use grid::Grid;
 
-use crate::util::utils::Direction;
+use crate::util::utils::{Direction, Orientation};
 
 use super::point::Point;
 
@@ -44,6 +44,10 @@ pub trait XyGrid<T> {
     }
 
     fn get_neighbors(&self, x: usize, y: usize) -> Option<Vec<&T>>;
+
+    fn draw_line(&mut self, a: &Point, b: &Point, tile: T)
+    where
+        T: Clone;
 }
 
 impl<T> XyGrid<T> for Grid<T> {
@@ -82,5 +86,41 @@ impl<T> XyGrid<T> for Grid<T> {
             return Some(neighbors);
         }
         None
+    }
+
+    fn draw_line(&mut self, a: &Point, b: &Point, tile: T)
+    where
+        T: Clone,
+    {
+        let o: Orientation;
+        let dx = (a.x - b.x).abs();
+        let dy = (a.y - b.y).abs();
+
+        if dx == 0 && dy > 0 {
+            o = Orientation::Vertical;
+        } else if dx > 0 && dy == 0 {
+            o = Orientation::Horizontal;
+        } else {
+            panic!("Unsupported orientation");
+        }
+
+        match o {
+            Orientation::Horizontal => {
+                let width = Point::width(a, b);
+                //println!("a: {:?}, b: {:?}, w: {}", a, b, width);
+                let sx = min(a.x, b.x);
+                for i in 0..width {
+                    *self.get_xy_mut(sx + i as i64, b.y).unwrap() = tile.clone();
+                }
+            }
+            Orientation::Vertical => {
+                let height = Point::height(a, b);
+                //println!("a: {:?}, b: {:?}, w: {}", a, b, height);
+                let sy = min(a.y, b.y);
+                for i in 0..height {
+                    *self.get_xy_mut(b.x, sy + i as i64).unwrap() = tile.clone();
+                }
+            }
+        }
     }
 }

@@ -1,0 +1,2 @@
+RefCell { value: BestRectangle { area: 4740155680, a: Point { x: 83773, y: 85386 }, b: Point { x: 17454, y: 13913 } } }
+w: 98400, h: 98298
