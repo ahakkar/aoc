@@ -10,8 +10,7 @@ use crate::{
     Fro, Solution, TaskResult,
     util::{grid::XyGrid, point::Point},
 };
-use geo::{Contains, LineString, Polygon};
-use geo::{Coord, Rect};
+use geo::{Contains, Coord, LineString, Polygon, Rect};
 use grid::Grid;
 use itertools::Itertools;
 use rayon::prelude::*;
@@ -36,46 +35,21 @@ impl Fro for MovieTheater {
     }
 }
 
-#[derive(Debug)]
-struct BestRectangle {
-    area: usize,
-    a: Point,
-    b: Point,
-}
-
-impl BestRectangle {
-    fn new() -> Self {
-        Self {
-            area: 0,
-            a: Point::new(0, 0),
-            b: Point::new(0, 0),
-        }
-    }
-
-    fn update(&mut self, area: usize, a: Point, b: Point) {
-        if area > self.area {
-            self.area = area;
-            self.a = a;
-            self.b = b;
-        }
-    }
-}
-
 // Main solvers
 impl Solution for MovieTheater {
     fn silver(&self) -> TaskResult {
-        let mut largest: BestRectangle = BestRectangle::new();
+        let mut largest = 0;
 
         for i in 0..self.points.len() {
             for j in i + 1..self.points.len() {
                 let area = Point::square_area(&self.points[i], &self.points[j]);
-                if area > largest.area {
-                    largest.update(area, self.points[i], self.points[j]);
+                if area > largest {
+                    largest = area;
                 }
             }
         }
 
-        TaskResult::Usize(largest.area)
+        TaskResult::Usize(largest)
     }
 
     fn gold(&self) -> TaskResult {
@@ -88,7 +62,7 @@ impl Solution for MovieTheater {
         let poly: Polygon<f64> = Polygon::new(outer_points, vec![]);
         let (xs, ys) = self.compress_coordinates();
 
-        let best_area = (0..xs.len())
+        (0..xs.len())
             .into_par_iter()
             .map(|i| {
                 let mut thread_best = 0;
@@ -118,11 +92,10 @@ impl Solution for MovieTheater {
                     }
                 }
 
-                thread_best
+                thread_best as usize
             })
-            .reduce(|| 0, |a, b| a.max(b));
-
-        TaskResult::Usize(best_area as usize)
+            .reduce(|| 0, |a, b| a.max(b))
+            .into()
     }
 }
 
@@ -155,14 +128,6 @@ impl MovieTheater {
         rect.to_polygon()
     }
 
-    /*
-    edges = []
-    for i in 0 .. points.length-1:
-        a = points[i]
-        b = points[(i+1) % points.length]   // wrap around
-        edges.append((a, b)) */
-
-    // Not used
     fn _build_edges(&self) -> Vec<(Point, Point)> {
         let mut edges: Vec<(Point, Point)> = vec![];
         for i in 0..self.points.len() {
@@ -173,7 +138,7 @@ impl MovieTheater {
         edges
     }
 
-    // In English: build lists of sorted unique coordinates, removing doubles
+    // Builds lists of sorted unique coordinates, removing doubles
     fn compress_coordinates(&self) -> (Vec<i64>, Vec<i64>) {
         let mut xs: HashSet<i64> = HashSet::new();
         let mut ys: HashSet<i64> = HashSet::new();
@@ -187,7 +152,6 @@ impl MovieTheater {
         )
     }
 
-    // Not used
     fn _trace_edges_to_grid(&self, grid: &mut Grid<char>, tile: char) {
         for i in 1..self.points.len() {
             let current = self.points[i];
