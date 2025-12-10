@@ -48,7 +48,7 @@ impl fmt::Display for Machine {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "--- Machine ---\n  target={}\n  commands={:?}\n  gold={:?}\n",
+            "--- Machine ---\n  target  = {}\n  commands= {:?}\n  gold    = {:?}\n",
             self.target, self.commands, self.gold
         )
     }
@@ -66,9 +66,32 @@ impl Fro for Factory {
 impl Solution for Factory {
     fn silver(&self) -> TaskResult {
         let data: Vec<Machine> = self.parse_lines();
-        data.iter().for_each(|m| println!("{}", m));
+        //data.iter().for_each(|m| println!("{}", m));
 
-        TaskResult::String("plii".to_string())
+        data.iter()
+            .map(|machine| {
+                // Count, mask
+                let mut best: (usize, u16) = (usize::MAX, 0);
+                for mask in 0..(1 << machine.commands.len()) {
+                    let mut xor_sum = 0;
+                    let mut count = 0;
+                    for i in 0..machine.commands.len() {
+                        if mask & (1 << i) != 0 {
+                            xor_sum ^= machine.commands[i];
+                            count += 1;
+                        }
+                    }
+                    if xor_sum == machine.target {
+                        if count < best.0 {
+                            best = (count, mask)
+                        }
+                    }
+                }
+                //println!("mask: {}, min presses: {}", best.1, best.0);
+                best.0
+            })
+            .sum::<usize>()
+            .into()
     }
 
     fn gold(&self) -> TaskResult {
@@ -85,7 +108,9 @@ impl Factory {
                 let fields: Vec<String> =
                     l.split_ascii_whitespace().map(|s| s.to_string()).collect();
                 let target = self.parse_target(fields.first().unwrap());
-                let commands = self.parse_commands(&fields[1..fields.len() - 1]);
+                let target_width: u16 = (fields.first().unwrap().len() - 2) as u16;
+                let commands =
+                    self.parse_commands(target_width, &fields[1..fields.len() - 1]);
                 let gold = self.parse_gold(fields.last().unwrap());
 
                 Machine::new(target, commands, gold)
@@ -94,18 +119,18 @@ impl Factory {
     }
 
     fn parse_target(&self, target: &str) -> u16 {
-        let bits: String = target[1..target.len() - 1]
-            .chars()
-            .map(|c| match c {
-                '.' => "0",
-                '#' => "1",
-                _ => panic!("unsupported char"),
-            })
-            .collect();
-        u16::from_str_radix(&bits, 2).unwrap()
+        let chars: Vec<char> = target[1..target.len() - 1].chars().collect();
+        let mut mask = 0u16;
+
+        for (i, c) in chars.iter().rev().enumerate() {
+            if *c == '#' {
+                mask |= 1 << i;
+            }
+        }
+        mask
     }
 
-    fn parse_commands(&self, commands: &[String]) -> Vec<u16> {
+    fn parse_commands(&self, target_width: u16, commands: &[String]) -> Vec<u16> {
         commands
             .iter()
             .map(|command| {
@@ -116,7 +141,7 @@ impl Factory {
                 let mut mask: u16 = 0;
 
                 for i in positions {
-                    mask |= 1 << i;
+                    mask |= 1 << ((target_width - 1) - i);
                 }
                 mask
             })
@@ -142,8 +167,8 @@ mod tests {
         let test_data = read_data_from_file("input/2025/test/10.txt");
         let queue = Factory::fro(&test_data);
 
-        assert_eq!(queue.silver(), TaskResult::Usize(0));
-        assert_eq!(queue.gold(), TaskResult::Usize(0));
+        assert_eq!(queue.silver(), TaskResult::Usize(7));
+        assert_eq!(queue.gold(), TaskResult::Usize(33));
     }
 
     #[test]
@@ -151,7 +176,7 @@ mod tests {
         let real_data = read_data_from_file("input/2025/real/10.txt");
         let queue = Factory::fro(&real_data);
 
-        assert_eq!(queue.silver(), TaskResult::Usize(0));
+        assert_eq!(queue.silver(), TaskResult::Usize(502));
         assert_eq!(queue.gold(), TaskResult::Usize(0));
     }
 }
