@@ -20,7 +20,12 @@
 
 use std::fmt;
 
-use crate::{Fro, Solution, TaskResult};
+use good_lp::{
+    Expression, ResolutionError, Solution, SolverModel, default_solver, variable,
+    variables,
+};
+
+use crate::{Fro, Solution as AoCSolution, TaskResult};
 
 // Can add more shared vars here
 pub struct Factory {
@@ -63,12 +68,14 @@ impl Fro for Factory {
 }
 
 // Main solvers
-impl Solution for Factory {
+impl AoCSolution for Factory {
     fn silver(&self) -> TaskResult {
         let data: Vec<Machine> = self.parse_lines();
         //data.iter().for_each(|m| println!("{}", m));
+        let mut iterations = 0;
 
-        data.iter()
+        let result = data
+            .iter()
             .map(|machine| {
                 // Count, mask
                 let mut best: (usize, u16) = (usize::MAX, 0);
@@ -76,6 +83,7 @@ impl Solution for Factory {
                     let mut xor_sum = 0;
                     let mut count = 0;
                     for i in 0..machine.commands.len() {
+                        iterations += 1;
                         if mask & (1 << i) != 0 {
                             xor_sum ^= machine.commands[i];
                             count += 1;
@@ -90,23 +98,101 @@ impl Solution for Factory {
                 //println!("mask: {}, min presses: {}", best.1, best.0);
                 best.0
             })
-            .sum::<usize>()
-            .into()
+            .sum::<usize>();
+
+        println!("iterations: {}", iterations);
+        TaskResult::Usize(result)
     }
 
     fn gold(&self) -> TaskResult {
-        TaskResult::String("plaa".to_string())
+        // Silver is completely useless for gold so
+        // we implement a new solution from scratch
+        let mut sum = 0;
+
+        for line in &self.lines {
+            let fields = self.get_fields(line);
+            let target_width = fields.last().unwrap().len();
+            let target = &fields.last().unwrap()[1..target_width - 1]
+                .split(',')
+                .map(|c| c.parse::<usize>().unwrap())
+                .collect::<Vec<usize>>();
+
+            let buttons = &fields[1..fields.len() - 1]
+                .iter()
+                .map(|b| {
+                    b[1..b.len() - 1]
+                        .split(',')
+                        .map(|c| c.parse::<usize>().unwrap())
+                        .collect::<Vec<usize>>()
+                })
+                .collect::<Vec<Vec<usize>>>();
+
+            println!("target: {:?}", target);
+            println!("buttons: {:?}", buttons);
+            sum += self.solve_machine(target, buttons) as usize;
+        }
+
+        TaskResult::Usize(sum)
     }
 }
 
 // For assisting functions
 impl Factory {
+    fn solve_machine(&self, target: &[usize], buttons: &[Vec<usize>]) -> f64 {
+        let dim = target.len();
+        let n = buttons.len();
+
+        // Convert buttons into coefficient vectors:
+        // button_vecs[i][d] = 1 if button i affects dimension d, else 0.
+        let mut button_vecs = vec![vec![0_i32; dim]; n];
+        for (i, btn) in buttons.iter().enumerate() {
+            for &d in btn {
+                button_vecs[i][d] = 1;
+            }
+        }
+
+        // x[i] = number of times we press button i (integer, >= 0)
+        let mut vars = variables!();
+        let x = vars.add_vector(variable().min(0).integer(), n);
+
+        // Objective: minimize total number of button presses: sum_i x[i]
+        let mut objective: Expression = 0.into();
+        for i in 0..n {
+            objective += x[i];
+        }
+
+        // Create model with the objective
+        let mut model = vars.minimise(&objective).using(default_solver);
+
+        // Constraints: for each dimension d,
+        //   sum_i x[i] * button_vecs[i][d] == target[d]
+        for d in 0..dim {
+            let mut expr: Expression = 0.into();
+            for i in 0..n {
+                let coeff = button_vecs[i][d]; // i32
+                if coeff != 0 {
+                    expr += x[i] * coeff;
+                }
+            }
+            // Expression::eq returns a Constraint
+            model = model.with(expr.eq(target[d] as i32));
+        }
+
+        let result = model.solve().unwrap();
+        result.eval(objective)
+    }
+
+    fn get_fields(&self, line: &str) -> Vec<String> {
+        line.split_ascii_whitespace()
+            .map(|s| s.to_string())
+            .collect()
+    }
+
     fn parse_lines(&self) -> Vec<Machine> {
         self.lines
             .iter()
             .map(|l| {
-                let fields: Vec<String> =
-                    l.split_ascii_whitespace().map(|s| s.to_string()).collect();
+                let fields = self.get_fields(l);
                 let target = self.parse_target(fields.first().unwrap());
                 let target_width: u16 = (fields.first().unwrap().len() - 2) as u16;
                 let commands =
