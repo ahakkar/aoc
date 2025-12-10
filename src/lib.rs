@@ -35,7 +35,7 @@ pub mod y2025 {
     pub mod day_07;
     pub mod day_08;
     pub mod day_09;
-    //pub mod day_10;
+    pub mod day_10;
     //pub mod day_11;
     //pub mod day_12;
 }
@@ -132,7 +132,7 @@ pub fn solve(year: &str, day: &str, input: &str) -> AocResult {
             "07" => run_solution::<y2025::day_07::Laboratories>(input),
             "08" => run_solution::<y2025::day_08::Playground>(input),
             "09" => run_solution::<y2025::day_09::MovieTheater>(input),
-            //"10" => run_solution::<y2025::day_10::Laboratories>(input),
+            "10" => run_solution::<y2025::day_10::Factory>(input),
             //"11" => run_solution::<y2025::day_11::Laboratories>(input),
             //"12" => run_solution::<y2025::day_12::Laboratories>(input),
             _ => unreachable!(),
