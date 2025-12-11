@@ -6,8 +6,10 @@ https://adventofcode.com/
 ## Input data:
 Grab it from AoC website, save puzzle prompt to:
 
+```
 input/2025/real/01.txt
 input/2025/test/01.txt
+```
 
 etc.
 
@@ -15,9 +17,8 @@ etc.
 Help provided by:
 cargo run -- --help
 
+```
 Advent of Code solution runner v. 0.4.0
-Author: Antti Hakkarainen 2020-2025
-
 Usage: aoc [OPTIONS]
 
 Options:
@@ -28,19 +29,28 @@ Options:
   -y, --year <YEAR>      [0000-9999] calendar year
   -h, --help             Print help
   -V, --version          Print version
+```
 
 ## Command examples
 Optimized rust solutions can be run with 
+```
 cargo run --release -- --year 2025 --day 11
+```
 
 Debug without --release
+```
 cargo run -- --year 2025 --day 11
+```
 
 With test data instead of release data:
+```
 cargo run -- --year 2025 --day 11 --test
+```
 
 All solutions for a chosen year:
+```
 cargo run -- --year 2025 --all
+```
 
 ## Crates used as of 2025-12-11:
 clap = { version = "4.5.53", features = ["derive", "cargo"] }
