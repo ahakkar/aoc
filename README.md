@@ -53,6 +53,7 @@ cargo run -- --year 2025 --all
 ```
 
 ## Crates used as of 2025-12-11:
+```
 clap = { version = "4.5.53", features = ["derive", "cargo"] }
 colored = "3.0.0"
 geo = "0.32.0"
@@ -68,3 +69,4 @@ pathfinding = "4.14.0"
 petgraph = "0.8.3"
 rayon = "1.11.0"
 regex = "1.12.2"
+```
