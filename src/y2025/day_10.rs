@@ -100,7 +100,7 @@ impl AoCSolution for Factory {
             })
             .sum::<usize>();
 
-        println!("iterations: {}", iterations);
+        //println!("iterations: {}", iterations);
         TaskResult::Usize(result)
     }
 
@@ -127,8 +127,8 @@ impl AoCSolution for Factory {
                 })
                 .collect::<Vec<Vec<usize>>>();
 
-            println!("target: {:?}", target);
-            println!("buttons: {:?}", buttons);
+            //println!("target: {:?}", target);
+            //println!("buttons: {:?}", buttons);
             sum += self.solve_machine(target, buttons) as usize;
         }
 
@@ -163,6 +163,7 @@ impl Factory {
 
         // Create model with the objective
         let mut model = vars.minimise(&objective).using(default_solver);
+        model.set_parameter("loglevel", "0");
 
         // Constraints: for each dimension d,
         //   sum_i x[i] * button_vecs[i][d] == target[d]
