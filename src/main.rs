@@ -16,7 +16,7 @@ use util::utils::read_data_from_file;
 #[command(
     author = env!("CARGO_PKG_AUTHORS"), 
     version = env!("CARGO_PKG_VERSION"),
-    about = format!("{} v. {}\nAuthor: {} 2020-2024", 
+    about = format!("{} v. {}\nAuthor: {} 2020-2025", 
         env!("CARGO_PKG_DESCRIPTION"),
         env!("CARGO_PKG_VERSION"),
         env!("CARGO_PKG_AUTHORS"),          
