@@ -1,5 +1,5 @@
 /*
- * 2025 Advent of Code with Rust
+ * 2015 Advent of Code with Rust
  * Author: Antti Hakkarainen
  * https://github.com/ahakkar/
 **/

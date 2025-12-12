@@ -23,11 +23,11 @@ use num_integer::Roots;
 use util::grid::XyGrid;
 
 use crate::{
+    Fro, Solution, TaskResult,
     util::{
         self,
-        point::{Point, EAST, NORTH, SOUTH, WEST},
+        point::{EAST, NORTH, Point, SOUTH, WEST},
     },
-    Fro, Solution, TaskResult,
 };
 
 // Can add more shared vars here
@@ -165,7 +165,7 @@ impl WarehouseWoes {
                     return false;
                 }
                 '#' => break,
-                '[' | ']' => pos = pos + *dir,
+                '[' | ']' => pos += *dir,
                 _ => panic!("[Move_rocks]: Unexpected char {} at [{:?}", idx, pos),
             }
         }
@@ -223,7 +223,7 @@ impl WarehouseWoes {
                     return true;
                 }
                 '#' => break,
-                'O' => pos = pos + *dir,
+                'O' => pos += *dir,
                 _ => panic!("[Move_rocks]: Unexpected char {} at [{:?}", idx, pos),
             }
         }

@@ -12,7 +12,7 @@
 
 use std::{
     fmt,
-    ops::{Add, Sub},
+    ops::{Add, AddAssign, Sub},
 };
 
 pub const ORIGIN: Point = Point::new(0, 0);
@@ -86,6 +86,15 @@ impl Add for Point {
     #[inline]
     fn add(self, rhs: Self) -> Self {
         Point::new(self.x + rhs.x, self.y + rhs.y)
+    }
+}
+
+impl AddAssign for Point {
+    fn add_assign(&mut self, other: Self) {
+        *self = Self {
+            x: self.x + other.x,
+            y: self.y + other.y,
+        };
     }
 }
 

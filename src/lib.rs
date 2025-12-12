@@ -10,6 +10,19 @@ pub mod util {
 pub mod y2015 {
     pub mod day_01;
     pub mod day_02;
+    pub mod day_03;
+    //pub mod day_04;
+    //pub mod day_05;
+    //pub mod day_06;
+    //pub mod day_07;
+    //pub mod day_08;
+    //pub mod day_09;
+    //pub mod day_10;
+    //pub mod day_11;
+    //pub mod day_12;
+    //pub mod day_13;
+    //pub mod day_14;
+    //pub mod day_15;
 }
 
 pub mod y2024 {
@@ -112,6 +125,9 @@ pub fn solve(year: &str, day: &str, input: &str) -> AocResult {
         "2015" => match day {
             "01" => run_solution::<y2015::day_01::NotQuiteLisp>(input),
             "02" => run_solution::<y2015::day_02::IWasToldThereWouldBeNoMath>(input),
+            "03" => {
+                run_solution::<y2015::day_03::PerfectlySphericalHousesinaVacuum>(input)
+            }
             _ => unreachable!(),
         },
         "2024" => match day {
