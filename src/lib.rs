@@ -9,6 +9,7 @@ pub mod util {
 
 pub mod y2015 {
     pub mod day_01;
+    pub mod day_02;
 }
 
 pub mod y2024 {
@@ -110,6 +111,7 @@ pub fn solve(year: &str, day: &str, input: &str) -> AocResult {
     match year {
         "2015" => match day {
             "01" => run_solution::<y2015::day_01::NotQuiteLisp>(input),
+            "02" => run_solution::<y2015::day_02::IWasToldThereWouldBeNoMath>(input),
             _ => unreachable!(),
         },
         "2024" => match day {
