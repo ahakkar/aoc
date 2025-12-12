@@ -7,6 +7,10 @@ pub mod util {
     pub mod utils;
 }
 
+pub mod y2015 {
+    pub mod day_01;
+}
+
 pub mod y2024 {
     pub mod day_01;
     pub mod day_02;
@@ -104,6 +108,10 @@ pub fn run_solution<S: Fro + Solution + 'static>(input: &str) -> AocResult {
 /// Calls respective's day's struct, input is contents from a file read as str
 pub fn solve(year: &str, day: &str, input: &str) -> AocResult {
     match year {
+        "2015" => match day {
+            "01" => run_solution::<y2015::day_01::NotQuiteLisp>(input),
+            _ => unreachable!(),
+        },
         "2024" => match day {
             "01" => run_solution::<y2024::day_01::HistorianHysteria>(input),
             "02" => run_solution::<y2024::day_02::RedNosedReports>(input),
