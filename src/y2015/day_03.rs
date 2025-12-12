@@ -4,8 +4,10 @@
  * https://github.com/ahakkar/
 **/
 
-use crate::util::point2::{EAST, NORTH, Point2, SOUTH, WEST};
-use crate::{Fro, Solution, TaskResult};
+use crate::{
+    Fro, Solution, TaskResult,
+    util::{direction::Direction, point2::Point2},
+};
 use std::collections::HashMap;
 
 // Can add more shared vars here
@@ -34,10 +36,10 @@ impl Solution for PerfectlySphericalHousesinaVacuum {
 
         for c in self.data.chars() {
             let next: Point2 = match c {
-                '>' => current + EAST,
-                '<' => current + WEST,
-                '^' => current + NORTH,
-                'v' => current + SOUTH,
+                '>' => current.step(Direction::East),
+                '<' => current.step(Direction::West),
+                '^' => current.step(Direction::North),
+                'v' => current.step(Direction::South),
                 _ => panic!("unsupported char"),
             };
 
@@ -61,10 +63,10 @@ impl Solution for PerfectlySphericalHousesinaVacuum {
             let p = &mut santa_robo[i % 2];
 
             *p = match c {
-                '>' => *p + EAST,
-                '<' => *p + WEST,
-                '^' => *p + NORTH,
-                'v' => *p + SOUTH,
+                '>' => p.step(Direction::East),
+                '<' => p.step(Direction::West),
+                '^' => p.step(Direction::North),
+                'v' => p.step(Direction::South),
                 _ => panic!("unsupported char"),
             };
 

@@ -20,11 +20,7 @@
 
 use crate::{
     Fro, Solution, TaskResult,
-    util::{
-        self,
-        point2::{EAST, NORTH, Point2, SOUTH, WEST},
-        utils::Direction,
-    },
+    util::{self, point2},
 };
 use grid::Grid;
 use num_integer::sqrt;

@@ -11,6 +11,8 @@ use std::collections::{HashMap, HashSet};
 use std::fmt::{Display, Write};
 use std::{fmt, fs};
 
+use crate::util::direction::Direction;
+
 pub type Point = (usize, usize);
 pub type PointI = (isize, isize);
 pub type Grid<T> = Vec<Vec<T>>;
@@ -23,59 +25,9 @@ pub const EAST: Vec2D = Vec2D::new(1, 0);
 pub const WEST: Vec2D = Vec2D::new(-1, 0);
 pub const STILL: Vec2D = Vec2D::new(0, 0);
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum Direction {
-    NorthWest,
-    North,
-    NorthEast,
-    East,
-    SouthEast,
-    South,
-    SouthWest,
-    West,
-    Still,
-}
-
 pub enum Orientation {
     Horizontal,
     Vertical,
-}
-
-impl Direction {
-    pub fn to_vector(self) -> (isize, isize) {
-        match self {
-            // col row
-            Direction::East => (1, 0),
-            Direction::North => (0, -1),
-            Direction::West => (-1, 0),
-            Direction::South => (0, 1),
-            Direction::NorthEast => (1, -1),
-            Direction::NorthWest => (-1, -1),
-            Direction::SouthEast => (1, 1),
-            Direction::SouthWest => (-1, 1),
-            _ => panic!("invalid direction"),
-        }
-    }
-
-    pub fn turn_90(cur_dir: Direction, turn: char) -> Direction {
-        match turn {
-            'l' => match cur_dir {
-                Direction::East => Direction::North,
-                Direction::North => Direction::West,
-                Direction::West => Direction::South,
-                Direction::South => Direction::East,
-                _ => panic!("invalid dir"),
-            },
-            'r' => match cur_dir {
-                Direction::East => Direction::South,
-                Direction::North => Direction::East,
-                Direction::West => Direction::North,
-                Direction::South => Direction::West,
-                _ => panic!("invalid dir"),
-            },
-            _ => panic!("Invalid turn"),
-        }
-    }
 }
 
 #[derive(Clone, Copy, Eq, Hash, PartialEq)]

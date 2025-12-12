@@ -2,20 +2,9 @@ use std::{cmp::min, fmt::Display};
 
 use grid::Grid;
 
-use crate::util::utils::{Direction, Orientation};
+use crate::util::{direction::Direction, utils::Orientation};
 
 use super::point2::Point2;
-
-const DIRS: [Direction; 8] = [
-    Direction::NorthWest,
-    Direction::North,
-    Direction::NorthEast,
-    Direction::East,
-    Direction::SouthEast,
-    Direction::South,
-    Direction::SouthWest,
-    Direction::West,
-];
 
 // Workarounds for Grid crate's broken coordinate order
 pub trait XyGrid<T> {
@@ -74,10 +63,10 @@ impl<T> XyGrid<T> for Grid<T> {
     fn get_neighbors(&self, x: usize, y: usize) -> Option<Vec<&T>> {
         let mut neighbors = vec![];
 
-        for dir in DIRS {
+        for dir in Direction::DIRS {
             let check = dir.to_vector();
-            let xn = x as i64 + check.0 as i64;
-            let xy = y as i64 + check.1 as i64;
+            let xn = x as i64 + check.x;
+            let xy = y as i64 + check.y;
             if let Some(point) = self.get_xy(xn, xy) {
                 neighbors.push(point);
             }

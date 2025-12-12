@@ -13,12 +13,11 @@ use std::{
 
 use crate::{
     Fro, Solution, TaskResult,
-    util::{self, point2::Point2},
+    util::{self, direction::Direction, point2::Point2},
 };
 use grid::Grid;
 use num_integer::sqrt;
 use util::grid::XyGrid;
-use util::point2::{EAST, SOUTH, WEST};
 
 // Can add more shared vars here
 pub struct Laboratories {
@@ -47,7 +46,7 @@ impl Fro for Laboratories {
 // Main solvers
 impl Solution for Laboratories {
     fn silver(&self) -> TaskResult {
-        self.trace_ray(&(self.start + SOUTH));
+        self.trace_ray(&(self.start.step(Direction::South)));
         TaskResult::Usize(*self.silver.borrow())
     }
 
@@ -73,11 +72,11 @@ impl Laboratories {
             match cell {
                 '^' => {
                     *self.silver.borrow_mut() += 1;
-                    self.trace_ray(&(*current + WEST));
-                    self.trace_ray(&(*current + EAST));
+                    self.trace_ray(&(current.step(Direction::West)));
+                    self.trace_ray(&(current.step(Direction::East)));
                 }
                 '.' => {
-                    self.trace_ray(&(*current + SOUTH));
+                    self.trace_ray(&(current.step(Direction::South)));
                 }
                 _ => panic!("Unsupported cell type"),
             }
@@ -85,7 +84,11 @@ impl Laboratories {
     }
 
     fn count_paths(&self, current: &Point2, cache: &mut HashMap<Point2, usize>) -> usize {
-        if self.grid.get_point(*current + SOUTH).is_none() {
+        if self
+            .grid
+            .get_point(current.step(Direction::South))
+            .is_none()
+        {
             return 1;
         }
 
@@ -94,13 +97,13 @@ impl Laboratories {
         }
 
         // Peek at the cell below
-        let below = *current + SOUTH;
+        let below = current.step(Direction::South);
         let cell_below = self.grid.get_point(below).unwrap();
 
         // Splitter, go from the splitter cell left or right
         let result = if *cell_below == '^' {
-            let left = self.count_paths(&(below + WEST), cache);
-            let right = self.count_paths(&(below + EAST), cache);
+            let left = self.count_paths(&(below.step(Direction::West)), cache);
+            let right = self.count_paths(&(below.step(Direction::East)), cache);
             left + right
         } else {
             self.count_paths(&below, cache)

@@ -26,7 +26,8 @@ use crate::{
     Fro, Solution, TaskResult,
     util::{
         self,
-        point2::{EAST, NORTH, Point2, SOUTH, WEST},
+        direction::Direction,
+        point2::{self, Point2},
     },
 };
 
@@ -143,21 +144,21 @@ impl Solution for WarehouseWoes {
 
 // For assisting functions
 impl WarehouseWoes {
-    fn move_gold(map: &mut Grid<char>, start: &Point2, dir: &Point2) -> bool {
+    fn move_gold(map: &mut Grid<char>, start: &Point2, dir: &Direction) -> bool {
         let mut pos = *start;
         //print!("moving rocks, start: {:?}", start);
-        while let Some(idx) = map.get_point_mut(pos + *dir) {
+        while let Some(idx) = map.get_point_mut(pos.step(*dir)) {
             //println!(" looking at: {:?}", pos + *dir);
             match idx {
                 '.' => {
                     // Move all rock halves recursively between this & start
                     // with north/south movement need to look at if stones are half blocked
                     // Perhaps try to get horizontal movement to work first
-                    if (*dir == EAST || *dir == WEST) {
+                    if (*dir == Direction::East || *dir == Direction::West) {
                         while pos != *start {
-                            *map.get_point_mut(pos + *dir).unwrap() =
+                            *map.get_point_mut(pos.step(*dir)).unwrap() =
                                 *map.get_point_mut(pos).unwrap();
-                            pos = pos - *dir;
+                            pos = pos.step(dir.opposite());
                         }
                         return true;
                     }
@@ -165,7 +166,7 @@ impl WarehouseWoes {
                     return false;
                 }
                 '#' => break,
-                '[' | ']' => pos += *dir,
+                '[' | ']' => pos += pos.step(*dir),
                 _ => panic!("[Move_rocks]: Unexpected char {} at [{:?}", idx, pos),
             }
         }
@@ -173,16 +174,12 @@ impl WarehouseWoes {
     }
 
     // Target, dir
-    fn get_dir(c: &char, current: Point2) -> (Point2, Point2) {
+    fn get_dir(c: &char, current: Point2) -> (Point2, Direction) {
         match c {
-            '<' => (current + WEST, WEST),
-
-            '>' => (current + EAST, EAST),
-
-            '^' => (current + NORTH, NORTH),
-
-            'v' => (current + SOUTH, SOUTH),
-
+            '<' => (current.step(Direction::West), Direction::West),
+            '>' => (current.step(Direction::East), Direction::East),
+            '^' => (current.step(Direction::North), Direction::North),
+            'v' => (current.step(Direction::South), Direction::South),
             _ => panic!("invalid command"),
         }
     }
@@ -213,17 +210,17 @@ impl WarehouseWoes {
 
     // Look at idx from start to dir. If a empty is found, switch rock to empty
     // From start. If wall or rock is found with no space between, abort.
-    fn move_rocks(map: &mut Grid<char>, start: &Point2, dir: &Point2) -> bool {
+    fn move_rocks(map: &mut Grid<char>, start: &Point2, dir: &Direction) -> bool {
         let mut pos = *start;
-        while let Some(idx) = map.get_point_mut(pos + *dir) {
+        while let Some(idx) = map.get_point_mut(pos.step(*dir)) {
             //println!(" looking at: {:?}", pos + *dir);
             match idx {
                 '.' => {
-                    Self::move_to(map, start, &(pos + *dir), 'O', '.');
+                    Self::move_to(map, start, &(pos.step(*dir)), 'O', '.');
                     return true;
                 }
                 '#' => break,
-                'O' => pos += *dir,
+                'O' => pos += pos.step(*dir),
                 _ => panic!("[Move_rocks]: Unexpected char {} at [{:?}", idx, pos),
             }
         }

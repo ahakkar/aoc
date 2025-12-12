@@ -83,7 +83,7 @@ mod tests {
 
     #[test]
     fn test_test() {
-        let test_data = read_data_from_file("input/test/01.txt");
+        let test_data = read_data_from_file("input/2024/test/01.txt");
         let queue = HistorianHysteria::fro(&test_data);
 
         assert_eq!(queue.silver(), TaskResult::Usize(11));
@@ -92,7 +92,7 @@ mod tests {
 
     #[test]
     fn test_real() {
-        let real_data = read_data_from_file("input/real/01.txt");
+        let real_data = read_data_from_file("input/2024/real/01.txt");
         let queue = HistorianHysteria::fro(&real_data);
 
         assert_eq!(queue.silver(), TaskResult::Usize(1879048));

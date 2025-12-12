@@ -7,8 +7,11 @@
 use regex::Regex;
 
 use crate::{
-    util::utils::{data_as_chars, Coord, Direction, GridMap},
     Fro, Solution, TaskResult,
+    util::{
+        direction::Direction,
+        utils::{Coord, GridMap, data_as_chars},
+    },
 };
 
 pub struct CeresSearch {

@@ -8,8 +8,8 @@
 #![allow(dead_code)]
 
 use crate::{
-    util::utils::{self, Coord, Direction},
     Fro, Solution, TaskResult,
+    util::{direction::Direction, point2::Point2},
 };
 use grid::*;
 use rayon::prelude::*;
@@ -49,23 +49,23 @@ impl Fro for GuardGallivant {
 impl Solution for GuardGallivant {
     fn silver(&self) -> TaskResult {
         let mut dir = Direction::North; // 67,89
-        let mut pos: Option<Coord> = Some(Coord::new(67, 89)); // 4,6 test
-        let mut visited: HashSet<Coord> = HashSet::new();
+        let mut pos: Option<Point2> = Some(Point2::new(67, 89)); // 4,6 test
+        let mut visited: HashSet<Point2> = HashSet::new();
 
         while let Some(cur_pos) = pos {
             let dir_vec = dir.to_vector();
-            let new_x = cur_pos.x + dir_vec.0;
-            let new_y = cur_pos.y + dir_vec.1;
+            let new_x = cur_pos.x + dir_vec.x;
+            let new_y = cur_pos.y + dir_vec.y;
 
             if let Some(new_pos) = self.map.get(new_y, new_x) {
                 // If tile is clear, move to it
                 if *new_pos != Tile::Wall {
                     visited.insert(pos.take().unwrap());
-                    pos = Some(Coord::new(new_x, new_y));
+                    pos = Some(Point2::new(new_x, new_y));
                 }
                 // If tile is occupied, turn right and try again
                 else {
-                    dir = utils::Direction::turn_90(dir, 'r');
+                    dir = Direction::turn_90(dir, 'r');
                 }
             } else {
                 break;
@@ -84,7 +84,7 @@ impl Solution for GuardGallivant {
     }
 
     fn gold(&self) -> TaskResult {
-        let start_pos = Coord::new(67, 89); // 67,89 || 4,6
+        let start_pos = Point2::new(67, 89); // 67,89 || 4,6
         let total_rows = self.map.rows();
         let total_cols = self.map.cols();
 
@@ -97,7 +97,7 @@ impl Solution for GuardGallivant {
                     // Reset state for each column
                     let mut dir = Direction::North;
                     let mut pos = Some(start_pos);
-                    let mut visited: HashSet<(Coord, Direction)> = HashSet::new();
+                    let mut visited: HashSet<(Point2, Direction)> = HashSet::new();
 
                     while let Some(cur_pos) = pos {
                         // Loop found if pos&dir were already in the set
@@ -106,19 +106,19 @@ impl Solution for GuardGallivant {
                             break;
                         }
 
-                        let (dx, dy) = dir.to_vector();
-                        let new_x = cur_pos.x + dx;
-                        let new_y = cur_pos.y + dy;
+                        let point2 = dir.to_vector();
+                        let new_x = cur_pos.x + point2.x;
+                        let new_y = cur_pos.y + point2.y;
 
                         if let Some(new_tile) = self.map.get(new_y, new_x) {
                             // Obstacle?
                             if *new_tile == Tile::Wall
-                                || (new_x == col as isize && new_y == row as isize)
+                                || (new_x == col as i64 && new_y == row as i64)
                             {
-                                dir = utils::Direction::turn_90(dir, 'r');
+                                dir = Direction::turn_90(dir, 'r');
                             } else {
                                 // Otherwise proceed
-                                pos = Some(Coord::new(new_x, new_y));
+                                pos = Some(Point2::new(new_x, new_y));
                             }
                         } else {
                             // Out of bounds
@@ -170,11 +170,11 @@ impl GuardGallivant {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{util::utils::read_data_from_file, TaskResult};
+    use crate::{TaskResult, util::utils::read_data_from_file};
 
     #[test]
     fn test() {
-        let test_data = read_data_from_file("input/test/06.txt");
+        let test_data = read_data_from_file("input/2024/test/06.txt");
         let queue = GuardGallivant::fro(&test_data);
 
         assert_eq!(queue.silver(), TaskResult::Usize(41));
@@ -183,7 +183,7 @@ mod tests {
 
     #[test]
     fn real() {
-        let real_data = read_data_from_file("input/real/06.txt");
+        let real_data = read_data_from_file("input/2024/real/06.txt");
         let queue = GuardGallivant::fro(&real_data);
 
         assert_eq!(queue.silver(), TaskResult::Usize(4696));

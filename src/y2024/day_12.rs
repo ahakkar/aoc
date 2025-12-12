@@ -8,14 +8,9 @@
 
 use crate::{
     Fro, Solution, TaskResult,
-    util::{
-        self,
-        grid::XyGrid,
-        point2::{EAST, NORTH, NORTHEAST},
-    },
+    util::{direction::Direction, grid::XyGrid, point2::Point2},
 };
 use grid::*;
-use util::point2::{ORTHOGONAL, Point2};
 
 // Can add more shared vars here
 pub struct GardenGroups {
@@ -95,7 +90,7 @@ impl Solution for GardenGroups {
                         let point = Point2::new(x as i64, y as i64);
 
                         // IF we don't have a north edge, continue
-                        if let Some(n) = map.get_point(point + NORTH)
+                        if let Some(n) = map.get_point(point.step(Direction::North))
                             && n.region_id == current.region_id
                         {
                             continue;
@@ -103,10 +98,10 @@ impl Solution for GardenGroups {
 
                         // Based on e and ne cells decide if edge continues
                         if map
-                            .get_point(point + EAST)
+                            .get_point(point.step(Direction::East))
                             .map_or(true, |e| e.region_id != current.region_id)
                             || map
-                                .get_point(point + NORTHEAST)
+                                .get_point(point.step(Direction::NorthEast))
                                 .map_or(false, |ne| ne.region_id == current.region_id)
                         {
                             results[current.region_id].sides += 1;
@@ -169,8 +164,8 @@ impl GardenGroups {
                 result.size += 1;
             }
 
-            for dir in ORTHOGONAL {
-                let neighbor_point = Point2::new(cur.x + dir.x, cur.y + dir.y);
+            for dir in Direction::ORTHOGONAL {
+                let neighbor_point = cur.step(dir);
 
                 match map.get_point(neighbor_point) {
                     Some(neighbor) if neighbor.ptype == ptype => {

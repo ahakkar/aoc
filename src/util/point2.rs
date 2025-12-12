@@ -15,20 +15,9 @@ use std::{
     ops::{Add, AddAssign, Sub},
 };
 
+use crate::util::direction::Direction;
+
 pub const ORIGIN: Point2 = Point2::new(0, 0);
-
-pub const NORTH: Point2 = Point2::new(0, -1);
-pub const SOUTH: Point2 = Point2::new(0, 1);
-pub const EAST: Point2 = Point2::new(1, 0);
-pub const WEST: Point2 = Point2::new(-1, 0);
-
-pub const NORTHEAST: Point2 = Point2::new(1, -1);
-pub const NORTHWEST: Point2 = Point2::new(-1, -1);
-pub const SOUTHEAST: Point2 = Point2::new(1, 1);
-pub const SOUTHWEST: Point2 = Point2::new(-1, 1);
-
-pub const ORTHOGONAL: [Point2; 4] = [NORTH, SOUTH, EAST, WEST];
-pub const DIAGONAL: [Point2; 4] = [NORTHEAST, NORTHWEST, SOUTHEAST, SOUTHWEST];
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct Point2 {
@@ -65,6 +54,10 @@ impl Point2 {
             });
         }
         None
+    }
+
+    pub fn step(self, dir: Direction) -> Self {
+        self + dir.to_vector()
     }
 
     pub const fn square_area(a: &Point2, b: &Point2) -> usize {

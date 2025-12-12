@@ -1,4 +1,5 @@
 pub mod util {
+    pub mod direction;
     pub mod dsu;
     pub mod grid;
     pub mod point2;
