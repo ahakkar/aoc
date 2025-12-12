@@ -13,19 +13,19 @@ use std::{
 
 use crate::{
     Fro, Solution, TaskResult,
-    util::{self, point::Point},
+    util::{self, point2::Point2},
 };
 use grid::Grid;
 use num_integer::sqrt;
 use util::grid::XyGrid;
-use util::point::{EAST, SOUTH, WEST};
+use util::point2::{EAST, SOUTH, WEST};
 
 // Can add more shared vars here
 pub struct Laboratories {
     grid: Grid<char>,
     silver: RefCell<usize>,
-    start: Point,
-    visited: RefCell<HashSet<Point>>,
+    start: Point2,
+    visited: RefCell<HashSet<Point2>>,
 }
 
 // Can be used to implement fancier task-specific parsing
@@ -38,7 +38,7 @@ impl Fro for Laboratories {
         Self {
             grid: Grid::from_vec(data, grid_size),
             silver: RefCell::new(0),
-            start: Point::new((grid_size / 2) as i64, 0),
+            start: Point2::new((grid_size / 2) as i64, 0),
             visited: RefCell::new(HashSet::new()),
         }
     }
@@ -58,7 +58,7 @@ impl Solution for Laboratories {
 
 // For assisting functions
 impl Laboratories {
-    fn trace_ray(&self, current: &Point) {
+    fn trace_ray(&self, current: &Point2) {
         // Have we visited this cell already?
         if self.visited.borrow().contains(current) {
             return;
@@ -84,7 +84,7 @@ impl Laboratories {
         }
     }
 
-    fn count_paths(&self, current: &Point, cache: &mut HashMap<Point, usize>) -> usize {
+    fn count_paths(&self, current: &Point2, cache: &mut HashMap<Point2, usize>) -> usize {
         if self.grid.get_point(*current + SOUTH).is_none() {
             return 1;
         }

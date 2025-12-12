@@ -22,7 +22,7 @@ use crate::{
     Fro, Solution, TaskResult,
     util::{
         self,
-        point::{EAST, NORTH, Point, SOUTH, WEST},
+        point2::{EAST, NORTH, Point2, SOUTH, WEST},
         utils::Direction,
     },
 };

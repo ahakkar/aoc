@@ -7,7 +7,7 @@
 use num_integer::lcm;
 use regex::Regex;
 
-use crate::{util::point::Point, Fro, Solution, TaskResult};
+use crate::{Fro, Solution, TaskResult, util::point2::Point2};
 use pathfinding::prelude::dijkstra;
 
 // Can add more shared vars here
@@ -17,9 +17,9 @@ pub struct ClawContraption {
 
 #[derive(Debug)]
 struct Route {
-    a: Point,
-    b: Point,
-    p: Point,
+    a: Point2,
+    b: Point2,
+    p: Point2,
 }
 
 // Can be used to implement fancier task-specific parsing
@@ -119,9 +119,9 @@ impl Solution for ClawContraption {
 
 // For assisting functions
 impl ClawContraption {
-    fn extract_point(str: &str, re: &Regex) -> Point {
+    fn extract_point(str: &str, re: &Regex) -> Point2 {
         let c = re.captures(str).unwrap();
-        Point::new(
+        Point2::new(
             c.get(1).unwrap().as_str().parse::<i64>().unwrap(),
             c.get(2).unwrap().as_str().parse::<i64>().unwrap(),
         )

@@ -5,24 +5,24 @@
 **/
 
 use crate::{
-    util::{point::Point, regex::MyCaptures},
     Fro, Solution, TaskResult,
+    util::{point2::Point2, regex::MyCaptures},
 };
 use regex::Regex;
 use std::collections::HashSet;
 
 pub struct RestroomRedoubt {
-    data: Vec<(Point, Point)>,
+    data: Vec<(Point2, Point2)>,
 }
 
 impl Fro for RestroomRedoubt {
     fn fro(input: &str) -> Self {
         let re = Regex::new(r"p=(\d+),(\d+)\s+v=(-?\d+),(-?\d+)").unwrap();
-        let parse_points = |str| -> (Point, Point) {
+        let parse_points = |str| -> (Point2, Point2) {
             let c = re.captures(str).unwrap();
             (
-                Point::new(c.get_i64(1), c.get_i64(2)),
-                Point::new(c.get_i64(3), c.get_i64(4)),
+                Point2::new(c.get_i64(1), c.get_i64(2)),
+                Point2::new(c.get_i64(3), c.get_i64(4)),
             )
         };
 
@@ -86,7 +86,7 @@ impl Solution for RestroomRedoubt {
                 let yn = Self::modulo(y0 + vy * n, h);
 
                 // Break outer loop too
-                if !set.insert(Point::new(xn, yn)) {
+                if !set.insert(Point2::new(xn, yn)) {
                     success = false;
                     break;
                 }
@@ -103,7 +103,7 @@ impl Solution for RestroomRedoubt {
 impl RestroomRedoubt {
     // TODO Should initialize a w,h char map with . and just change the
     // value of the cell for each object
-    fn _build_map(tr: &[Point], w: usize, h: usize) {
+    fn _build_map(tr: &[Point2], w: usize, h: usize) {
         for row in 0..h {
             for col in 0..w {
                 let mut obj: usize = 0;

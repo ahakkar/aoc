@@ -26,7 +26,7 @@ use crate::{
     Fro, Solution, TaskResult,
     util::{
         self,
-        point::{EAST, NORTH, Point, SOUTH, WEST},
+        point2::{EAST, NORTH, Point2, SOUTH, WEST},
     },
 };
 
@@ -57,13 +57,13 @@ impl Fro for WarehouseWoes {
 impl Solution for WarehouseWoes {
     fn silver(&self) -> TaskResult {
         let mut map = self.map.clone();
-        let mut current = Point::new(-1, -1);
+        let mut current = Point2::new(-1, -1);
 
         // Find start
         for row in 0..map.rows() {
             for col in 0..map.cols() {
                 if *map.get_xy(col as i64, row as i64).unwrap() == '@' {
-                    current = Point::new(col as i64, row as i64);
+                    current = Point2::new(col as i64, row as i64);
                 }
             }
         }
@@ -87,14 +87,14 @@ impl Solution for WarehouseWoes {
     fn gold(&self) -> TaskResult {
         // Just adding spaghetti over more spaghetti here
         let mut map: Grid<char> = Grid::init(self.map.rows(), self.map.cols() * 2, 'x');
-        let mut current = Point::new(-1, -1);
+        let mut current = Point2::new(-1, -1);
 
         for row in 0..self.map.rows() {
             for col in 0..self.map.cols() {
                 let c = *self.map.get_xy(col as i64, row as i64).unwrap();
                 match c {
                     '@' => {
-                        current = Point::new((col * 2) as i64, row as i64);
+                        current = Point2::new((col * 2) as i64, row as i64);
                         *map.get_xy_mut((col * 2) as i64, row as i64).unwrap() = c;
                         *map.get_xy_mut((col * 2 + 1) as i64, row as i64).unwrap() = '.';
                     }
@@ -143,7 +143,7 @@ impl Solution for WarehouseWoes {
 
 // For assisting functions
 impl WarehouseWoes {
-    fn move_gold(map: &mut Grid<char>, start: &Point, dir: &Point) -> bool {
+    fn move_gold(map: &mut Grid<char>, start: &Point2, dir: &Point2) -> bool {
         let mut pos = *start;
         //print!("moving rocks, start: {:?}", start);
         while let Some(idx) = map.get_point_mut(pos + *dir) {
@@ -173,7 +173,7 @@ impl WarehouseWoes {
     }
 
     // Target, dir
-    fn get_dir(c: &char, current: Point) -> (Point, Point) {
+    fn get_dir(c: &char, current: Point2) -> (Point2, Point2) {
         match c {
             '<' => (current + WEST, WEST),
 
@@ -199,11 +199,11 @@ impl WarehouseWoes {
     }
     fn move_to(
         map: &mut Grid<char>,
-        target: &Point,
-        current: &Point,
+        target: &Point2,
+        current: &Point2,
         c1: char,
         c2: char,
-    ) -> Point {
+    ) -> Point2 {
         let mut p = map.get_point_mut(*current).unwrap();
         *p = c1;
         p = map.get_point_mut(*target).unwrap();
@@ -213,7 +213,7 @@ impl WarehouseWoes {
 
     // Look at idx from start to dir. If a empty is found, switch rock to empty
     // From start. If wall or rock is found with no space between, abort.
-    fn move_rocks(map: &mut Grid<char>, start: &Point, dir: &Point) -> bool {
+    fn move_rocks(map: &mut Grid<char>, start: &Point2, dir: &Point2) -> bool {
         let mut pos = *start;
         while let Some(idx) = map.get_point_mut(pos + *dir) {
             //println!(" looking at: {:?}", pos + *dir);

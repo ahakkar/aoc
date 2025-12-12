@@ -8,7 +8,7 @@
 
 use crate::{
     Fro, Solution, TaskResult,
-    util::{dsu::DSU, point3d::Point3d},
+    util::{dsu::DSU, point3::Point3},
 };
 use std::collections::{BinaryHeap, HashMap};
 
@@ -21,7 +21,7 @@ type HeapItem = (i64, usize, usize);
 
 // Can add more shared vars here
 pub struct Playground {
-    data: Vec<Point3d>,
+    data: Vec<Point3>,
 }
 
 // Can be used to implement fancier task-specific parsing
@@ -29,10 +29,7 @@ impl Fro for Playground {
     fn fro(input: &str) -> Self {
         Self {
             // Discards bad input silently
-            data: input
-                .split('\n')
-                .filter_map(Point3d::new_from_str)
-                .collect(),
+            data: input.split('\n').filter_map(Point3::new_from_str).collect(),
         }
     }
 }
@@ -49,7 +46,7 @@ impl Solution for Playground {
         // Find k closest connections with brute force
         for i in 0..self.data.len() {
             for j in i + 1..self.data.len() {
-                let dist2 = Point3d::squared_distance(self.data[i], self.data[j]);
+                let dist2 = Point3::squared_distance(self.data[i], self.data[j]);
 
                 if heap.len() < k {
                     heap.push((dist2, i, j));
@@ -93,7 +90,7 @@ impl Solution for Playground {
         // Calculate all distances between points and sort them
         for i in 0..self.data.len() {
             for j in i + 1..self.data.len() {
-                let dist2 = Point3d::squared_distance(self.data[i], self.data[j]);
+                let dist2 = Point3::squared_distance(self.data[i], self.data[j]);
                 edges.push((dist2, i, j));
             }
         }

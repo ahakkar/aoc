@@ -20,7 +20,7 @@
 
 use rayon::vec;
 
-use crate::{Fro, Solution, TaskResult, util::point::Point};
+use crate::{Fro, Solution, TaskResult, util::point2::Point2};
 
 /*
 
@@ -58,13 +58,13 @@ use crate::{Fro, Solution, TaskResult, util::point::Point};
 
 // Can add more shared vars here
 pub struct ChristmasTreeFarm {
-    puzzles: Vec<(Point, Vec<i64>)>,
+    puzzles: Vec<(Point2, Vec<i64>)>,
 }
 
 // Can be used to implement fancier task-specific parsing
 impl Fro for ChristmasTreeFarm {
     fn fro(input: &str) -> Self {
-        let mut puzzles: Vec<(Point, Vec<i64>)> = vec![];
+        let mut puzzles: Vec<(Point2, Vec<i64>)> = vec![];
         for line in input
             .split('\n')
             .map(|line| line.to_string())
@@ -77,7 +77,7 @@ impl Fro for ChristmasTreeFarm {
                 .map(|(a, b)| {
                     let x = a.parse::<i64>().unwrap();
                     let y = b.parse::<i64>().unwrap();
-                    Point::new(x, y)
+                    Point2::new(x, y)
                 })
                 .unwrap();
 

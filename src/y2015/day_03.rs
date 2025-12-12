@@ -4,7 +4,7 @@
  * https://github.com/ahakkar/
 **/
 
-use crate::util::point::{EAST, NORTH, Point, SOUTH, WEST};
+use crate::util::point2::{EAST, NORTH, Point2, SOUTH, WEST};
 use crate::{Fro, Solution, TaskResult};
 use std::collections::HashMap;
 
@@ -26,14 +26,14 @@ impl Fro for PerfectlySphericalHousesinaVacuum {
 impl Solution for PerfectlySphericalHousesinaVacuum {
     fn silver(&self) -> TaskResult {
         // loc, visits
-        let mut houses: HashMap<Point, usize> = HashMap::new();
-        let mut current = Point::new(0, 0);
+        let mut houses: HashMap<Point2, usize> = HashMap::new();
+        let mut current = Point2::new(0, 0);
 
         // Santa visits the starting house
         houses.insert(current, 1);
 
         for c in self.data.chars() {
-            let next: Point = match c {
+            let next: Point2 = match c {
                 '>' => current + EAST,
                 '<' => current + WEST,
                 '^' => current + NORTH,
@@ -50,11 +50,11 @@ impl Solution for PerfectlySphericalHousesinaVacuum {
 
     fn gold(&self) -> TaskResult {
         // loc, visits
-        let mut houses: HashMap<Point, usize> = HashMap::new();
-        let mut santa_robo = [Point::new(0, 0), Point::new(0, 0)];
+        let mut houses: HashMap<Point2, usize> = HashMap::new();
+        let mut santa_robo = [Point2::new(0, 0), Point2::new(0, 0)];
 
         // Santa & robo both visit the starting house
-        houses.insert(Point::new(0, 0), 2);
+        houses.insert(Point2::new(0, 0), 2);
 
         // Move santa or robo with even-odd commands
         for (i, c) in self.data.chars().enumerate() {

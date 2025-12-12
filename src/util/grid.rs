@@ -4,7 +4,7 @@ use grid::Grid;
 
 use crate::util::utils::{Direction, Orientation};
 
-use super::point::Point;
+use super::point2::Point2;
 
 const DIRS: [Direction; 8] = [
     Direction::NorthWest,
@@ -22,8 +22,8 @@ pub trait XyGrid<T> {
     fn get_xy(&self, x: i64, y: i64) -> Option<&T>;
     fn get_xy_mut(&mut self, x: i64, y: i64) -> Option<&mut T>;
 
-    fn get_point(&self, p: Point) -> Option<&T>;
-    fn get_point_mut(&mut self, p: Point) -> Option<&mut T>;
+    fn get_point(&self, p: Point2) -> Option<&T>;
+    fn get_point_mut(&mut self, p: Point2) -> Option<&mut T>;
 
     // print below can't use the Grid's size for whatever reason
     fn size(&self) -> (usize, usize);
@@ -45,7 +45,7 @@ pub trait XyGrid<T> {
 
     fn get_neighbors(&self, x: usize, y: usize) -> Option<Vec<&T>>;
 
-    fn draw_line(&mut self, a: &Point, b: &Point, tile: T)
+    fn draw_line(&mut self, a: &Point2, b: &Point2, tile: T)
     where
         T: Clone;
 }
@@ -59,11 +59,11 @@ impl<T> XyGrid<T> for Grid<T> {
         self.get_mut(y, x)
     }
 
-    fn get_point(&self, p: Point) -> Option<&T> {
+    fn get_point(&self, p: Point2) -> Option<&T> {
         self.get(p.y, p.x)
     }
 
-    fn get_point_mut(&mut self, p: Point) -> Option<&mut T> {
+    fn get_point_mut(&mut self, p: Point2) -> Option<&mut T> {
         self.get_mut(p.y, p.x)
     }
 
@@ -88,7 +88,7 @@ impl<T> XyGrid<T> for Grid<T> {
         None
     }
 
-    fn draw_line(&mut self, a: &Point, b: &Point, tile: T)
+    fn draw_line(&mut self, a: &Point2, b: &Point2, tile: T)
     where
         T: Clone,
     {
@@ -106,7 +106,7 @@ impl<T> XyGrid<T> for Grid<T> {
 
         match o {
             Orientation::Horizontal => {
-                let width = Point::width(a, b);
+                let width = Point2::width(a, b);
                 //println!("a: {:?}, b: {:?}, w: {}", a, b, width);
                 let sx = min(a.x, b.x);
                 for i in 0..width {
@@ -114,7 +114,7 @@ impl<T> XyGrid<T> for Grid<T> {
                 }
             }
             Orientation::Vertical => {
-                let height = Point::height(a, b);
+                let height = Point2::height(a, b);
                 //println!("a: {:?}, b: {:?}, w: {}", a, b, height);
                 let sy = min(a.y, b.y);
                 for i in 0..height {

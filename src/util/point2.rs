@@ -15,38 +15,38 @@ use std::{
     ops::{Add, AddAssign, Sub},
 };
 
-pub const ORIGIN: Point = Point::new(0, 0);
+pub const ORIGIN: Point2 = Point2::new(0, 0);
 
-pub const NORTH: Point = Point::new(0, -1);
-pub const SOUTH: Point = Point::new(0, 1);
-pub const EAST: Point = Point::new(1, 0);
-pub const WEST: Point = Point::new(-1, 0);
+pub const NORTH: Point2 = Point2::new(0, -1);
+pub const SOUTH: Point2 = Point2::new(0, 1);
+pub const EAST: Point2 = Point2::new(1, 0);
+pub const WEST: Point2 = Point2::new(-1, 0);
 
-pub const NORTHEAST: Point = Point::new(1, -1);
-pub const NORTHWEST: Point = Point::new(-1, -1);
-pub const SOUTHEAST: Point = Point::new(1, 1);
-pub const SOUTHWEST: Point = Point::new(-1, 1);
+pub const NORTHEAST: Point2 = Point2::new(1, -1);
+pub const NORTHWEST: Point2 = Point2::new(-1, -1);
+pub const SOUTHEAST: Point2 = Point2::new(1, 1);
+pub const SOUTHWEST: Point2 = Point2::new(-1, 1);
 
-pub const ORTHOGONAL: [Point; 4] = [NORTH, SOUTH, EAST, WEST];
-pub const DIAGONAL: [Point; 4] = [NORTHEAST, NORTHWEST, SOUTHEAST, SOUTHWEST];
+pub const ORTHOGONAL: [Point2; 4] = [NORTH, SOUTH, EAST, WEST];
+pub const DIAGONAL: [Point2; 4] = [NORTHEAST, NORTHWEST, SOUTHEAST, SOUTHWEST];
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
-pub struct Point {
+pub struct Point2 {
     pub x: i64,
     pub y: i64,
 }
 
-impl fmt::Display for Point {
+impl fmt::Display for Point2 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "({}, {})", self.x, self.y)
     }
 }
 
-impl Point {
+impl Point2 {
     #[inline]
     #[must_use]
     pub const fn new(x: i64, y: i64) -> Self {
-        Point { x, y }
+        Point2 { x, y }
     }
 
     #[inline]
@@ -59,7 +59,7 @@ impl Point {
             .collect();
 
         if let Some(success) = v {
-            return Some(Point {
+            return Some(Point2 {
                 x: success[0],
                 y: success[1],
             });
@@ -67,29 +67,29 @@ impl Point {
         None
     }
 
-    pub const fn square_area(a: &Point, b: &Point) -> usize {
+    pub const fn square_area(a: &Point2, b: &Point2) -> usize {
         ((a.x - b.x + 1).abs() * (a.y - b.y + 1).abs()) as usize
     }
 
-    pub const fn width(a: &Point, b: &Point) -> usize {
+    pub const fn width(a: &Point2, b: &Point2) -> usize {
         (a.x - b.x).unsigned_abs() as usize + 1
     }
 
-    pub const fn height(a: &Point, b: &Point) -> usize {
+    pub const fn height(a: &Point2, b: &Point2) -> usize {
         (a.y - b.y).unsigned_abs() as usize + 1
     }
 }
 
-impl Add for Point {
+impl Add for Point2 {
     type Output = Self;
 
     #[inline]
     fn add(self, rhs: Self) -> Self {
-        Point::new(self.x + rhs.x, self.y + rhs.y)
+        Point2::new(self.x + rhs.x, self.y + rhs.y)
     }
 }
 
-impl AddAssign for Point {
+impl AddAssign for Point2 {
     fn add_assign(&mut self, other: Self) {
         *self = Self {
             x: self.x + other.x,
@@ -98,11 +98,11 @@ impl AddAssign for Point {
     }
 }
 
-impl Sub for Point {
+impl Sub for Point2 {
     type Output = Self;
 
     #[inline]
     fn sub(self, rhs: Self) -> Self {
-        Point::new(self.x - rhs.x, self.y - rhs.y)
+        Point2::new(self.x - rhs.x, self.y - rhs.y)
     }
 }

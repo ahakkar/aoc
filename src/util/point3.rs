@@ -15,32 +15,32 @@ use num_integer::sqrt;
 use std::ops::{Add, Sub};
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
-pub struct Point3d {
+pub struct Point3 {
     pub x: i64,
     pub y: i64,
     pub z: i64,
 }
 
-impl Point3d {
+impl Point3 {
     // d(p,q)=sqrt (p1-q1)^2+(p2-q2)^2+(p3-q3)^2
-    pub fn euclid_floor(p: Point3d, q: Point3d) -> i64 {
+    pub fn euclid_floor(p: Point3, q: Point3) -> i64 {
         sqrt((p.x - q.x).pow(2) + (p.y - q.y).pow(2) + (p.z - q.z).pow(2))
     }
 
-    pub fn euclid(p: Point3d, q: Point3d) -> f64 {
+    pub fn euclid(p: Point3, q: Point3) -> f64 {
         libm::sqrt(((p.x - q.x).pow(2) + (p.y - q.y).pow(2) + (p.z - q.z).pow(2)) as f64)
     }
 
-    pub fn squared_distance(p: Point3d, q: Point3d) -> i64 {
+    pub fn squared_distance(p: Point3, q: Point3) -> i64 {
         (p.x - q.x).pow(2) + (p.y - q.y).pow(2) + (p.z - q.z).pow(2)
     }
 }
 
-impl Point3d {
+impl Point3 {
     #[inline]
     #[must_use]
     pub const fn new(x: i64, y: i64, z: i64) -> Self {
-        Point3d { x, y, z }
+        Point3 { x, y, z }
     }
 
     /// Parses a comma-separated list of values to Point3d.
@@ -62,7 +62,7 @@ impl Point3d {
             .collect();
 
         if let Some(success) = v {
-            return Some(Point3d {
+            return Some(Point3 {
                 x: success[0],
                 y: success[1],
                 z: success[2],
@@ -72,20 +72,20 @@ impl Point3d {
     }
 }
 
-impl Add for Point3d {
+impl Add for Point3 {
     type Output = Self;
 
     #[inline]
     fn add(self, rhs: Self) -> Self {
-        Point3d::new(self.x + rhs.x, self.y + rhs.y, self.z + rhs.z)
+        Point3::new(self.x + rhs.x, self.y + rhs.y, self.z + rhs.z)
     }
 }
 
-impl Sub for Point3d {
+impl Sub for Point3 {
     type Output = Self;
 
     #[inline]
     fn sub(self, rhs: Self) -> Self {
-        Point3d::new(self.x - rhs.x, self.y - rhs.y, self.z - rhs.z)
+        Point3::new(self.x - rhs.x, self.y - rhs.y, self.z - rhs.z)
     }
 }

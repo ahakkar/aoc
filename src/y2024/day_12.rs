@@ -11,11 +11,11 @@ use crate::{
     util::{
         self,
         grid::XyGrid,
-        point::{EAST, NORTH, NORTHEAST},
+        point2::{EAST, NORTH, NORTHEAST},
     },
 };
 use grid::*;
-use util::point::{ORTHOGONAL, Point};
+use util::point2::{ORTHOGONAL, Point2};
 
 // Can add more shared vars here
 pub struct GardenGroups {
@@ -92,7 +92,7 @@ impl Solution for GardenGroups {
             for y in 0..rows {
                 for x in 0..cols {
                     if let Some(current) = map.get(y, x) {
-                        let point = Point::new(x as i64, y as i64);
+                        let point = Point2::new(x as i64, y as i64);
 
                         // IF we don't have a north edge, continue
                         if let Some(n) = map.get_point(point + NORTH)
@@ -142,7 +142,7 @@ impl GardenGroups {
                     && !l.visited
                     && !visited_flags.get(l.region_id).unwrap_or(&false)
                 {
-                    let start = Point::new(x as i64, y as i64);
+                    let start = Point2::new(x as i64, y as i64);
                     let mut area = Area::new(region_id);
 
                     Self::flood_fill(start, l.ptype, &mut area, &mut map);
@@ -156,7 +156,7 @@ impl GardenGroups {
     }
 
     // Visits connected plots and return the area's perimeter len
-    fn flood_fill(cur: Point, ptype: char, result: &mut Area, map: &mut Grid<Plot>) {
+    fn flood_fill(cur: Point2, ptype: char, result: &mut Area, map: &mut Grid<Plot>) {
         // Mark current as visited
         if let Some(cur_plot) = map.get_xy_mut(cur.x, cur.y) {
             match cur_plot.visited {
@@ -170,7 +170,7 @@ impl GardenGroups {
             }
 
             for dir in ORTHOGONAL {
-                let neighbor_point = Point::new(cur.x + dir.x, cur.y + dir.y);
+                let neighbor_point = Point2::new(cur.x + dir.x, cur.y + dir.y);
 
                 match map.get_point(neighbor_point) {
                     Some(neighbor) if neighbor.ptype == ptype => {

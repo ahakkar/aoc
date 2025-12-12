@@ -8,7 +8,7 @@ use std::collections::HashSet;
 
 use crate::{
     Fro, Solution, TaskResult,
-    util::{grid::XyGrid, point::Point},
+    util::{grid::XyGrid, point2::Point2},
 };
 use geo::{Contains, Coord, LineString, Polygon, Rect};
 use grid::Grid;
@@ -17,7 +17,7 @@ use rayon::prelude::*;
 
 // Can add more shared vars here
 pub struct MovieTheater {
-    points: Vec<Point>,
+    points: Vec<Point2>,
     allowed_points: HashSet<(i64, i64)>,
 }
 
@@ -25,8 +25,8 @@ pub struct MovieTheater {
 impl Fro for MovieTheater {
     fn fro(input: &str) -> Self {
         // Discards bad input silently
-        let points: Vec<Point> =
-            input.split('\n').filter_map(Point::new_from_str).collect();
+        let points: Vec<Point2> =
+            input.split('\n').filter_map(Point2::new_from_str).collect();
 
         Self {
             allowed_points: points.iter().map(|p| (p.x, p.y)).collect(),
@@ -42,7 +42,7 @@ impl Solution for MovieTheater {
 
         for i in 0..self.points.len() {
             for j in i + 1..self.points.len() {
-                let area = Point::square_area(&self.points[i], &self.points[j]);
+                let area = Point2::square_area(&self.points[i], &self.points[j]);
                 if area > largest {
                     largest = area;
                 }
@@ -128,8 +128,8 @@ impl MovieTheater {
         rect.to_polygon()
     }
 
-    fn _build_edges(&self) -> Vec<(Point, Point)> {
-        let mut edges: Vec<(Point, Point)> = vec![];
+    fn _build_edges(&self) -> Vec<(Point2, Point2)> {
+        let mut edges: Vec<(Point2, Point2)> = vec![];
         for i in 0..self.points.len() {
             let a = self.points[i];
             let b = self.points[(i + 1) % self.points.len()];

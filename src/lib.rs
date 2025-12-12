@@ -1,8 +1,8 @@
 pub mod util {
     pub mod dsu;
     pub mod grid;
-    pub mod point;
-    pub mod point3d;
+    pub mod point2;
+    pub mod point3;
     pub mod regex;
     pub mod utils;
 }
