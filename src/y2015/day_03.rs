@@ -28,6 +28,8 @@ impl Solution for PerfectlySphericalHousesinaVacuum {
         // loc, visits
         let mut houses: HashMap<Point, usize> = HashMap::new();
         let mut current = Point::new(0, 0);
+
+        // Santa visits the starting house
         houses.insert(current, 1);
 
         for c in self.data.chars() {
@@ -40,12 +42,7 @@ impl Solution for PerfectlySphericalHousesinaVacuum {
             };
 
             current = next;
-
-            if let Some(visit) = houses.get_mut(&next) {
-                *visit += 1;
-            } else {
-                houses.insert(next, 1);
-            }
+            *houses.entry(next).or_default() += 1;
         }
 
         TaskResult::Usize(houses.len())
@@ -56,8 +53,10 @@ impl Solution for PerfectlySphericalHousesinaVacuum {
         let mut houses: HashMap<Point, usize> = HashMap::new();
         let mut santa_robo = [Point::new(0, 0), Point::new(0, 0)];
 
+        // Santa & robo both visit the starting house
         houses.insert(Point::new(0, 0), 2);
 
+        // Move santa or robo with even-odd commands
         for (i, c) in self.data.chars().enumerate() {
             let p = &mut santa_robo[i % 2];
 
@@ -69,7 +68,7 @@ impl Solution for PerfectlySphericalHousesinaVacuum {
                 _ => panic!("unsupported char"),
             };
 
-            *houses.entry(*p).or_insert(0) += 1;
+            *houses.entry(*p).or_default() += 1;
         }
 
         TaskResult::Usize(houses.len())
