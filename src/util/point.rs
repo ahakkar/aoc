@@ -10,7 +10,10 @@
 //! [must_use] is not used, the compiler emits a warning.
 //!
 
-use std::ops::{Add, Sub};
+use std::{
+    fmt,
+    ops::{Add, Sub},
+};
 
 pub const ORIGIN: Point = Point::new(0, 0);
 
@@ -31,6 +34,12 @@ pub const DIAGONAL: [Point; 4] = [NORTHEAST, NORTHWEST, SOUTHEAST, SOUTHWEST];
 pub struct Point {
     pub x: i64,
     pub y: i64,
+}
+
+impl fmt::Display for Point {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "({}, {})", self.x, self.y)
+    }
 }
 
 impl Point {
