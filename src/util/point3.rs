@@ -10,7 +10,6 @@
 //! [must_use] is not used, the compiler emits a warning.
 //!
 
-use libm;
 use num_integer::sqrt;
 use std::ops::{Add, Sub};
 
@@ -28,7 +27,11 @@ impl Point3 {
     }
 
     pub fn euclid(p: Point3, q: Point3) -> f64 {
-        libm::sqrt(((p.x - q.x).pow(2) + (p.y - q.y).pow(2) + (p.z - q.z).pow(2)) as f64)
+        let dx = (p.x - q.x) as f64;
+        let dy = (p.y - q.y) as f64;
+        let dz = (p.z - q.z) as f64;
+
+        (dx * dx + dy * dy + dz * dz).sqrt()
     }
 
     pub fn squared_distance(p: Point3, q: Point3) -> i64 {
