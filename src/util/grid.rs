@@ -1,10 +1,12 @@
+use super::point2::Point2;
+use crate::util::direction::Direction;
+use grid::Grid;
 use std::{cmp::min, fmt::Display};
 
-use grid::Grid;
-
-use crate::util::{direction::Direction, utils::Orientation};
-
-use super::point2::Point2;
+pub enum Orientation {
+    Horizontal,
+    Vertical,
+}
 
 // Workarounds for Grid crate's broken coordinate order
 pub trait XyGrid<T> {

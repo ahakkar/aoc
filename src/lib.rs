@@ -2,6 +2,7 @@ pub mod util {
     pub mod direction;
     pub mod dsu;
     pub mod grid;
+    pub mod gridmap;
     pub mod point2;
     pub mod point3;
     pub mod regex;

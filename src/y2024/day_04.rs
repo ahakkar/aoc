@@ -8,11 +8,7 @@ use regex::Regex;
 
 use crate::{
     Fro, Solution, TaskResult,
-    util::{
-        direction::Direction,
-        point2::Point2,
-        utils::{GridMap, data_as_chars},
-    },
+    util::{direction::Direction, gridmap::*, point2::Point2},
 };
 
 pub struct CeresSearch {
@@ -49,7 +45,7 @@ impl Solution for CeresSearch {
 
     fn gold(&self) -> TaskResult {
         let mut sum: usize = 0;
-        let map: GridMap<char> = GridMap::new(data_as_chars(&self.data));
+        let map = GridMap::new(data_as_chars(&self.data));
 
         for y in 1..(self.data.len() - 1) {
             for x in 1..(self.data[0].len() - 1) {
