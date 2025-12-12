@@ -54,39 +54,22 @@ impl Solution for PerfectlySphericalHousesinaVacuum {
     fn gold(&self) -> TaskResult {
         // loc, visits
         let mut houses: HashMap<Point, usize> = HashMap::new();
-        let mut santa = Point::new(0, 0);
-        let mut robo = Point::new(0, 0);
+        let mut santa_robo = [Point::new(0, 0), Point::new(0, 0)];
+
         houses.insert(Point::new(0, 0), 2);
 
         for (i, c) in self.data.chars().enumerate() {
-            let mut current: Point;
+            let p = &mut santa_robo[i % 2];
 
-            if i % 2 == 0 {
-                current = santa;
-            } else {
-                current = robo;
-            }
-
-            let next: Point = match c {
-                '>' => current + EAST,
-                '<' => current + WEST,
-                '^' => current + NORTH,
-                'v' => current + SOUTH,
+            *p = match c {
+                '>' => *p + EAST,
+                '<' => *p + WEST,
+                '^' => *p + NORTH,
+                'v' => *p + SOUTH,
                 _ => panic!("unsupported char"),
             };
 
-            current = next;
-            if i % 2 == 0 {
-                santa = current;
-            } else {
-                robo = current;
-            }
-
-            if let Some(visit) = houses.get_mut(&next) {
-                *visit += 1;
-            } else {
-                houses.insert(next, 1);
-            }
+            *houses.entry(*p).or_insert(0) += 1;
         }
 
         TaskResult::Usize(houses.len())
