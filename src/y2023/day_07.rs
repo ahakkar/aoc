@@ -5,10 +5,10 @@ use std::time::Instant;
 
 #[derive(Eq, PartialEq, Debug, Clone)]
 struct Hand {
-    cards: Vec<i8>,    
+    cards: Vec<i8>,
     htype: i8,
     str: String,
-    bid: usize
+    bid: usize,
 }
 
 impl std::fmt::Display for Hand {
@@ -48,15 +48,18 @@ impl Ord for Hand {
 
 // Converts card symbols to int values for easier comparison
 fn strtoivec(string: &str) -> Vec<i8> {
-    string.chars().map(|card| match card {
-        '2'..='9' => card.to_digit(10).unwrap() as i8,
-        'A' => 14,
-        'K' => 13,
-        'Q' => 12,            
-        'T' => 10,
-        'J' => 1, // joker, not a jack 
-         _  => panic!(),
-    }).collect()    
+    string
+        .chars()
+        .map(|card| match card {
+            '2'..='9' => card.to_digit(10).unwrap() as i8,
+            'A' => 14,
+            'K' => 13,
+            'Q' => 12,
+            'T' => 10,
+            'J' => 1, // joker, not a jack
+            _ => panic!(),
+        })
+        .collect()
 }
 
 // count occurencies of each card and match their frequency
@@ -72,16 +75,15 @@ fn calc_htype(cards: &[i8]) -> i8 {
     }
 
     // Special case with full Joker hand
-    if joker_count == 5 { return 7 }
+    if joker_count == 5 {
+        return 7;
+    }
 
     // For each joker, increase the amount of largest non-joker at hand by 1
-    let mut freqs: Vec<_> = card_counts
-        .values()
-        .cloned()
-        .collect();
+    let mut freqs: Vec<_> = card_counts.values().cloned().collect();
 
     freqs.sort_unstable_by(|a, b| b.cmp(a));
-    
+
     if joker_count > 0 {
         if let Some(max) = freqs.first_mut() {
             *max += joker_count;
@@ -89,13 +91,13 @@ fn calc_htype(cards: &[i8]) -> i8 {
     }
 
     match freqs.as_slice() {
-        [5]         => 7, // Five of a Kind
-        [4, _]      => 6, // Four of a Kind
-        [3, 2]      => 5, // Full House
-        [3, ..]     => 4, // Three of a Kind
-        [2, 2, ..]  => 3, // Two Pair
-        [2, ..]     => 2, // One Pair
-        _           => 1, // High Card
+        [5] => 7,        // Five of a Kind
+        [4, _] => 6,     // Four of a Kind
+        [3, 2] => 5,     // Full House
+        [3, ..] => 4,    // Three of a Kind
+        [2, 2, ..] => 3, // Two Pair
+        [2, ..] => 2,    // One Pair
+        _ => 1,          // High Card
     }
 }
 
@@ -110,7 +112,7 @@ fn main() {
     println!("Time elapsed in main() is: {:?}", duration);
 }
 
-fn process(data: &[&str]) {  
+fn process(data: &[&str]) {
     let mut score: Vec<Hand> = Vec::with_capacity(1000);
 
     for row in data {
@@ -118,13 +120,12 @@ fn process(data: &[&str]) {
         let hand_str = a.parse::<String>().unwrap();
         let bid = b.parse::<usize>().unwrap();
 
-        score.push(
-            Hand {     
-                cards: strtoivec(&hand_str),                
-                htype: calc_htype(&strtoivec(&hand_str)),
-                str: hand_str,
-                bid
-            });
+        score.push(Hand {
+            cards: strtoivec(&hand_str),
+            htype: calc_htype(&strtoivec(&hand_str)),
+            str: hand_str,
+            bid,
+        });
     }
 
     score.sort();
@@ -141,7 +142,7 @@ fn process(data: &[&str]) {
 
 #[cfg(test)]
 mod tests {
-    use super::*; 
+    use super::*;
 
     #[test]
     fn test_hand_types() {
@@ -174,14 +175,44 @@ mod tests {
         assert_eq!(strtoivec("TTTJT"), [10, 10, 10, 1, 10]);
     }
 
-    #[test]    
+    #[test]
     fn test_hand_ord_impl() {
-        let a = Hand { cards: vec![2, 3, 4, 5, 6], htype: 1, str: String::from("23456"), bid: 806 };
-        let b = Hand { cards: vec![7, 8, 9, 10, 12], htype: 1, str: String::from("789TQ"), bid: 123 };        
-        let c = Hand { cards: vec![2, 2, 1, 4, 5], htype: 4, str: String::from("22J45"), bid: 949 }; 
-        let d = Hand { cards: vec![2, 2, 3, 3, 1], htype: 5, str: String::from("2233J"), bid: 47 };   
-        let d2 = Hand { cards: vec![2, 2, 3, 3, 1], htype: 5, str: String::from("2233J"), bid: 47 };
-        let e = Hand { cards: vec![2, 2, 3, 3, 4], htype: 5, str: String::from("22334"), bid: 200 };         
+        let a = Hand {
+            cards: vec![2, 3, 4, 5, 6],
+            htype: 1,
+            str: String::from("23456"),
+            bid: 806,
+        };
+        let b = Hand {
+            cards: vec![7, 8, 9, 10, 12],
+            htype: 1,
+            str: String::from("789TQ"),
+            bid: 123,
+        };
+        let c = Hand {
+            cards: vec![2, 2, 1, 4, 5],
+            htype: 4,
+            str: String::from("22J45"),
+            bid: 949,
+        };
+        let d = Hand {
+            cards: vec![2, 2, 3, 3, 1],
+            htype: 5,
+            str: String::from("2233J"),
+            bid: 47,
+        };
+        let d2 = Hand {
+            cards: vec![2, 2, 3, 3, 1],
+            htype: 5,
+            str: String::from("2233J"),
+            bid: 47,
+        };
+        let e = Hand {
+            cards: vec![2, 2, 3, 3, 4],
+            htype: 5,
+            str: String::from("22334"),
+            bid: 200,
+        };
 
         assert!(a < b);
         assert!(c > b);
@@ -190,16 +221,41 @@ mod tests {
         assert!(e > d);
     }
 
-    #[test]  
+    #[test]
     fn test_hand_sort_impl() {
-        let a = Hand { cards: vec![2, 3, 4, 5, 6], htype: 1, str: String::from("23456"), bid: 806 };
-        let b = Hand { cards: vec![7, 8, 9, 10, 12], htype: 1, str: String::from("789TQ"), bid: 123 };        
-        let c = Hand { cards: vec![2, 2, 1, 4, 5], htype: 4, str: String::from("22J45"), bid: 949 }; 
-        let d = Hand { cards: vec![2, 2, 3, 3, 1], htype: 5, str: String::from("2233J"), bid: 47 };         
-        let e = Hand { cards: vec![2, 2, 3, 3, 4], htype: 5, str: String::from("22334"), bid: 200 }; 
+        let a = Hand {
+            cards: vec![2, 3, 4, 5, 6],
+            htype: 1,
+            str: String::from("23456"),
+            bid: 806,
+        };
+        let b = Hand {
+            cards: vec![7, 8, 9, 10, 12],
+            htype: 1,
+            str: String::from("789TQ"),
+            bid: 123,
+        };
+        let c = Hand {
+            cards: vec![2, 2, 1, 4, 5],
+            htype: 4,
+            str: String::from("22J45"),
+            bid: 949,
+        };
+        let d = Hand {
+            cards: vec![2, 2, 3, 3, 1],
+            htype: 5,
+            str: String::from("2233J"),
+            bid: 47,
+        };
+        let e = Hand {
+            cards: vec![2, 2, 3, 3, 4],
+            htype: 5,
+            str: String::from("22334"),
+            bid: 200,
+        };
 
         let mut vec = vec![c.clone(), d.clone(), a.clone(), b.clone(), e.clone()];
         vec.sort();
         assert_eq!(vec, vec![a, b, c, d, e]);
-    }  
+    }
 }
