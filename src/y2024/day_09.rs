@@ -270,7 +270,7 @@ mod tests {
 
     #[test]
     fn test() {
-        let test_data = read_data_from_file("input/test/09.txt");
+        let test_data = read_data_from_file("input/2024/test/09.txt");
         let queue = DiskFragmenter::fro(&test_data);
 
         assert_eq!(queue.silver(), TaskResult::Usize(1928));
@@ -279,7 +279,7 @@ mod tests {
 
     #[test]
     fn real() {
-        let real_data = read_data_from_file("input/real/09.txt");
+        let real_data = read_data_from_file("input/2024/real/09.txt");
         let queue = DiskFragmenter::fro(&real_data);
 
         assert_eq!(queue.silver(), TaskResult::Usize(6242766523059));

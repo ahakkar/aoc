@@ -7,26 +7,21 @@
 use std::collections::HashSet;
 
 use crate::{
-    util::{
-        self,
-        utils::{Coord, Vec2D},
-    },
     Fro, Solution, TaskResult,
+    util::{direction::Direction, point2::Point2},
 };
 use grid::*;
-use util::utils::{EAST, NORTH, SOUTH, WEST};
 
 // Can add more shared vars here
 pub struct HoofIt {
     map: Grid<u32>,
-    dirs: Vec<Vec2D>,
-    starts: Vec<Coord>,
+    starts: Vec<Point2>,
 }
 
 // Aggregators are used to abstract to what kind of save operation the
 // end of recursion should do (save to a set, or increment an integer)
 struct SetAggregator {
-    ends: HashSet<Coord>,
+    ends: HashSet<Point2>,
 }
 
 struct CountAggregator {
@@ -34,7 +29,7 @@ struct CountAggregator {
 }
 
 trait EndAggregator {
-    fn add_end(&mut self, end: Coord);
+    fn add_end(&mut self, end: Point2);
     fn result(&self) -> usize;
 }
 
@@ -47,7 +42,7 @@ impl SetAggregator {
 }
 
 impl EndAggregator for SetAggregator {
-    fn add_end(&mut self, end: Coord) {
+    fn add_end(&mut self, end: Point2) {
         self.ends.insert(end);
     }
 
@@ -63,7 +58,7 @@ impl CountAggregator {
 }
 
 impl EndAggregator for CountAggregator {
-    fn add_end(&mut self, _end: Coord) {
+    fn add_end(&mut self, _end: Point2) {
         self.count += 1;
     }
 
@@ -80,9 +75,9 @@ impl Fro for HoofIt {
             .enumerate()
             .flat_map(|(row, values)| {
                 values.chars().enumerate().filter_map(move |(col, ch)| {
-                    ch.to_digit(10).filter(|&digit| digit == 0).map(|_| Coord {
-                        x: col as isize,
-                        y: row as isize,
+                    ch.to_digit(10).filter(|&digit| digit == 0).map(|_| Point2 {
+                        x: col as i64,
+                        y: row as i64,
                     })
                 })
             })
@@ -97,9 +92,7 @@ impl Fro for HoofIt {
             (input.len() as f64).sqrt() as usize,
         );
 
-        let dirs = Vec::from([NORTH, SOUTH, EAST, WEST]);
-
-        Self { map, dirs, starts }
+        Self { map, starts }
     }
 }
 
@@ -135,25 +128,23 @@ impl Solution for HoofIt {
 // For assisting functions
 impl HoofIt {
     // Wrapper for Grid crate, it wants (row, col) = (y, x) for some reason
-    fn get_value(&self, x: &isize, y: &isize) -> Option<&u32> {
-        self.map.get(*y, *x)
+    fn get_value(&self, point: &Point2) -> Option<&u32> {
+        self.map.get(point.y, point.x)
     }
 
-    fn seek_ends<A: EndAggregator>(&self, current: &Coord, aggregator: &mut A) {
-        if *Self::get_value(self, &current.x, &current.y).unwrap() == 9 {
+    fn seek_ends<A: EndAggregator>(&self, current: &Point2, aggregator: &mut A) {
+        if *Self::get_value(self, current).unwrap() == 9 {
             aggregator.add_end(*current);
             return;
         }
 
-        for dir in &self.dirs {
-            let dx = current.x + dir.x;
-            let dy = current.y + dir.y;
+        for dir in Direction::ORTHOGONAL {
+            let next = current.step(dir);
 
-            if let Some(neighbor) = Self::get_value(self, &dx, &dy) {
+            if let Some(neighbor) = Self::get_value(self, &next) {
                 // Check for neighbours if their value is 1 higher
-                if Self::get_value(self, &current.x, &current.y).unwrap() + 1 == *neighbor
-                {
-                    Self::seek_ends(self, &Coord { x: dx, y: dy }, aggregator);
+                if Self::get_value(self, current).unwrap() + 1 == *neighbor {
+                    Self::seek_ends(self, &next, aggregator);
                 }
             }
         }
@@ -168,16 +159,16 @@ mod tests {
 
     #[test]
     fn test() {
-        let test_data = read_data_from_file("input/test/10.txt");
+        let test_data = read_data_from_file("input/2024/test/10.txt");
         let queue = HoofIt::fro(&test_data);
 
         assert_eq!(queue.silver(), TaskResult::Usize(36));
-        assert_eq!(queue.gold(), TaskResult::Usize(0));
+        assert_eq!(queue.gold(), TaskResult::Usize(81));
     }
 
     #[test]
     fn real() {
-        let real_data = read_data_from_file("input/real/10.txt");
+        let real_data = read_data_from_file("input/2024/real/10.txt");
         let queue = HoofIt::fro(&real_data);
 
         assert_eq!(queue.silver(), TaskResult::Usize(822));

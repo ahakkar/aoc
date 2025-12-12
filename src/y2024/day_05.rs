@@ -107,7 +107,7 @@ mod tests {
 
     #[test]
     fn test_test() {
-        let test_data = read_data_from_file("input/test/05.txt");
+        let test_data = read_data_from_file("input/2024/test/05.txt");
         let queue = PrintQueue::fro(&test_data);
 
         assert_eq!(queue.silver(), TaskResult::Usize(143));
@@ -116,7 +116,7 @@ mod tests {
 
     #[test]
     fn test_real() {
-        let real_data = read_data_from_file("input/real/05.txt");
+        let real_data = read_data_from_file("input/2024/real/05.txt");
         let queue = PrintQueue::fro(&real_data);
 
         assert_eq!(queue.silver(), TaskResult::Usize(5713));

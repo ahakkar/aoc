@@ -3,7 +3,7 @@
  * Author: Antti Hakkarainen
  * https://github.com/ahakkar/
 **/
-use crate::{util::utils::intvec_from_str, Fro, Solution, TaskResult};
+use crate::{Fro, Solution, TaskResult, util::utils::intvec_from_str};
 use std::cmp::Ordering;
 
 pub struct RedNosedReports {
@@ -72,7 +72,7 @@ mod tests {
 
     #[test]
     fn test_test() {
-        let test_data = read_data_from_file("input/test/02.txt");
+        let test_data = read_data_from_file("input/2024/test/02.txt");
         let queue = RedNosedReports::fro(&test_data);
 
         assert_eq!(queue.silver(), TaskResult::Usize(2));
@@ -81,7 +81,7 @@ mod tests {
 
     #[test]
     fn test_real() {
-        let real_data = read_data_from_file("input/real/02.txt");
+        let real_data = read_data_from_file("input/2024/real/02.txt");
         let queue = RedNosedReports::fro(&real_data);
 
         assert_eq!(queue.silver(), TaskResult::Usize(639));

@@ -10,7 +10,8 @@ use crate::{
     Fro, Solution, TaskResult,
     util::{
         direction::Direction,
-        utils::{Coord, GridMap, data_as_chars},
+        point2::Point2,
+        utils::{GridMap, data_as_chars},
     },
 };
 
@@ -55,7 +56,7 @@ impl Solution for CeresSearch {
                 if map.get_idx(x, y) != Some(&'A') {
                     continue;
                 }
-                let idx = Coord::new(x as isize, y as isize);
+                let idx = Point2::new(x as i64, y as i64);
 
                 let nw = map.get_neighbor(&idx, Direction::NorthWest);
                 let ne = map.get_neighbor(&idx, Direction::NorthEast);
@@ -160,7 +161,7 @@ mod tests {
 
     #[test]
     fn test_test() {
-        let test_data = read_data_from_file("input/test/04.txt");
+        let test_data = read_data_from_file("input/2024/test/04.txt");
         let queue = CeresSearch::fro(&test_data);
 
         assert_eq!(queue.silver(), TaskResult::Usize(18));
@@ -169,7 +170,7 @@ mod tests {
 
     #[test]
     fn test_real() {
-        let real_data = read_data_from_file("input/real/04.txt");
+        let real_data = read_data_from_file("input/2024/real/04.txt");
         let queue = CeresSearch::fro(&real_data);
 
         assert_eq!(queue.silver(), TaskResult::Usize(2718));

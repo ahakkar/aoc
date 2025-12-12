@@ -9,37 +9,18 @@
 use petgraph::graph::NodeIndex;
 use std::collections::{HashMap, HashSet};
 use std::fmt::{Display, Write};
-use std::{fmt, fs};
+use std::fs;
 
 use crate::util::direction::Direction;
+use crate::util::point2::Point2;
 
-pub type Point = (usize, usize);
-pub type PointI = (isize, isize);
 pub type Grid<T> = Vec<Vec<T>>;
-pub type Visited = HashSet<(Coord, Vec2D)>;
-pub type NodeMap = HashMap<Coord, NodeIndex>;
-
-pub const NORTH: Vec2D = Vec2D::new(0, -1);
-pub const SOUTH: Vec2D = Vec2D::new(0, 1);
-pub const EAST: Vec2D = Vec2D::new(1, 0);
-pub const WEST: Vec2D = Vec2D::new(-1, 0);
-pub const STILL: Vec2D = Vec2D::new(0, 0);
+pub type Visited = HashSet<(Point2, Direction)>;
+pub type NodeMap = HashMap<Point2, NodeIndex>;
 
 pub enum Orientation {
     Horizontal,
     Vertical,
-}
-
-#[derive(Clone, Copy, Eq, Hash, PartialEq)]
-pub struct Coord {
-    pub x: isize,
-    pub y: isize,
-}
-
-#[derive(Clone, Copy, Eq, Hash, PartialEq)]
-pub struct Vec2D {
-    pub x: isize,
-    pub y: isize,
 }
 
 #[derive(Clone)]
@@ -47,72 +28,6 @@ pub struct GridMap<T> {
     d: Grid<T>,
     w: usize,
     h: usize,
-}
-
-impl Coord {
-    pub fn new(x: isize, y: isize) -> Coord {
-        Coord { x, y }
-    }
-
-    /// Checks if the coordinate is within a rectangular area defined by two other coordinates.
-    ///
-    /// # Arguments
-    ///
-    /// * `start` - A reference to a `Coord` representing the starting (top-left) point of the rectangle.
-    /// * `end` - A reference to a `Coord` representing the ending (bottom-right) point of the rectangle.
-    ///
-    /// # Returns
-    ///
-    /// `true` if the coordinate is within the bounds, `false` otherwise.
-    ///
-    /// # Examples
-    ///
-    ///
-    /// let point = Coord::new(3, 3);
-    /// let start = Coord::new(0, 0);
-    /// let end = Coord::new(5, 5);
-    /// assert_eq!(point.fits_bounds(&start, &end), true);
-    ///
-    pub fn fits_bounds(&self, start: &Coord, end: &Coord) -> bool {
-        self.x >= start.x && self.x <= end.x && self.y >= start.y && self.y <= end.y
-    }
-
-    pub fn neighbour(&self, dir: Direction) -> Coord {
-        let (dx, dy): (isize, isize) = match dir {
-            Direction::East => (1, 0),
-            Direction::North => (0, -1),
-            Direction::West => (-1, 0),
-            Direction::South => (0, 1),
-            Direction::NorthEast => (1, 1),
-            Direction::NorthWest => (-1, 1),
-            Direction::SouthEast => (1, -1),
-            Direction::SouthWest => (-1, -1),
-            _ => panic!("invalid direction"),
-        };
-
-        Coord {
-            x: self.x + dx,
-            y: self.y + dy,
-        }
-    }
-}
-
-impl fmt::Debug for Coord {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "[{}, {}]", self.x, self.y)
-    }
-}
-
-impl Vec2D {
-    pub const fn new(x: isize, y: isize) -> Vec2D {
-        Vec2D { x, y }
-    }
-}
-
-impl fmt::Debug for Vec2D {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "[{}, {}]", self.x, self.y)
-    }
 }
 
 impl<T> GridMap<T>
@@ -125,8 +40,8 @@ where
         GridMap { d, w, h }
     }
 
-    pub fn get_cell(&self, xy: &Coord) -> Option<T> {
-        if xy.x < self.w as isize && xy.y < self.h as isize && xy.x >= 0 && xy.y >= 0 {
+    pub fn get_cell(&self, xy: &Point2) -> Option<T> {
+        if xy.x < self.w as i64 && xy.y < self.h as i64 && xy.x >= 0 && xy.y >= 0 {
             Some(self.d[xy.y as usize][xy.x as usize])
         } else {
             None
@@ -149,8 +64,8 @@ where
         }
     }
 
-    pub fn get_neighbor(&self, idx: &Coord, dir: Direction) -> Option<T> {
-        let (dx, dy): (isize, isize) = match dir {
+    pub fn get_neighbor(&self, idx: &Point2, dir: Direction) -> Option<T> {
+        let (dx, dy) = match dir {
             Direction::East => (1, 0),
             Direction::North => (0, -1),
             Direction::West => (-1, 0),
@@ -163,7 +78,7 @@ where
         };
 
         if idx.x + dx >= 0 && idx.y + dy >= 0 {
-            return self.get_cell(&Coord::new(idx.x + dx, idx.y + dy));
+            return self.get_cell(&Point2::new(idx.x + dx, idx.y + dy));
         }
         None
     }
@@ -188,8 +103,8 @@ pub fn binomial_coefficient(n: usize, k: usize) -> usize {
     result
 }
 
-pub fn manhattan_distance(a: &Coord, b: &Coord) -> i64 {
-    (b.x as i64 - a.x as i64).abs() + (b.y as i64 - a.y as i64).abs()
+pub fn manhattan_distance(a: &Point2, b: &Point2) -> i64 {
+    (b.x - a.x).abs() + (b.y - a.y).abs()
 }
 
 pub fn data_as_chars(data: &[String]) -> Grid<char> {
@@ -233,12 +148,12 @@ where
     }
 }
 
-pub fn print_coords(coords: &HashSet<Coord>, c: char, e: char, w: usize, h: usize) {
+pub fn print_coords(coords: &HashSet<Point2>, c: char, e: char, w: usize, h: usize) {
     println!("map size: [{} x {}]", w, h);
 
     for y in 0..h {
         for x in 0..w {
-            let coord = Coord::new(x as isize, y as isize);
+            let coord = Point2::new(x as i64, y as i64);
             if coords.contains(&coord) {
                 print!("{}", c);
             } else {

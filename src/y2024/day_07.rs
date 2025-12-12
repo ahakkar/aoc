@@ -165,7 +165,7 @@ mod tests {
 
     #[test]
     fn test() {
-        let test_data = read_data_from_file("input/test/07.txt");
+        let test_data = read_data_from_file("input/2024/test/07.txt");
         let queue = BridgeRepair::fro(&test_data);
 
         assert_eq!(queue.silver(), TaskResult::Usize(3749));
@@ -174,7 +174,7 @@ mod tests {
 
     #[test]
     fn real() {
-        let real_data = read_data_from_file("input/real/07.txt");
+        let real_data = read_data_from_file("input/2024/real/07.txt");
         let queue = BridgeRepair::fro(&real_data);
 
         assert_eq!(queue.silver(), TaskResult::Usize(663613490587));

@@ -19,7 +19,7 @@ use crate::util::direction::Direction;
 
 pub const ORIGIN: Point2 = Point2::new(0, 0);
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
+#[derive(Copy, Clone, Eq, PartialEq, Hash)]
 pub struct Point2 {
     pub x: i64,
     pub y: i64,
@@ -28,6 +28,12 @@ pub struct Point2 {
 impl fmt::Display for Point2 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "({}, {})", self.x, self.y)
+    }
+}
+
+impl fmt::Debug for Point2 {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "[{}, {}]", self.x, self.y)
     }
 }
 
@@ -70,6 +76,48 @@ impl Point2 {
 
     pub const fn height(a: &Point2, b: &Point2) -> usize {
         (a.y - b.y).unsigned_abs() as usize + 1
+    }
+
+    /// Checks if the coordinate is within a rectangular area defined by two other coordinates.
+    ///
+    /// # Arguments
+    ///
+    /// * `start` - A reference to a `Coord` representing the starting (top-left) point of the rectangle.
+    /// * `end` - A reference to a `Coord` representing the ending (bottom-right) point of the rectangle.
+    ///
+    /// # Returns
+    ///
+    /// `true` if the coordinate is within the bounds, `false` otherwise.
+    ///
+    /// # Examples
+    ///
+    ///
+    /// let point = Coord::new(3, 3);
+    /// let start = Coord::new(0, 0);
+    /// let end = Coord::new(5, 5);
+    /// assert_eq!(point.fits_bounds(&start, &end), true);
+    ///
+    pub fn fits_bounds(&self, start: &Point2, end: &Point2) -> bool {
+        self.x >= start.x && self.x <= end.x && self.y >= start.y && self.y <= end.y
+    }
+
+    pub fn neighbour(&self, dir: Direction) -> Point2 {
+        let (dx, dy): (i64, i64) = match dir {
+            Direction::East => (1, 0),
+            Direction::North => (0, -1),
+            Direction::West => (-1, 0),
+            Direction::South => (0, 1),
+            Direction::NorthEast => (1, 1),
+            Direction::NorthWest => (-1, 1),
+            Direction::SouthEast => (1, -1),
+            Direction::SouthWest => (-1, -1),
+            _ => panic!("invalid direction"),
+        };
+
+        Point2 {
+            x: self.x + dx,
+            y: self.y + dy,
+        }
     }
 }
 

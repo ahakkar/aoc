@@ -111,7 +111,7 @@ mod tests {
 
     #[test]
     fn test() {
-        let test_data = read_data_from_file("input/test/08.txt");
+        let test_data = read_data_from_file("input/2024/test/08.txt");
         let queue = ResonantCollinearity::fro(&test_data);
 
         assert_eq!(queue.silver(), TaskResult::Usize(14));
@@ -120,7 +120,7 @@ mod tests {
 
     #[test]
     fn real() {
-        let real_data = read_data_from_file("input/real/08.txt");
+        let real_data = read_data_from_file("input/2024/real/08.txt");
         let queue = ResonantCollinearity::fro(&real_data);
 
         assert_eq!(queue.silver(), TaskResult::Usize(318));

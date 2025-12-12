@@ -81,7 +81,7 @@ mod tests {
 
     #[test]
     fn test_silver_test() {
-        let test_data = read_data_from_file("input/test/03s.txt");
+        let test_data = read_data_from_file("input/2024/test/03s.txt");
         let queue = MullItOver::fro(&test_data);
 
         assert_eq!(queue.silver(), TaskResult::Usize(161));
@@ -89,7 +89,7 @@ mod tests {
 
     #[test]
     fn test_gold_test() {
-        let test_data = read_data_from_file("input/test/03g.txt");
+        let test_data = read_data_from_file("input/2024/test/03g.txt");
         let queue = MullItOver::fro(&test_data);
 
         assert_eq!(queue.gold(), TaskResult::Usize(48));
@@ -97,7 +97,7 @@ mod tests {
 
     #[test]
     fn test_real() {
-        let real_data = read_data_from_file("input/real/03.txt");
+        let real_data = read_data_from_file("input/2024/real/03.txt");
         let queue = MullItOver::fro(&real_data);
 
         assert_eq!(queue.silver(), TaskResult::Usize(175615763));
