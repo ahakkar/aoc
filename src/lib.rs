@@ -13,8 +13,8 @@ pub mod y2015 {
     pub mod day_01;
     pub mod day_02;
     pub mod day_03;
-    //pub mod day_04;
-    //pub mod day_05;
+    pub mod day_04;
+    pub mod day_05;
     //pub mod day_06;
     //pub mod day_07;
     //pub mod day_08;
@@ -153,6 +153,8 @@ pub fn solve(year: &str, day: &str, input: &str) -> AocResult {
             "03" => {
                 run_solution::<y2015::day_03::PerfectlySphericalHousesinaVacuum>(input)
             }
+            "04" => run_solution::<y2015::day_04::TheIdealStockingStuffer>(input),
+            "05" => run_solution::<y2015::day_05::DoesntHeHaveInternElvesForThis>(input),
             _ => unreachable!(),
         },
         "2023" => match day {
