@@ -110,11 +110,14 @@ mod tests {
 
     #[test]
     fn test() {
-        let test_data = read_data_from_file("input/2023/test/01.txt");
-        let queue = Trebuchet::fro(&test_data);
+        let mut test_data = read_data_from_file("input/2023/test/01a.txt");
+        let mut queue = Trebuchet::fro(&test_data);
 
-        assert_eq!(queue.silver(), TaskResult::Usize(0));
-        assert_eq!(queue.gold(), TaskResult::Usize(0));
+        assert_eq!(queue.silver(), TaskResult::Usize(142));
+
+        test_data = read_data_from_file("input/2023/test/01b.txt");
+        queue = Trebuchet::fro(&test_data);
+        assert_eq!(queue.gold(), TaskResult::Usize(281));
     }
 
     #[test]

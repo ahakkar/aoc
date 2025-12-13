@@ -123,8 +123,8 @@ mod tests {
         let test_data = read_data_from_file("input/2023/test/02.txt");
         let queue = CubeConundrum::fro(&test_data);
 
-        assert_eq!(queue.silver(), TaskResult::Usize(0));
-        assert_eq!(queue.gold(), TaskResult::Usize(0));
+        assert_eq!(queue.silver(), TaskResult::Usize(8));
+        assert_eq!(queue.gold(), TaskResult::Usize(2286));
     }
 
     #[test]
