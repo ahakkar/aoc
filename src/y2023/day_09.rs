@@ -25,7 +25,7 @@ impl Solution for MirageMaintenance {
     fn silver(&self) -> TaskResult {
         let mut sum: i64 = 0;
 
-        for row in data {
+        for row in &self.data {
             let mut cum: i64 = 0;
             let mut series: Vec<i64> = vec![];
             let mut nums: Vec<i64> = row
@@ -55,7 +55,7 @@ impl Solution for MirageMaintenance {
     fn gold(&self) -> TaskResult {
         let mut sum: i64 = 0;
 
-        for row in data {
+        for row in &self.data {
             let mut prev: i64 = 0;
             let mut series: Vec<Vec<i64>> = vec![];
             let mut nums: Vec<i64> = row

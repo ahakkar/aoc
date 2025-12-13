@@ -35,21 +35,21 @@ impl Fro for ClumsyCrucible {
 // Main solvers
 impl Solution for ClumsyCrucible {
     fn silver(&self) -> TaskResult {
-        let mut grid: Matrix<u32> = Matrix::new_empty(data[0].len());
-        for row in data {
+        let mut grid: Matrix<u32> = Matrix::new_empty(self.data[0].len());
+        for row in &self.data {
             let parsed: Vec<u32> = row.chars().map(|c| c.to_digit(10).unwrap()).collect();
             grid.extend(&parsed).unwrap();
         }
-        (get_lowest_weight_path(grid, 1, 3) as usize).into()
+        (ClumsyCrucible::get_lowest_weight_path(grid, 1, 3) as usize).into()
     }
 
     fn gold(&self) -> TaskResult {
-        let mut grid: Matrix<u32> = Matrix::new_empty(data[0].len());
-        for row in data {
+        let mut grid: Matrix<u32> = Matrix::new_empty(self.data[0].len());
+        for row in &self.data {
             let parsed: Vec<u32> = row.chars().map(|c| c.to_digit(10).unwrap()).collect();
             grid.extend(&parsed).unwrap();
         }
-        (get_lowest_weight_path(grid, 4, 10) as usize).into()
+        (ClumsyCrucible::get_lowest_weight_path(grid, 4, 10) as usize).into()
     }
 }
 

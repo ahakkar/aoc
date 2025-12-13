@@ -7,16 +7,12 @@
 use crate::{Fro, Solution, TaskResult};
 
 // Can add more shared vars here
-pub struct WaitForIt {
-    data: Vec<String>,
-}
+pub struct WaitForIt {}
 
 // Can be used to implement fancier task-specific parsing
 impl Fro for WaitForIt {
-    fn fro(input: &str) -> Self {
-        Self {
-            data: input.split('\n').map(|line| line.to_string()).collect(),
-        }
+    fn fro(_input: &str) -> Self {
+        WaitForIt {}
     }
 }
 
@@ -31,7 +27,7 @@ impl Solution for WaitForIt {
     }
 
     fn gold(&self) -> TaskResult {
-        (self.calc_dist(62649190, 553101014731074) as usize).into()
+        self.calc_dist(62649190, 553101014731074).into()
     }
 }
 

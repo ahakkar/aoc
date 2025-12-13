@@ -55,14 +55,14 @@ impl Fro for ParabolicReflectorDish {
 // Main solvers
 impl Solution for ParabolicReflectorDish {
     fn silver(&self) -> TaskResult {
-        let (mut map, cg) = parse_map(data);
-        move_balls(&mut map, &cg, &NORTH);
-        count_weight(&map).into()
+        let (mut map, cg) = ParabolicReflectorDish::parse_map(&self.data);
+        ParabolicReflectorDish::move_balls(&mut map, &cg, &NORTH);
+        ParabolicReflectorDish::count_weight(&map).into()
     }
 
     fn gold(&self) -> TaskResult {
-        let (mut map, cg) = parse_map(data);
-        find_cycle(&mut map, &cg, &1_000_000_000).into()
+        let (mut map, cg) = ParabolicReflectorDish::parse_map(&self.data);
+        ParabolicReflectorDish::find_cycle(&mut map, &cg, &1_000_000_000).into()
     }
 }
 
@@ -148,7 +148,7 @@ impl ParabolicReflectorDish {
         // Find start and end for a cycle
         let (start, end) = loop {
             for next_dir in [NORTH, WEST, SOUTH, EAST] {
-                move_balls(map, cg, &next_dir);
+                ParabolicReflectorDish::move_balls(map, cg, &next_dir);
             }
 
             let end = seen_maps.len();
@@ -168,7 +168,7 @@ impl ParabolicReflectorDish {
             }
         }
         // Return the final weight
-        count_weight(found_value.unwrap())
+        ParabolicReflectorDish::count_weight(found_value.unwrap())
     }
 }
 

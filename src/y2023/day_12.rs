@@ -35,14 +35,14 @@ impl Solution for HotSprings {
         let mut groups: Vec<Group> = vec![];
         let mut silver: usize = 0;
 
-        for row in data {
-            groups.push(parse_to_group(row.clone()));
+        for row in &self.data {
+            groups.push(HotSprings::parse_to_group(row.clone()));
         }
 
-        for g in silver_groups {
+        for g in groups {
             //println!("{:?} {:?} {}", g.chars, g.constraints, g.len);
-            let mut current = String::new();
-            silver += count_combinations(g, 0, current, &mut memo);
+            let current = String::new();
+            silver += HotSprings::count_combinations(&g, 0, current, &mut memo);
         }
 
         silver.into()
@@ -51,16 +51,16 @@ impl Solution for HotSprings {
     fn gold(&self) -> TaskResult {
         let mut memo: HashMap<(Vec<i8>, String), usize> = HashMap::new();
         let mut groups: Vec<Group> = vec![];
-        let mut gold: usize = 0;
+        let mut _gold: usize = 0;
 
-        for row in data {
-            groups.push(unfold_to_group(row, 5));
+        for row in &self.data {
+            groups.push(HotSprings::unfold_to_group(row, 5));
         }
 
         for g in groups {
             println!("{:?} {:?} {}", g.chars, g.constraints, g.len);
-            let mut current = String::new();
-            gold += count_combinations(g, 0, current, &mut memo);
+            let current = String::new();
+            _gold += HotSprings::count_combinations(&g, 0, current, &mut memo);
         }
 
         TaskResult::String("not done".to_string())
@@ -86,18 +86,16 @@ impl HotSprings {
         }
     }
 
-    fn unfold_to_group(row: String, m: u8) -> Group {
+    fn unfold_to_group(row: &str, m: u8) -> Group {
         let (chars, cst) = row.trim().split_once(' ').unwrap();
 
-        let chars_repeated: Vec<char> = std::iter::repeat(chars)
-            .take(m as usize)
+        let chars_repeated: Vec<char> = std::iter::repeat_n(chars, m as usize)
             .collect::<Vec<&str>>()
             .join("?")
             .chars()
             .collect();
 
-        let binding = std::iter::repeat(cst)
-            .take(m as usize)
+        let binding = std::iter::repeat_n(cst, m as usize)
             .collect::<Vec<&str>>()
             .join(",");
         let cst_repeated = binding.split(',');
@@ -113,41 +111,42 @@ impl HotSprings {
 
     // forms patterns recursively and checks if they match constraints
     fn count_combinations(
-        group: Group,
+        group: &Group,
         idx: usize,
-        mut current: String,
+        current: String,
         memo: &mut HashMap<(Vec<i8>, String), usize>,
     ) -> usize {
         // base case
         if idx == group.len {
-            let result = match matches_constraints(&current, &group.constraints) {
-                true => 1,
-                false => 0,
-            };
+            let result =
+                match HotSprings::matches_constraints(&current, &group.constraints) {
+                    true => 1,
+                    false => 0,
+                };
             return result;
         }
 
-        let mut key = (group.constraints.clone(), current.to_string()).clone();
+        let key = (group.constraints.clone(), current.to_string()).clone();
         if let Some(&result) = memo.get(&key) {
             return result;
         }
 
         // replace ? with or . and continue recursion
         let result = if group.chars.get(idx).unwrap() == &'?' {
-            count_combinations(
-                group.clone(),
+            HotSprings::count_combinations(
+                group,
                 idx + 1,
                 current.clone() + &'#'.to_string(),
                 memo,
-            ) + count_combinations(
-                group.clone(),
+            ) + HotSprings::count_combinations(
+                group,
                 idx + 1,
                 current.clone() + &'.'.to_string(),
                 memo,
             )
         } else {
-            count_combinations(
-                group.clone(),
+            HotSprings::count_combinations(
+                group,
                 idx + 1,
                 current.clone() + &group.chars.get(idx).unwrap().to_string(),
                 memo,

@@ -87,7 +87,7 @@ impl Solution for CamelCards {
 
         for (i, hand) in score.iter().enumerate() {
             println!("{} {} {} {}", i, hand.str, hand.htype, hand.bid);
-            sum += hand.bid as usize * (i + 1);
+            sum += hand.bid * (i + 1);
         }
 
         sum.into()
@@ -161,10 +161,10 @@ impl CamelCards {
 
         freqs.sort_unstable_by(|a, b| b.cmp(a));
 
-        if joker_count > 0 {
-            if let Some(max) = freqs.first_mut() {
-                *max += joker_count;
-            }
+        if joker_count > 0
+            && let Some(max) = freqs.first_mut()
+        {
+            *max += joker_count;
         }
 
         match freqs.as_slice() {

@@ -37,7 +37,7 @@ pub mod y2023 {
     pub mod day_07;
     pub mod day_08;
     pub mod day_09;
-    pub mod day_10;
+    // pub mod day_10;
     pub mod day_11;
     pub mod day_12;
     pub mod day_13;
@@ -163,9 +163,9 @@ pub fn solve(year: &str, day: &str, input: &str) -> AocResult {
             "05" => run_solution::<y2023::day_05::IfYouGiveASeedAFertilizer>(input),
             "06" => run_solution::<y2023::day_06::WaitForIt>(input),
             "07" => run_solution::<y2023::day_07::CamelCards>(input),
-            "08" => run_solution::<y2023::day_08::HauntedWastelan>(input),
+            "08" => run_solution::<y2023::day_08::HauntedWasteland>(input),
             "09" => run_solution::<y2023::day_09::MirageMaintenance>(input),
-            "10" => run_solution::<y2023::day_10::PipeMaze>(input),
+            // "10" => run_solution::<y2023::day_10::PipeMaze>(input),
             "11" => run_solution::<y2023::day_11::CosmicExpansion>(input),
             "12" => run_solution::<y2023::day_12::HotSprings>(input),
             "13" => run_solution::<y2023::day_13::PointofIncidence>(input),

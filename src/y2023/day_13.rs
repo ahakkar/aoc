@@ -26,28 +26,45 @@ impl Fro for PointofIncidence {
 // Main solvers
 impl Solution for PointofIncidence {
     fn silver(&self) -> TaskResult {
-        let (rows, cols) = parse_to_bits(map);
-        let row_result = match_lines(&rows, None);
-        let col_result = match_lines(&cols, None);
+        let result =
+            PointofIncidence::process_data(&self.data, PointofIncidence::process_silver);
 
-        match row_result {
-            r if r > -1 => return TaskResult::Usize(((r + OFFSET) * 100) as usize),
-            _ => return TaskResult::Usize((col_result + OFFSET) as usize),
-        }
+        TaskResult::Usize(result as usize)
     }
 
     fn gold(&self) -> TaskResult {
-        let (rows, cols) = parse_to_bits(map);
-        let vars = create_variations(&rows, &cols, map.len(), map[0].len());
+        let result =
+            PointofIncidence::process_data(&self.data, PointofIncidence::process_gold);
+        TaskResult::Usize(result as usize)
+    }
+}
+
+// For assisting functions
+impl PointofIncidence {
+    fn process_silver(map: &[String]) -> isize {
+        let (rows, cols) = PointofIncidence::parse_to_bits(map);
+        let row_result = PointofIncidence::match_lines(&rows, None);
+        let col_result = PointofIncidence::match_lines(&cols, None);
+
+        match row_result {
+            r if r > -1 => (r + OFFSET) * 100,
+            _ => col_result + OFFSET,
+        }
+    }
+
+    fn process_gold(map: &[String]) -> isize {
+        let (rows, cols) = PointofIncidence::parse_to_bits(map);
+        let vars =
+            PointofIncidence::create_variations(&rows, &cols, &map.len(), &map[0].len());
         let mut min_row = isize::MAX;
         let mut min_col = isize::MAX;
 
-        let og_row_result = match_lines(&rows, None);
-        let og_col_result = match_lines(&cols, None);
+        let og_row_result = PointofIncidence::match_lines(&rows, None);
+        let og_col_result = PointofIncidence::match_lines(&cols, None);
 
         for var in vars {
-            let row_result = match_lines(&var.0, Some(og_row_result));
-            let col_result = match_lines(&var.1, Some(og_col_result));
+            let row_result = PointofIncidence::match_lines(&var.0, Some(og_row_result));
+            let col_result = PointofIncidence::match_lines(&var.1, Some(og_col_result));
 
             if row_result >= 0 {
                 min_row = std::cmp::min(min_row, row_result);
@@ -58,26 +75,23 @@ impl Solution for PointofIncidence {
         }
 
         if (min_row >= 0) && min_row != isize::MAX {
-            return TaskResult::Usize(((min_row + OFFSET) * 100) as usize);
+            return (min_row + OFFSET) * 100;
         } else if (min_col >= 0) && min_col != isize::MAX {
-            return TaskResult::Usize((min_col + OFFSET) as usize);
+            return min_col + OFFSET;
         }
-        0.into()
+        0
     }
-}
 
-// For assisting functions
-impl PointofIncidence {
     // new variation for each one cell bit toggle
     fn create_variations(
         rows: &[i32],
         cols: &[i32],
-        height: usize,
-        width: usize,
+        height: &usize,
+        width: &usize,
     ) -> Vec<(Vec<i32>, Vec<i32>)> {
         let mut vars = Vec::new();
-        for y in 0..height {
-            for x in 0..width {
+        for y in 0..*height {
+            for x in 0..*width {
                 let mut new_rows = rows.to_vec();
                 let mut new_cols = cols.to_vec();
 

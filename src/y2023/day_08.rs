@@ -9,18 +9,18 @@ use num_integer::lcm;
 use std::collections::HashMap;
 
 // Can add more shared vars here
-pub struct HauntedWastelan {
+pub struct HauntedWasteland {
     data: Vec<String>,
     nodes: HashMap<String, (String, String)>,
     start_nodes: Vec<String>,
 }
 
 // Can be used to implement fancier task-specific parsing
-impl Fro for HauntedWastelan {
+impl Fro for HauntedWasteland {
     fn fro(input: &str) -> Self {
         let data: Vec<String> = input.split('\n').map(|line| line.to_string()).collect();
         let mut start_nodes: Vec<String> = vec![];
-        let nodes = build_tree(&data, &mut start_nodes);
+        let nodes = HauntedWasteland::build_tree(&data, &mut start_nodes);
 
         Self {
             data,
@@ -31,15 +31,15 @@ impl Fro for HauntedWastelan {
 }
 
 // Main solvers
-impl Solution for HauntedWastelan {
+impl Solution for HauntedWasteland {
     // traverse from start to end, counting iterations
     fn silver(&self) -> TaskResult {
-        let mut endless_dir_iter = &self.data.first().unwrap().chars().cycle();
+        let mut endless_dir_iter = self.data.first().unwrap().chars().cycle();
         let mut current_node: String = String::from("AAA");
         let mut dist: i64 = 0;
 
         while current_node != *"ZZZ" {
-            let n = nodes.get(&current_node).unwrap();
+            let n = self.nodes.get(&current_node).unwrap();
             match endless_dir_iter.next().unwrap() {
                 'L' => current_node = n.0.clone(),
                 'R' => current_node = n.1.clone(),
@@ -56,25 +56,26 @@ impl Solution for HauntedWastelan {
      * tells the total distance.
      */
     fn gold(&self) -> TaskResult {
-        let mut endless_dir_iter = &self.data.first().unwrap().chars().cycle();
-        let mut current_nodes = self.start_nodes;
+        let mut endless_dir_iter = self.data.first().unwrap().chars().cycle();
+        let mut current_nodes = self.start_nodes.clone();
         let mut intervals = vec![0; current_nodes.len()];
         let mut steps: i64 = 0;
 
         // Find a repeating interval for every start node.
-        while intervals.iter().any(|&i| i == 0) {
+        while intervals.contains(&0) {
             // Determine the direction based on the current iteration
             let dir = endless_dir_iter.next().unwrap();
 
             for (i, node) in current_nodes.iter_mut().enumerate() {
-                let n = nodes.get(node).unwrap();
+                let n = self.nodes.get(node).unwrap();
                 match dir {
                     'L' => *node = n.0.clone(),
                     'R' => *node = n.1.clone(),
                     _ => panic!(),
                 }
 
-                if check_node(node.as_str(), &'Z') && intervals[i] == 0 {
+                if HauntedWasteland::check_node(node.as_str(), &'Z') && intervals[i] == 0
+                {
                     intervals[i] = steps + 1;
                 }
             }
@@ -90,7 +91,7 @@ impl Solution for HauntedWastelan {
 }
 
 // For assisting functions
-impl HauntedWastelan {
+impl HauntedWasteland {
     fn build_tree(
         data: &[String],
         start_nodes: &mut Vec<String>,
@@ -102,7 +103,7 @@ impl HauntedWastelan {
             let (l, r) = children.split_once(", ").unwrap();
 
             // extract start nodes for gold, saves cpu cycles
-            if check_node(parent, &'A') {
+            if HauntedWasteland::check_node(parent, &'A') {
                 start_nodes.push(String::from(parent));
             }
 
@@ -132,7 +133,7 @@ mod tests {
     #[test]
     fn test() {
         let test_data = read_data_from_file("input/2023/test/08.txt");
-        let queue = HauntedWastelan::fro(&test_data);
+        let queue = HauntedWasteland::fro(&test_data);
 
         assert_eq!(queue.silver(), TaskResult::Usize(0));
         assert_eq!(queue.gold(), TaskResult::Usize(0));
@@ -141,7 +142,7 @@ mod tests {
     #[test]
     fn real() {
         let real_data = read_data_from_file("input/2023/real/08.txt");
-        let queue = HauntedWastelan::fro(&real_data);
+        let queue = HauntedWasteland::fro(&real_data);
 
         assert_eq!(queue.silver(), TaskResult::Usize(16697));
         assert_eq!(queue.gold(), TaskResult::Usize(10668805));

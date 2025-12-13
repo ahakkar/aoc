@@ -4,12 +4,14 @@
  * https://github.com/ahakkar/
 **/
 
-use crate::{Fro, Solution, TaskResult};
+use crate::{Fro, Solution, TaskResult, util::point2::Point2};
 
 // Can add more shared vars here
 pub struct LavaductLagoon {
     data: Vec<String>,
 }
+
+type Grid<T> = Vec<Vec<T>>;
 
 // Can be used to implement fancier task-specific parsing
 impl Fro for LavaductLagoon {
@@ -25,28 +27,28 @@ impl Solution for LavaductLagoon {
     fn silver(&self) -> TaskResult {
         let mut sum: usize = 0;
         let mut grid: Grid<char> = vec![vec!['.'; 4096]; 4096];
-        let mut dpos: Point = (2048, 2048);
+        let mut dpos = Point2::new(2048, 2048);
         grid[2048][2048] = '#'; // digger starts here
 
         // dig
-        for row in data {
+        for row in &self.data {
             let (dir, amtcolor) = row.trim().split_once(' ').unwrap();
             let (amt, _) = amtcolor.trim().split_once(' ').unwrap();
             sum += amt.parse::<usize>().unwrap();
-            dig(&mut dpos, &mut grid, dir, amt.parse::<usize>().unwrap());
+            LavaductLagoon::dig(&mut dpos, &mut grid, dir, amt.parse::<usize>().unwrap());
         }
-        (sum + flood_fill(&mut grid, 2049, 2049, '#')).into()
+        (sum + LavaductLagoon::flood_fill(&mut grid, 2049, 2049, '#')).into()
     }
 
     fn gold(&self) -> TaskResult {
         let mut sum: isize = 0;
         let mut bsum: isize = 0;
-        let mut dpos: PointI = (0, 0);
-        let mut vertices: Vec<PointI> = vec![];
-        vertices.push((0, 0)); // start
+        let mut dpos = Point2::new(0, 0);
+        let mut vertices: Vec<Point2> = vec![];
+        vertices.push(Point2::new(0, 0)); // start
 
         // parse to vertices
-        for row in data {
+        for row in &self.data {
             let (_, amtcolor) = row.trim().split_once(' ').unwrap();
             let (_, mut color) = amtcolor.trim().split_once(' ').unwrap();
 
@@ -54,20 +56,20 @@ impl Solution for LavaductLagoon {
             let dir = u8::from_str_radix(&color[5..6], 16).unwrap();
             let length = isize::from_str_radix(&color[0..5], 16).unwrap();
             bsum += length;
-            add_vertex(&mut dpos, &mut vertices, dir, length);
+            LavaductLagoon::add_vertex(&mut dpos, &mut vertices, dir, length as i64);
         }
 
         // use shoelace formula to calculate area
         // https://en.wikipedia.org/wiki/Shoelace_formula
         let n = vertices.len();
         for i in 0..n {
-            let x1 = vertices[i].0;
-            let y1 = vertices[i].1;
+            let x1 = vertices[i].x;
+            let y1 = vertices[i].y;
 
-            let x2 = vertices[(i + 1) % n].0;
-            let y2 = vertices[(i + 1) % n].1;
+            let x2 = vertices[(i + 1) % n].x;
+            let y2 = vertices[(i + 1) % n].y;
 
-            sum += x1 * y2 - y1 * x2;
+            sum += (x1 * y2 - y1 * x2) as isize;
         }
         (((sum + bsum) / 2 + 1) as usize).into()
     }
@@ -75,27 +77,27 @@ impl Solution for LavaductLagoon {
 
 // For assisting functions
 impl LavaductLagoon {
-    fn add_vertex(dpos: &mut PointI, vertices: &mut Vec<PointI>, dir: u8, length: isize) {
+    fn add_vertex(dpos: &mut Point2, vertices: &mut Vec<Point2>, dir: u8, length: i64) {
         match dir {
             /*R */
             0 => {
-                vertices.push((dpos.0 + length, dpos.1));
-                dpos.0 += length
+                vertices.push(Point2::new(dpos.x + length, dpos.y));
+                dpos.x += length
             }
             /*D */
             1 => {
-                vertices.push((dpos.0, dpos.1 + length));
-                dpos.1 += length
+                vertices.push(Point2::new(dpos.x, dpos.y + length));
+                dpos.y += length
             }
             /*L */
             2 => {
-                vertices.push((dpos.0 - length, dpos.1));
-                dpos.0 -= length
+                vertices.push(Point2::new(dpos.x - length, dpos.y));
+                dpos.x -= length
             }
             /*U */
             3 => {
-                vertices.push((dpos.0, dpos.1 - length));
-                dpos.1 -= length
+                vertices.push(Point2::new(dpos.x, dpos.y - length));
+                dpos.y -= length
             }
             _ => panic!("invalid dir num"),
         }
@@ -139,30 +141,30 @@ impl LavaductLagoon {
         count
     }
 
-    fn dig(dpos: &mut Point, grid: &mut Grid<char>, dir: &str, amt: usize) -> Point {
+    fn dig(dpos: &mut Point2, grid: &mut Grid<char>, dir: &str, amt: usize) -> Point2 {
         match dir.chars().next().unwrap() {
             'R' => {
                 for _ in 0..amt {
-                    grid[dpos.1][dpos.0 + 1] = '#';
-                    dpos.0 += 1;
+                    grid[dpos.y as usize][(dpos.x + 1) as usize] = '#';
+                    dpos.x += 1;
                 }
             }
             'L' => {
                 for _ in 0..amt {
-                    grid[dpos.1][dpos.0 - 1] = '#';
-                    dpos.0 -= 1;
+                    grid[dpos.y as usize][(dpos.x - 1) as usize] = '#';
+                    dpos.x -= 1;
                 }
             }
             'U' => {
                 for _ in 0..amt {
-                    grid[dpos.1 - 1][dpos.0] = '#';
-                    dpos.1 -= 1;
+                    grid[(dpos.y - 1) as usize][dpos.x as usize] = '#';
+                    dpos.y -= 1;
                 }
             }
             'D' => {
                 for _ in 0..amt {
-                    grid[dpos.1 + 1][dpos.0] = '#';
-                    dpos.1 += 1;
+                    grid[(dpos.y + 1) as usize][dpos.x as usize] = '#';
+                    dpos.y += 1;
                 }
             }
             _ => panic!("bad dig dir"),

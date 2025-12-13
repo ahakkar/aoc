@@ -4,6 +4,8 @@
  * https://github.com/ahakkar/
 **/
 
+#![allow(clippy::needless_range_loop)]
+
 use crate::{Fro, Solution, TaskResult};
 use regex::Regex;
 
@@ -24,7 +26,7 @@ impl Fro for GearRatios {
 // Main solvers
 impl Solution for GearRatios {
     fn silver(&self) -> TaskResult {
-        let RE_ID: regex::Regex = Regex::new(r"\d{1,3}").unwrap();
+        let re_id: regex::Regex = Regex::new(r"\d{1,3}").unwrap();
 
         let mut sum = 0;
 
@@ -33,7 +35,7 @@ impl Solution for GearRatios {
         self.conv_to_2d_grid(&self.data, &mut twod_grid);
 
         for (y, row) in self.data.iter().enumerate() {
-            let ids_iter = RE_ID.find_iter(row);
+            let ids_iter = re_id.find_iter(row);
 
             // Add the id to sum if it has a symbol as neighbour
             for iter in ids_iter {
@@ -46,11 +48,11 @@ impl Solution for GearRatios {
     }
 
     fn gold(&self) -> TaskResult {
-        let RE_SYMBOL: regex::Regex = Regex::new(r"[*]").unwrap();
+        let re_symbol: regex::Regex = Regex::new(r"[*]").unwrap();
 
         let mut sum = 0;
         for (row, row_str) in self.data.iter().enumerate() {
-            for gear in RE_SYMBOL.find_iter(row_str) {
+            for gear in re_symbol.find_iter(row_str) {
                 sum += self.check_neighbours_gold(&self.data, &row, &gear.start());
             }
         }
@@ -66,7 +68,7 @@ impl GearRatios {
         row: &usize,
         id_iter: &regex::Match<'_>,
     ) -> bool {
-        let RE_SYMBOLS: regex::Regex = Regex::new(r"[-*#&+$%/@=]").unwrap();
+        let re_symbols: regex::Regex = Regex::new(r"[-*#&+$%/@=]").unwrap();
         let mut neighbours: String = String::new();
         let grid_height = twod_grid.len();
         let grid_width = twod_grid[0].len();
@@ -93,7 +95,7 @@ impl GearRatios {
             }
         }
 
-        return RE_SYMBOLS.find(neighbours.as_str()).is_some();
+        re_symbols.find(neighbours.as_str()).is_some()
     }
 
     /**
@@ -103,11 +105,11 @@ impl GearRatios {
      */
     fn check_neighbours_gold(
         &self,
-        twod_grid: &Vec<String>,
+        twod_grid: &[String],
         row: &usize,
         col: &usize,
     ) -> i64 {
-        let RE_ID: regex::Regex = Regex::new(r"\d{1,3}").unwrap();
+        let re_id: regex::Regex = Regex::new(r"\d{1,3}").unwrap();
         let start = col.saturating_sub(3);
         let end = start + 7;
 
@@ -122,7 +124,7 @@ impl GearRatios {
         }
 
         // check if any numbers are next to the gear in the flattened view
-        for num in RE_ID.find_iter(&neighbours) {
+        for num in re_id.find_iter(&neighbours) {
             if (num.start()..num.end())
                 .any(|index| [2, 3, 4, 10, 12, 18, 19, 20].contains(&index))
             {

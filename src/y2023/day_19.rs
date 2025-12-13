@@ -4,6 +4,20 @@
  * https://github.com/ahakkar/
 **/
 
+#![allow(dead_code)]
+#![allow(unused_parens)]
+#![allow(unused_imports)]
+#![allow(unused_variables)]
+#![allow(unused_mut)]
+#![allow(unused_assignments)]
+#![allow(unused_must_use)]
+#![allow(clippy::needless_return)]
+#![allow(clippy::needless_range_loop)]
+#![allow(clippy::only_used_in_recursion)]
+#![allow(clippy::never_loop)]
+#![allow(clippy::useless_vec)]
+#![allow(clippy::collapsible_if)]
+
 use crate::{Fro, Solution, TaskResult};
 
 use std::collections::{HashMap, VecDeque};
@@ -87,16 +101,16 @@ impl Solution for Aplenty {
         let mut process_input = true;
 
         // parse processes & rules from input
-        for row in data {
+        for row in &self.data {
             if row.is_empty() {
                 process_input = false;
                 continue;
             }
             if process_input {
-                let process = parse_process(row);
+                let process = Aplenty::parse_process(row);
                 procs.insert(process.name.clone(), process);
             } else {
-                partq.push_back(parse_part(row));
+                partq.push_back(Aplenty::parse_part(row));
             }
         }
 
@@ -108,7 +122,7 @@ impl Solution for Aplenty {
 
                 // Check for matching rules
                 for rule in &process.rules {
-                    let (matches, next) = rule_matches(&part, rule.clone());
+                    let (matches, next) = Aplenty::rule_matches(&part, rule.clone());
                     if matches {
                         match next.as_deref() {
                             Some("A") => {
@@ -146,18 +160,18 @@ impl Solution for Aplenty {
 
     fn gold(&self) -> TaskResult {
         let mut procs: Processes = HashMap::new();
-        let mut sum: usize = 0;
+        let mut _sum: usize = 0;
 
         // parse processes & rules from input
-        for row in data {
+        for row in &self.data {
             if row.is_empty() {
                 break;
             }
-            let process = parse_process(row);
+            let process = Aplenty::parse_process(row);
             procs.insert(process.name.clone(), process);
         }
 
-        let mut paths: Vec<Gold> = vec![];
+        let mut _paths: Vec<Gold> = vec![];
         let mut bounds: Vec<(&str, Gold)> = vec![(
             "in",
             Gold {
@@ -203,7 +217,7 @@ impl Solution for Aplenty {
            }
         */
 
-        sum += 1;
+        _sum += 1;
         TaskResult::String("unsolved".to_string())
     }
 }

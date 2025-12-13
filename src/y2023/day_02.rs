@@ -53,8 +53,8 @@ impl Solution for CubeConundrum {
         let mut sum: usize = 0;
 
         for row in &self.data {
-            let parts_iter = row.split(':');
-            sum += self.check_gold_game(parts_iter.last().unwrap());
+            let mut parts_iter = row.split(':');
+            sum += self.check_gold_game(parts_iter.next_back().unwrap());
         }
         sum.into()
     }

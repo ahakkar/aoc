@@ -34,7 +34,11 @@ impl Fro for LensLibrary {
 // Main solvers
 impl Solution for LensLibrary {
     fn silver(&self) -> TaskResult {
-        data[0].split(',').map(hash_str).sum().into()
+        self.data[0]
+            .split(',')
+            .map(LensLibrary::hash_str)
+            .sum::<usize>()
+            .into()
     }
 
     fn gold(&self) -> TaskResult {
@@ -44,15 +48,15 @@ impl Solution for LensLibrary {
             shelf.insert(idx, Box { lenses: Vec::new() });
         }
 
-        for hash in data[0].split(',') {
-            let (label, op, fl) = tokenize(hash);
+        for hash in self.data[0].split(',') {
+            let (label, op, fl) = LensLibrary::tokenize(hash);
             match op {
-                '-' => subtract(&mut shelf, &label),
-                '=' => add(&mut shelf, &label, &fl),
+                '-' => LensLibrary::subtract(&mut shelf, &label),
+                '=' => LensLibrary::add(&mut shelf, &label, &fl),
                 _ => panic!("unsupported op"),
             }
         }
-        summarize(shelf).into()
+        LensLibrary::summarize(shelf).into()
     }
 }
 
@@ -64,7 +68,7 @@ impl LensLibrary {
     }
 
     fn subtract(shelf: &mut BTreeMap<usize, Box>, label: &str) {
-        if let Some(boxx) = shelf.get_mut(&hash_str(label)) {
+        if let Some(boxx) = shelf.get_mut(&LensLibrary::hash_str(label)) {
             for lens in boxx.lenses.iter_mut() {
                 if lens.label == label {
                     lens.deleted = true;
@@ -74,7 +78,7 @@ impl LensLibrary {
     }
 
     fn add(shelf: &mut BTreeMap<usize, Box>, label: &str, fl: &usize) {
-        if let Some(boxx) = shelf.get_mut(&hash_str(label)) {
+        if let Some(boxx) = shelf.get_mut(&LensLibrary::hash_str(label)) {
             let mut lens_found = false;
             // check for existing lens
             for lens in boxx.lenses.iter_mut() {

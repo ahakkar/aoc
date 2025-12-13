@@ -4,10 +4,14 @@
  * https://github.com/ahakkar/
  */
 
+// TODO reimplement whole solution, note to self.. 2025-12-13
+// Too much effort to try to fix this pile of code
+
 use crate::{Fro, Solution, TaskResult};
 use lazy_static::lazy_static;
 use petgraph::graph::{NodeIndex, UnGraph};
 use petgraph::visit::DfsPostOrder;
+use std::cell::RefCell;
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::fs::{self, File};
 use std::io::{self, Write};
@@ -60,28 +64,35 @@ impl PipeGraph {
 // Can add more shared vars here
 pub struct PipeMaze {
     data: Vec<String>,
+    data_as_chars: Vec<Vec<char>>,
     map_width: i32,
     map_height: i32,
+    result_0: RefCell<Option<UnGraph<Coord, (), u32>>>,
+    result_1: RefCell<Option<Vec<NodeIndex>>>,
 }
 
 // Can be used to implement fancier task-specific parsing
 impl Fro for PipeMaze {
     fn fro(input: &str) -> Self {
+        let data: Vec<String> = input.split('\n').map(|line| line.to_string()).collect();
         let mut graph_data: PipeGraph = PipeGraph::new(
             data[0].len().try_into().unwrap(),
             data.len().try_into().unwrap(),
         );
 
         let mut data_as_chars: Vec<Vec<char>> = vec![];
-        for row in data {
+        for row in &data {
             data_as_chars.push(row.chars().collect::<Vec<char>>());
         }
         graph_data.set_chars(&data_as_chars);
 
         Self {
-            data: input.split('\n').map(|line| line.to_string()).collect(),
+            data,
+            data_as_chars,
             map_width: graph_data.map_width,
             map_height: graph_data.map_height,
+            result_0: None.into(),
+            result_1: None.into(),
         }
     }
 }
@@ -102,28 +113,32 @@ impl Solution for PipeMaze {
         let mut start: Option<Coord> = None;
 
         // Add nodes
-        for (y, row) in data.iter().enumerate() {
-            for (x, char) in row.iter().enumerate() {
-                if NODE_CHARS.contains(char) {
+        for (y, row) in self.data.iter().enumerate() {
+            for (x, char) in row.chars().enumerate() {
+                if NODE_CHARS.contains(&char) {
                     let coord = Coord { x, y };
                     let node_index = graph.add_node(coord);
                     ctni.insert(coord, node_index);
                 }
-                if char == &'S' {
+                if char == 'S' {
                     start = Some(Coord { x, y });
                 }
             }
         }
 
         // Add edges, function is UGLY AS A SIN
-        for (y, row) in data.iter().enumerate() {
-            for (x, char) in row.iter().enumerate() {
-                if NODE_CHARS.contains(char) {
+        for (y, row) in self.data.iter().enumerate() {
+            for (x, char) in row.chars().enumerate() {
+                if NODE_CHARS.contains(&char) {
                     let coord = Coord { x, y };
                     if let Some(node_index) = ctni.get(&coord) {
-                        for neighbour_coord in
-                            get_neighbours(data, &coord, char, map_width, map_height)
-                        {
+                        for neighbour_coord in PipeMaze::get_neighbours(
+                            &self.data_as_chars,
+                            &coord,
+                            &char,
+                            self.map_width,
+                            self.map_height,
+                        ) {
                             if let Some(neighbour_index) = ctni.get(&neighbour_coord) {
                                 // avoid adding edges twice to undirected graph
                                 if *node_index < *neighbour_index {
@@ -148,8 +163,10 @@ impl Solution for PipeMaze {
 
         if let Some(start_coord) = start {
             if let Some(start_index) = ctni.get(&start_coord) {
-                if let Some(loop_path) = find_loop(&graph, *start_index) {
-                    return TaskResult::Usize((loop_path..len() + 1) / 2);
+                if let Some(loop_path) = PipeMaze::find_loop(&graph, *start_index) {
+                    *self.result_0.borrow_mut() = Some(graph);
+                    *self.result_1.borrow_mut() = Some(loop_path.clone());
+                    return TaskResult::Usize((loop_path.len() + 1) / 2);
                 }
             }
         }
@@ -160,9 +177,72 @@ impl Solution for PipeMaze {
     // then used flood fill on outside to generate another txt
     // counted empty spaces in steps of 3 from the flood filled map
     fn gold(&self) -> TaskResult {
-        graph_data.set_graph(result.0);
-        graph_data.set_path(result.1);
-        gold(&graph_data);
+        let mut graph = UnGraph::<Coord, ()>::new_undirected();
+        let mut ctni: HashMap<Coord, NodeIndex> = HashMap::new();
+        let mut start: Option<Coord> = None;
+
+        // Add nodes
+        for (y, row) in self.data.iter().enumerate() {
+            for (x, char) in row.chars().enumerate() {
+                if NODE_CHARS.contains(&char) {
+                    let coord = Coord { x, y };
+                    let node_index = graph.add_node(coord);
+                    ctni.insert(coord, node_index);
+                }
+                if char == 'S' {
+                    start = Some(Coord { x, y });
+                }
+            }
+        }
+
+        // Add edges, function is UGLY AS A SIN
+        for (y, row) in self.data.iter().enumerate() {
+            for (x, char) in row.chars().enumerate() {
+                if NODE_CHARS.contains(&char) {
+                    let coord = Coord { x, y };
+                    if let Some(node_index) = ctni.get(&coord) {
+                        for neighbour_coord in PipeMaze::get_neighbours(
+                            &self.data_as_chars,
+                            &coord,
+                            &char,
+                            self.map_width,
+                            self.map_height,
+                        ) {
+                            if let Some(neighbour_index) = ctni.get(&neighbour_coord) {
+                                // avoid adding edges twice to undirected graph
+                                if *node_index < *neighbour_index {
+                                    graph.add_edge(*node_index, *neighbour_index, ());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        //print_graph(&graph);
+
+        //println!("found start: {:?}", start);
+
+        start = Some(Coord { x: 79, y: 64 });
+        //start = Some(Coord{x:1,y:1});
+
+        // F: 7702 not correct
+        // L J 7 all the same answer, 7702. 7700 too high also.
+        // 6820 works
+
+        let mut graph_data: PipeGraph = PipeGraph::new(
+            self.data[0].len().try_into().unwrap(),
+            self.data.len().try_into().unwrap(),
+        );
+
+        let mut data_as_chars: Vec<Vec<char>> = vec![];
+        for row in &self.data {
+            data_as_chars.push(row.chars().collect::<Vec<char>>());
+        }
+        graph_data.set_chars(&data_as_chars);
+
+        graph_data.set_graph(self.result_0.borrow().as_ref().unwrap().clone());
+        graph_data.set_path(self.result_1.borrow().as_ref().unwrap().clone());
 
         //let io_op_res = write_path_to_2d_map_file(graph, "gold_map_enhance_more2.txt");
 
@@ -177,8 +257,8 @@ impl Solution for PipeMaze {
 
         //println!("filled count: {}", flood_fill(&mut data_as_chars, 214, 214, 'I'));
 
-        let count = count_3x3_spaces(&data_as_chars);
-        TaskResult::Usize(count) // 3033 "not the right answer" .. 337 new guess..
+        let count = PipeMaze::count_3x3_spaces(&data_as_chars);
+        return TaskResult::Usize(count); // 3033 "not the right answer" .. 337 new guess..
 
         //println!("gold: {}", image.chars().filter(|&c| c == e).count()); // 194 too low, 204 too low // 210 too low
     }
@@ -227,11 +307,11 @@ impl PipeMaze {
             let new_x = (c.x as i32 + dx) as usize;
             let new_y = (c.y as i32 + dy) as usize;
 
-            if fits_bounds(c, dx, dy, map_width, map_height) {
+            if PipeMaze::fits_bounds(c, dx, dy, map_width, map_height) {
                 // println!("coord:{:?}, dx {}, dy: {}", c, dx, dy);
                 let neighbour_char = grid[new_y][new_x];
                 //println!("current char: {}, neighbour_char: {}", char, neighbour_char);
-                if is_compatible(char, neighbour_char, dx, dy) {
+                if PipeMaze::is_compatible(char, neighbour_char, dx, dy) {
                     neighbours.push(Coord {
                         x: (c.x as i32 + dx) as usize,
                         y: (c.y as i32 + dy) as usize,
@@ -373,7 +453,7 @@ impl PipeMaze {
             vec![' '; (graph_data.map_width as usize) * 3];
             (graph_data.map_height as usize) * 3
         ];
-        let representations = get_enhanced_char_representation(' ', 'X');
+        let representations = PipeMaze::get_enhanced_char_representation(' ', 'X');
 
         if let Some(graph) = &graph_data.graph {
             if let Some(path) = &graph_data.path {
@@ -391,7 +471,9 @@ impl PipeMaze {
                             }
                         }
                     }
-                    let io_op_res = write_fill_to_file(&map, "3x3_enhanced_map.txt");
+                    // Todo implement a better solution than "eyeballs" -2025-12-13
+                    //let io_op_res =
+                    //    PipeMaze::write_fill_to_file(&map, "3x3_enhanced_map.txt");
                 }
             }
         }
@@ -434,7 +516,8 @@ impl PipeMaze {
             }
         }
 
-        let io_op_res = write_fill_to_file(grid, "flood_filled_inside.txt");
+        // Todo implement a better solution than "eyeballs" -2025-12-13
+        //let io_op_res = PipeMaze::write_fill_to_file(grid, "flood_filled_inside.txt");
 
         count
     }

@@ -4,6 +4,20 @@
  * https://github.com/ahakkar/
 **/
 
+#![allow(dead_code)]
+#![allow(unused_parens)]
+#![allow(unused_imports)]
+#![allow(unused_variables)]
+#![allow(unused_mut)]
+#![allow(unused_assignments)]
+#![allow(unused_must_use)]
+#![allow(clippy::needless_return)]
+#![allow(clippy::needless_range_loop)]
+#![allow(clippy::only_used_in_recursion)]
+#![allow(clippy::never_loop)]
+#![allow(clippy::useless_vec)]
+#![allow(clippy::collapsible_if)]
+
 use crate::{Fro, Solution, TaskResult};
 
 // Can add more shared vars here
