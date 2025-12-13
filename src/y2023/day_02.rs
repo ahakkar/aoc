@@ -42,7 +42,7 @@ impl Solution for CubeConundrum {
                 .parse::<usize>()
                 .unwrap();
 
-            if check_silver_game(parts_iter.next().unwrap()) {
+            if self.check_silver_game(parts_iter.next().unwrap()) {
                 sum += game_id;
             }
         }
@@ -54,7 +54,7 @@ impl Solution for CubeConundrum {
 
         for row in &self.data {
             let parts_iter = row.split(':');
-            sum += check_gold_game(parts_iter.last().unwrap());
+            sum += self.check_gold_game(parts_iter.last().unwrap());
         }
         sum.into()
     }
@@ -63,7 +63,7 @@ impl Solution for CubeConundrum {
 // For assisting functions
 impl CubeConundrum {
     // only 12 red cubes, 13 green cubes, and 14 blue cubes?
-    fn check_silver_game(games: &str) -> bool {
+    fn check_silver_game(&self, games: &str) -> bool {
         let games_iter = games.split(';');
         for game in games_iter {
             let colors_iter = game.split(',');
@@ -84,7 +84,7 @@ impl CubeConundrum {
     }
 
     // calculate power of max r*g*b
-    fn check_gold_game(games: &str) -> usize {
+    fn check_gold_game(&self, games: &str) -> usize {
         let games_iter = games.split(';');
         let mut max_r: usize = 0;
         let mut max_g: usize = 0;

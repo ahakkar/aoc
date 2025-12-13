@@ -23,21 +23,21 @@ impl Fro for WaitForIt {
 // Main solvers
 impl Solution for WaitForIt {
     fn silver(&self) -> TaskResult {
-        (calc_dist(62, 553)
-            * calc_dist(64, 1010)
-            * calc_dist(91, 1473)
-            * calc_dist(90, 1074))
+        (self.calc_dist(62, 553)
+            * self.calc_dist(64, 1010)
+            * self.calc_dist(91, 1473)
+            * self.calc_dist(90, 1074))
         .into()
     }
 
     fn gold(&self) -> TaskResult {
-        (calc_dist(62649190, 553101014731074) as usize).into()
+        (self.calc_dist(62649190, 553101014731074) as usize).into()
     }
 }
 
 // For assisting functions
 impl WaitForIt {
-    fn calc_dist(time: i64, limit: i64) -> i64 {
+    fn calc_dist(&self, time: i64, limit: i64) -> usize {
         let s = ((time * time - 4 * limit) as f64).sqrt();
         let mut x0 = ((time as f64) - s) / 2.0;
         let mut x1 = ((time as f64) + s) / 2.0;
@@ -54,7 +54,7 @@ impl WaitForIt {
             x1 = x1.floor();
         }
 
-        (x1 - x0 + 1.0) as i64
+        (x1 - x0 + 1.0) as usize
     }
 }
 

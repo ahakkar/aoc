@@ -4,8 +4,8 @@
  * https://github.com/ahakkar/
 **/
 
-use std::cmp::Ordering;
 use std::collections::HashMap;
+use std::{cmp::Ordering, collections::BTreeSet};
 
 use crate::{Fro, Solution, TaskResult};
 
@@ -70,14 +70,14 @@ impl Fro for CamelCards {
 impl Solution for CamelCards {
     fn silver(&self) -> TaskResult {
         let mut score: BTreeSet<Hand> = BTreeSet::new();
-        for row in data {
+        for row in &self.data {
             let (a, b) = row.split_once(' ').unwrap();
             let hand_str = a.parse::<String>().unwrap();
-            let bid = b.parse::<i16>().unwrap();
+            let bid = b.parse::<usize>().unwrap();
 
             score.insert(Hand {
-                cards: map_card_to_int(&hand_str),
-                htype: calc_rank(&map_card_to_int(&hand_str)),
+                cards: CamelCards::map_card_to_int(&hand_str),
+                htype: CamelCards::calc_rank(&CamelCards::map_card_to_int(&hand_str)),
                 str: hand_str,
                 bid,
             });
@@ -96,14 +96,14 @@ impl Solution for CamelCards {
     fn gold(&self) -> TaskResult {
         let mut score: Vec<Hand> = Vec::with_capacity(1000);
 
-        for row in data {
+        for row in &self.data {
             let (a, b) = row.split_once(' ').unwrap();
             let hand_str = a.parse::<String>().unwrap();
             let bid = b.parse::<usize>().unwrap();
 
             score.push(Hand {
-                cards: map_card_to_int(&hand_str),
-                htype: calc_htype(&strtoivec(&hand_str)),
+                cards: CamelCards::map_card_to_int(&hand_str),
+                htype: CamelCards::calc_htype(&CamelCards::map_card_to_int(&hand_str)),
                 str: hand_str,
                 bid,
             });
@@ -177,6 +177,27 @@ impl CamelCards {
             _ => 1,          // High Card
         }
     }
+
+    fn calc_rank(cards: &[i8]) -> i8 {
+        let mut counts = HashMap::new();
+        for &card in cards {
+            *counts.entry(card).or_insert(0) += 1;
+        }
+
+        let mut freqs: Vec<_> = counts.values().collect();
+        freqs.sort_unstable_by(|a, b| b.cmp(a));
+
+        match freqs.as_slice() {
+            [5] => 7,             // Five of a Kind
+            [4, _] => 6,          // Four of a Kind
+            [3, 2] => 5,          // Full House
+            [3, 1, 1] => 4,       // Three of a Kind
+            [2, 2, 1] => 3,       // Two Pair
+            [2, 1, 1, 1] => 2,    // One Pair
+            [1, 1, 1, 1, 1] => 1, // High Card
+            _ => i8::MIN,         // No hand (basically error case)
+        }
+    }
 }
 
 // cargo test --lib day_XX
@@ -205,33 +226,33 @@ mod tests {
 
     #[test]
     fn test_hand_types() {
-        assert_eq!(calc_htype(&[1, 1, 1, 1, 1]), 7);
-        assert_eq!(calc_htype(&[2, 2, 3, 4, 5]), 2);
-        assert_eq!(calc_htype(&[2, 3, 4, 5, 6]), 1);
-        assert_eq!(calc_htype(&[2, 2, 3, 3, 5]), 3);
-        assert_eq!(calc_htype(&[3, 3, 3, 4, 5]), 4);
-        assert_eq!(calc_htype(&[2, 2, 4, 4, 4]), 5);
-        assert_eq!(calc_htype(&[12, 12, 12, 12, 9]), 6);
-        assert_eq!(calc_htype(&[6, 6, 6, 6, 6]), 7);
-        assert_eq!(calc_htype(&[1, 2, 3, 4, 5]), 2);
-        assert_eq!(calc_htype(&[2, 2, 1, 4, 5]), 4);
-        assert_eq!(calc_htype(&[1, 1, 1, 4, 5]), 6);
-        assert_eq!(calc_htype(&[1, 2, 2, 4, 4]), 5);
-        assert_eq!(calc_htype(&[5, 5, 5, 4, 1]), 6);
-        assert_eq!(calc_htype(&[2, 2, 3, 3, 1]), 5);
+        assert_eq!(CamelCards::calc_htype(&[1, 1, 1, 1, 1]), 7);
+        assert_eq!(CamelCards::calc_htype(&[2, 2, 3, 4, 5]), 2);
+        assert_eq!(CamelCards::calc_htype(&[2, 3, 4, 5, 6]), 1);
+        assert_eq!(CamelCards::calc_htype(&[2, 2, 3, 3, 5]), 3);
+        assert_eq!(CamelCards::calc_htype(&[3, 3, 3, 4, 5]), 4);
+        assert_eq!(CamelCards::calc_htype(&[2, 2, 4, 4, 4]), 5);
+        assert_eq!(CamelCards::calc_htype(&[12, 12, 12, 12, 9]), 6);
+        assert_eq!(CamelCards::calc_htype(&[6, 6, 6, 6, 6]), 7);
+        assert_eq!(CamelCards::calc_htype(&[1, 2, 3, 4, 5]), 2);
+        assert_eq!(CamelCards::calc_htype(&[2, 2, 1, 4, 5]), 4);
+        assert_eq!(CamelCards::calc_htype(&[1, 1, 1, 4, 5]), 6);
+        assert_eq!(CamelCards::calc_htype(&[1, 2, 2, 4, 4]), 5);
+        assert_eq!(CamelCards::calc_htype(&[5, 5, 5, 4, 1]), 6);
+        assert_eq!(CamelCards::calc_htype(&[2, 2, 3, 3, 1]), 5);
     }
 
     #[test]
-    fn test_strtoivec() {
-        assert_eq!(strtoivec("JJJJJ"), [1, 1, 1, 1, 1]);
-        assert_ne!(strtoivec("JJJJJ"), [1, 1, 1, 1, 2]);
-        assert_eq!(strtoivec("2233J"), [2, 2, 3, 3, 1]);
-        assert_eq!(strtoivec("2986K"), [2, 9, 8, 6, 13]);
-        assert_eq!(strtoivec("2233J"), [2, 2, 3, 3, 1]);
-        assert_eq!(strtoivec("AAK9T"), [14, 14, 13, 9, 10]);
-        assert_eq!(strtoivec("AA5Q8"), [14, 14, 5, 12, 8]);
-        assert_eq!(strtoivec("KTJJT"), [13, 10, 1, 1, 10]);
-        assert_eq!(strtoivec("TTTJT"), [10, 10, 10, 1, 10]);
+    fn test_map_card_to_int() {
+        assert_eq!(CamelCards::map_card_to_int("JJJJJ"), [1, 1, 1, 1, 1]);
+        assert_ne!(CamelCards::map_card_to_int("JJJJJ"), [1, 1, 1, 1, 2]);
+        assert_eq!(CamelCards::map_card_to_int("2233J"), [2, 2, 3, 3, 1]);
+        assert_eq!(CamelCards::map_card_to_int("2986K"), [2, 9, 8, 6, 13]);
+        assert_eq!(CamelCards::map_card_to_int("2233J"), [2, 2, 3, 3, 1]);
+        assert_eq!(CamelCards::map_card_to_int("AAK9T"), [14, 14, 13, 9, 10]);
+        assert_eq!(CamelCards::map_card_to_int("AA5Q8"), [14, 14, 5, 12, 8]);
+        assert_eq!(CamelCards::map_card_to_int("KTJJT"), [13, 10, 1, 1, 10]);
+        assert_eq!(CamelCards::map_card_to_int("TTTJT"), [10, 10, 10, 1, 10]);
     }
 
     #[test]

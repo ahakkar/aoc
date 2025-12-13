@@ -34,7 +34,7 @@ impl Solution for IfYouGiveASeedAFertilizer {
         let mut range_vec: Vec<Range> = vec![];
 
         // seeds from 1st row and range data from rest
-        let mut seeds: Vec<i64> = data[0]
+        let mut seeds: Vec<i64> = self.data[0]
             .split_once(": ")
             .unwrap()
             .1
@@ -43,15 +43,15 @@ impl Solution for IfYouGiveASeedAFertilizer {
             .collect::<Vec<_>>();
 
         // collect ranges and transform seeds on empty row
-        while i < data.len() {
-            if data.get(i).unwrap() == "" {
-                transform_seeds(&mut seeds, &range_vec);
+        while i < self.data.len() {
+            if self.data.get(i).unwrap() == "" {
+                self.transform_seeds(&mut seeds, &range_vec);
                 range_vec.clear();
                 i += 2;
                 continue;
             }
 
-            let ti = data[i]
+            let ti = self.data[i]
                 .split(' ')
                 .filter_map(|n| n.parse::<i64>().ok())
                 .collect::<Vec<_>>();
@@ -72,7 +72,7 @@ impl Solution for IfYouGiveASeedAFertilizer {
         let mut range_vec: Vec<Range> = vec![];
 
         // seeds from 1st row and range data from rest
-        let vec: Vec<i64> = data[0]
+        let vec: Vec<i64> = self.data[0]
             .split_once(": ")
             .unwrap()
             .1
@@ -89,16 +89,16 @@ impl Solution for IfYouGiveASeedAFertilizer {
             }
         }
         // collect ranges and transform seeds on empty row
-        while i < data.len() {
-            if data.get(i).unwrap() == "" {
-                transform_seeds(&mut seeds, &range_vec);
+        while i < self.data.len() {
+            if self.data.get(i).unwrap() == "" {
+                self.transform_seeds(&mut seeds, &range_vec);
                 range_vec.clear();
                 i += 2;
                 //println!("---------------");
                 continue;
             }
 
-            let ti = data[i]
+            let ti = self.data[i]
                 .split(' ')
                 .filter_map(|n| n.parse::<i64>().ok())
                 .collect::<Vec<_>>();
@@ -116,7 +116,7 @@ impl Solution for IfYouGiveASeedAFertilizer {
 
 // For assisting functions
 impl IfYouGiveASeedAFertilizer {
-    fn transform_seeds(seeds: &mut [i64], range_vec: &[Range]) {
+    fn transform_seeds(&self, seeds: &mut [i64], range_vec: &[Range]) {
         for seed in seeds.iter_mut() {
             // should probably fix the range comparisons instead of using break;
             for range in range_vec {

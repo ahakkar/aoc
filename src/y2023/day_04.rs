@@ -28,10 +28,10 @@ impl Solution for Scratchcards {
 
     fn gold(&self) -> TaskResult {
         // Store counts of each card
-        let mut counts = vec![1; data.len()];
+        let mut counts = vec![1; self.data.len()];
 
-        for (i, row_str) in data.iter().enumerate() {
-            for n in 0..process_score(row_str) {
+        for (i, row_str) in self.data.iter().enumerate() {
+            for n in 0..self.process_score(row_str) {
                 counts[i + n + 1] += counts[i];
             }
         }
@@ -44,7 +44,7 @@ impl Solution for Scratchcards {
 // For assisting functions
 impl Scratchcards {
     // count how many wins each game has
-    fn process_score(row_str: &str) -> usize {
+    fn process_score(&self, row_str: &str) -> usize {
         // discard all before ': ' in rows
         let (winning_nums, lottery_nums) = row_str
             .split_once(": ")
