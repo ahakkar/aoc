@@ -1,7 +1,18 @@
+/*
+ * 2023 Advent of Code with Rust
+ * Author: Antti Hakkarainen
+ * https://github.com/ahakkar/
+**/
+
 use std::cmp::Ordering;
 use std::collections::HashMap;
-use std::fs;
-use std::time::Instant;
+
+use crate::{Fro, Solution, TaskResult};
+
+// Can add more shared vars here
+pub struct CamelCards {
+    data: Vec<String>,
+}
 
 #[derive(Eq, PartialEq, Debug, Clone)]
 struct Hand {
@@ -46,103 +57,130 @@ impl Ord for Hand {
     }
 }
 
-// Converts card symbols to int values for easier comparison
-fn strtoivec(string: &str) -> Vec<i8> {
-    string
-        .chars()
-        .map(|card| match card {
-            '2'..='9' => card.to_digit(10).unwrap() as i8,
-            'A' => 14,
-            'K' => 13,
-            'Q' => 12,
-            'T' => 10,
-            'J' => 1, // joker, not a jack
-            _ => panic!(),
-        })
-        .collect()
-}
-
-// count occurencies of each card and match their frequency
-fn calc_htype(cards: &[i8]) -> i8 {
-    let mut card_counts = HashMap::new();
-    let mut joker_count = 0;
-
-    for &card in cards {
-        match card {
-            1 => joker_count += 1,
-            _ => *card_counts.entry(card).or_insert(0) += 1,
+// Can be used to implement fancier task-specific parsing
+impl Fro for CamelCards {
+    fn fro(input: &str) -> Self {
+        Self {
+            data: input.split('\n').map(|line| line.to_string()).collect(),
         }
     }
+}
 
-    // Special case with full Joker hand
-    if joker_count == 5 {
-        return 7;
+// Main solvers
+impl Solution for CamelCards {
+    fn silver(&self) -> TaskResult {
+        TaskResult::String("plii".to_string())
     }
 
-    // For each joker, increase the amount of largest non-joker at hand by 1
-    let mut freqs: Vec<_> = card_counts.values().cloned().collect();
+    fn gold(&self) -> TaskResult {
+        let mut score: Vec<Hand> = Vec::with_capacity(1000);
 
-    freqs.sort_unstable_by(|a, b| b.cmp(a));
+        for row in data {
+            let (a, b) = row.split_once(' ').unwrap();
+            let hand_str = a.parse::<String>().unwrap();
+            let bid = b.parse::<usize>().unwrap();
 
-    if joker_count > 0 {
-        if let Some(max) = freqs.first_mut() {
-            *max += joker_count;
+            score.push(Hand {
+                cards: strtoivec(&hand_str),
+                htype: calc_htype(&strtoivec(&hand_str)),
+                str: hand_str,
+                bid,
+            });
+        }
+
+        score.sort();
+
+        let sum: usize = score
+            .iter()
+            .enumerate()
+            .map(|(i, hand)| hand.bid * (i + 1))
+            .sum();
+
+        sum.into()
+    }
+}
+
+// For assisting functions
+impl CamelCards {
+    // Converts card symbols to int values for easier comparison
+    fn strtoivec(string: &str) -> Vec<i8> {
+        string
+            .chars()
+            .map(|card| match card {
+                '2'..='9' => card.to_digit(10).unwrap() as i8,
+                'A' => 14,
+                'K' => 13,
+                'Q' => 12,
+                'T' => 10,
+                'J' => 1, // joker, not a jack
+                _ => panic!(),
+            })
+            .collect()
+    }
+
+    // count occurencies of each card and match their frequency
+    fn calc_htype(cards: &[i8]) -> i8 {
+        let mut card_counts = HashMap::new();
+        let mut joker_count = 0;
+
+        for &card in cards {
+            match card {
+                1 => joker_count += 1,
+                _ => *card_counts.entry(card).or_insert(0) += 1,
+            }
+        }
+
+        // Special case with full Joker hand
+        if joker_count == 5 {
+            return 7;
+        }
+
+        // For each joker, increase the amount of largest non-joker at hand by 1
+        let mut freqs: Vec<_> = card_counts.values().cloned().collect();
+
+        freqs.sort_unstable_by(|a, b| b.cmp(a));
+
+        if joker_count > 0 {
+            if let Some(max) = freqs.first_mut() {
+                *max += joker_count;
+            }
+        }
+
+        match freqs.as_slice() {
+            [5] => 7,        // Five of a Kind
+            [4, _] => 6,     // Four of a Kind
+            [3, 2] => 5,     // Full House
+            [3, ..] => 4,    // Three of a Kind
+            [2, 2, ..] => 3, // Two Pair
+            [2, ..] => 2,    // One Pair
+            _ => 1,          // High Card
         }
     }
-
-    match freqs.as_slice() {
-        [5] => 7,        // Five of a Kind
-        [4, _] => 6,     // Four of a Kind
-        [3, 2] => 5,     // Full House
-        [3, ..] => 4,    // Three of a Kind
-        [2, 2, ..] => 3, // Two Pair
-        [2, ..] => 2,    // One Pair
-        _ => 1,          // High Card
-    }
 }
 
-fn main() {
-    let start = Instant::now();
-    let input = fs::read_to_string("input/07puzzle.txt").unwrap();
-    let data: Vec<&str> = input.lines().collect();
-
-    process(&data);
-
-    let duration = start.elapsed();
-    println!("Time elapsed in main() is: {:?}", duration);
-}
-
-fn process(data: &[&str]) {
-    let mut score: Vec<Hand> = Vec::with_capacity(1000);
-
-    for row in data {
-        let (a, b) = row.split_once(' ').unwrap();
-        let hand_str = a.parse::<String>().unwrap();
-        let bid = b.parse::<usize>().unwrap();
-
-        score.push(Hand {
-            cards: strtoivec(&hand_str),
-            htype: calc_htype(&strtoivec(&hand_str)),
-            str: hand_str,
-            bid,
-        });
-    }
-
-    score.sort();
-
-    let sum: usize = score
-        .iter()
-        .enumerate()
-        .map(|(i, hand)| hand.bid * (i + 1))
-        .sum();
-
-    println!("sum: {}", sum);
-    // 254837398 CORRECT! (on 7th try after fixing hand cmp logic errors)
-}
-
+// cargo test --lib day_XX
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::util::utils::read_data_from_file;
+
+    #[test]
+    fn test() {
+        let test_data = read_data_from_file("input/2023/test/07.txt");
+        let queue = CamelCards::fro(&test_data);
+
+        assert_eq!(queue.silver(), TaskResult::Usize(6440));
+        assert_eq!(queue.gold(), TaskResult::Usize(5905));
+    }
+
+    #[test]
+    fn real() {
+        let real_data = read_data_from_file("input/2015/real/07.txt");
+        let queue = CamelCards::fro(&real_data);
+
+        assert_eq!(queue.silver(), TaskResult::Usize(253954294));
+        assert_eq!(queue.gold(), TaskResult::Usize(254837398));
+    }
 
     #[test]
     fn test_hand_types() {
