@@ -4,62 +4,59 @@
  * https://github.com/ahakkar/
 **/
 
-#![allow(unused_parens)]
-#![allow(unused_imports)]
-#![allow(unused_variables)]
-#![allow(unused_mut)]
-#![allow(clippy::needless_return)]
-#![allow(clippy::needless_range_loop)]
-#![allow(dead_code)]
-#![allow(unused_assignments)]
+use crate::{Fro, Solution, TaskResult};
 
-use super::utils::*;
-
-
-pub fn solve(data: Vec<String>) {    
-    println!("Silver: {}", silver(&data));
-    //println!("Gold: {}", gold(&data));
+// Can add more shared vars here
+pub struct PulsePropagation {
+    data: Vec<String>,
 }
 
-fn silver(data: &[String]) -> usize {
-    let mut sum: usize = 0;    
-
-    for row in data {
-
+// Can be used to implement fancier task-specific parsing
+impl Fro for PulsePropagation {
+    fn fro(input: &str) -> Self {
+        Self {
+            data: input.split('\n').map(|line| line.to_string()).collect(),
+        }
     }
-    sum 
 }
 
-/* fn gold(data: &Vec<String>) -> usize {
-    let mut sum: usize = 0;    
+// Main solvers
+impl Solution for PulsePropagation {
+    fn silver(&self) -> TaskResult {
+        TaskResult::String("plii".to_string())
+    }
 
-    for row in data {
-           } 
-    sum 
-} */
+    fn gold(&self) -> TaskResult {
+        TaskResult::String("plaa".to_string())
+    }
+}
 
-// run these with cargo test --bin main -- day_XX::tests
+// For assisting functions
+impl PulsePropagation {}
+
+// cargo test --lib day_XX
 #[cfg(test)]
 mod tests {
-    use crate::utils::read_data_from_file;
-    use super::*;   
+    use super::*;
+    use crate::util::utils::read_data_from_file;
 
     #[test]
-    fn test_test() {
-        let test_data:Vec<String> = read_data_from_file("input/test/15.txt");
-        assert_eq!(silver(&test_data), 1320);
-        //assert_eq!(gold(&test_data), 145);
+    fn test() {
+        let test_data = read_data_from_file("input/2023/test/20.txt");
+        let queue = PulsePropagation::fro(&test_data);
+
+        // test 1 32000000
+        // test 2 below:
+        assert_eq!(queue.silver(), TaskResult::Usize(11687500));
+        assert_eq!(queue.gold(), TaskResult::Usize(0));
     }
 
     #[test]
-    fn test_silver() {
-        let test_data:Vec<String> = read_data_from_file("input/real/15.txt");
-        assert_eq!(silver(&test_data), 510801);
-    }
+    fn real() {
+        let real_data = read_data_from_file("input/2023/real/20.txt");
+        let queue = PulsePropagation::fro(&real_data);
 
-/*     #[test]
-    fn test_gold() {
-        let test_data:Vec<String> = read_data_from_file("input/real/15.txt");
-        assert_eq!(gold(&test_data), 212763);
-    } */
+        assert_eq!(queue.silver(), TaskResult::Usize(0));
+        assert_eq!(queue.gold(), TaskResult::Usize(0));
+    }
 }

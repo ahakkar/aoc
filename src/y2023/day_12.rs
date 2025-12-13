@@ -4,18 +4,13 @@
  * https://github.com/ahakkar/
  */
 
-#![allow(unused_parens)]
-#![allow(unused_imports)]
-#![allow(unused_variables)]
-#![allow(unused_mut)]
-#![allow(clippy::needless_return)]
-#![allow(clippy::needless_range_loop)]
-#![allow(dead_code)]
-#![allow(unused_assignments)]
-
+use crate::{Fro, Solution, TaskResult};
 use std::collections::HashMap;
 
-use super::utils::data_as_chars;
+// Can add more shared vars here
+pub struct HotSprings {
+    data: Vec<String>,
+}
 
 #[derive(Clone)]
 struct Group {
@@ -24,147 +19,195 @@ struct Group {
     len: usize,
 }
 
-pub fn solve(data: Vec<String>) {
-    let mut memo: HashMap<(Vec<i8>, String), usize> = HashMap::new();
-    let mut silver_groups: Vec<Group> = vec![];
-    let mut gold_groups: Vec<Group> = vec![];
-    let mut silver: usize = 0;
-    let mut gold: usize = 0;
-
-    for row in data {
-        silver_groups.push(parse_to_group(row.clone()));
-        gold_groups.push(unfold_to_group(row, 5));
-    }
-
-    for g in silver_groups {
-        //println!("{:?} {:?} {}", g.chars, g.constraints, g.len);
-        let mut current = String::new();
-        silver += count_combinations(g, 0, current, &mut memo);
-    }
-    
-    println!("Silver: {}", silver); // 7460
-/*     memo.clear();
-
-     for g in gold_groups {
-        println!("{:?} {:?} {}", g.chars, g.constraints, g.len);
-        let mut current = String::new();
-        gold += count_combinations(g, 0, current, &mut memo);
-    }
-
-    
-    println!("Gold: {}", gold); */
-}
-
-fn parse_to_group(row: String) -> Group {
-    let (chars, constraints) = row
-        .trim()
-        .split_once(' ')
-        .map(|(a, b)| (a.chars().collect::<Vec<char>>(), b.split(',')))
-        .unwrap();
-
-    Group{
-        len: chars.len(),
-        chars,
-        constraints: constraints.map(|s| s.parse::<i8>().unwrap()).collect::<Vec<i8>>(),    
+// Can be used to implement fancier task-specific parsing
+impl Fro for HotSprings {
+    fn fro(input: &str) -> Self {
+        Self {
+            data: input.split('\n').map(|line| line.to_string()).collect(),
+        }
     }
 }
 
-fn unfold_to_group(row: String, m: u8) -> Group {
-    let (chars, cst) = row
-        .trim()
-        .split_once(' ')
-        .unwrap();
+// Main solvers
+impl Solution for HotSprings {
+    fn silver(&self) -> TaskResult {
+        let mut memo: HashMap<(Vec<i8>, String), usize> = HashMap::new();
+        let mut groups: Vec<Group> = vec![];
+        let mut silver: usize = 0;
 
-    let chars_repeated: Vec<char> = std::iter::repeat(chars)
-        .take(m as usize)
-        .collect::<Vec<&str>>()
-        .join("?")
-        .chars()
-        .collect();
+        for row in data {
+            groups.push(parse_to_group(row.clone()));
+        }
 
-    let binding = std::iter::repeat(cst)
-        .take(m as usize)
-        .collect::<Vec<&str>>()
-        .join(",");
-    let cst_repeated = binding
-        .split(',');
+        for g in silver_groups {
+            //println!("{:?} {:?} {}", g.chars, g.constraints, g.len);
+            let mut current = String::new();
+            silver += count_combinations(g, 0, current, &mut memo);
+        }
 
-    Group{
-        len: chars_repeated.len(),
-        chars: chars_repeated,
-        constraints: cst_repeated.map(|s| s.parse::<i8>().unwrap()).collect::<Vec<i8>>(),  
+        silver.into()
+    }
+
+    fn gold(&self) -> TaskResult {
+        let mut memo: HashMap<(Vec<i8>, String), usize> = HashMap::new();
+        let mut groups: Vec<Group> = vec![];
+        let mut gold: usize = 0;
+
+        for row in data {
+            groups.push(unfold_to_group(row, 5));
+        }
+
+        for g in groups {
+            println!("{:?} {:?} {}", g.chars, g.constraints, g.len);
+            let mut current = String::new();
+            gold += count_combinations(g, 0, current, &mut memo);
+        }
+
+        TaskResult::String("not done".to_string())
+        //gold.into()
     }
 }
 
-// forms patterns recursively and checks if they match constraints
-fn count_combinations(
-    group: Group,
-    idx: usize,
-    mut current: String,
-    memo: &mut HashMap<(Vec<i8>, String), usize>
-) -> usize {
-    // base case
-    if idx == group.len {
-        let result = match matches_constraints(&current, &group.constraints) {
-            true => 1,
-            false => 0,
-        };
-        return result;
-    }
+// For assisting functions
+impl HotSprings {
+    fn parse_to_group(row: String) -> Group {
+        let (chars, constraints) = row
+            .trim()
+            .split_once(' ')
+            .map(|(a, b)| (a.chars().collect::<Vec<char>>(), b.split(',')))
+            .unwrap();
 
-    let mut key = (group.constraints.clone(), current.to_string()).clone();
-    if let Some(&result) = memo.get(&key) {
-        return result;
-    }
-
-    // replace ? with or . and continue recursion
-    let result = if group.chars.get(idx).unwrap() == &'?' {
-        count_combinations(
-            group.clone(),
-            idx + 1,
-            current.clone() + &'#'.to_string(),
-            memo,
-        ) + 
-        count_combinations(
-            group.clone(),
-            idx + 1,
-            current.clone() + &'.'.to_string(),
-            memo,
-        )
-    }
-    else {
-        count_combinations(
-            group.clone(),
-            idx + 1,
-            current.clone() + &group.chars.get(idx).unwrap().to_string(),
-            memo,
-        )        
-    };    
-    memo.insert(key.clone(), result);
-    //key = &(group.constraints, current.to_string());
-    //println!("idx: {} count: {} k: {:?} v:{}", idx, result, key, memo.get(&key).unwrap());
-    result    
-}
-
-fn matches_constraints(current: &str, cst: &[i8]) -> bool {
-    let mut cit = cst.iter().peekable();
-    let mut cg_count = 0;
-
-    for ch in current.chars() {
-        match ch {
-            '#' => cg_count += 1,
-            '.' => { if cg_count > 0 {
-                        if Some(&cg_count) != cit.next() { return false; }
-                        cg_count = 0;
-                    }
-                }
-             _  => return false,
+        Group {
+            len: chars.len(),
+            chars,
+            constraints: constraints
+                .map(|s| s.parse::<i8>().unwrap())
+                .collect::<Vec<i8>>(),
         }
     }
 
-    if cg_count > 0 && Some(&cg_count) != cit.next() { return false; }
+    fn unfold_to_group(row: String, m: u8) -> Group {
+        let (chars, cst) = row.trim().split_once(' ').unwrap();
 
-    // All constraints were matched?
-    cit.peek().is_none()
+        let chars_repeated: Vec<char> = std::iter::repeat(chars)
+            .take(m as usize)
+            .collect::<Vec<&str>>()
+            .join("?")
+            .chars()
+            .collect();
+
+        let binding = std::iter::repeat(cst)
+            .take(m as usize)
+            .collect::<Vec<&str>>()
+            .join(",");
+        let cst_repeated = binding.split(',');
+
+        Group {
+            len: chars_repeated.len(),
+            chars: chars_repeated,
+            constraints: cst_repeated
+                .map(|s| s.parse::<i8>().unwrap())
+                .collect::<Vec<i8>>(),
+        }
+    }
+
+    // forms patterns recursively and checks if they match constraints
+    fn count_combinations(
+        group: Group,
+        idx: usize,
+        mut current: String,
+        memo: &mut HashMap<(Vec<i8>, String), usize>,
+    ) -> usize {
+        // base case
+        if idx == group.len {
+            let result = match matches_constraints(&current, &group.constraints) {
+                true => 1,
+                false => 0,
+            };
+            return result;
+        }
+
+        let mut key = (group.constraints.clone(), current.to_string()).clone();
+        if let Some(&result) = memo.get(&key) {
+            return result;
+        }
+
+        // replace ? with or . and continue recursion
+        let result = if group.chars.get(idx).unwrap() == &'?' {
+            count_combinations(
+                group.clone(),
+                idx + 1,
+                current.clone() + &'#'.to_string(),
+                memo,
+            ) + count_combinations(
+                group.clone(),
+                idx + 1,
+                current.clone() + &'.'.to_string(),
+                memo,
+            )
+        } else {
+            count_combinations(
+                group.clone(),
+                idx + 1,
+                current.clone() + &group.chars.get(idx).unwrap().to_string(),
+                memo,
+            )
+        };
+        memo.insert(key.clone(), result);
+        //key = &(group.constraints, current.to_string());
+        //println!("idx: {} count: {} k: {:?} v:{}", idx, result, key, memo.get(&key).unwrap());
+        result
+    }
+
+    fn matches_constraints(current: &str, cst: &[i8]) -> bool {
+        let mut cit = cst.iter().peekable();
+        let mut cg_count = 0;
+
+        for ch in current.chars() {
+            match ch {
+                '#' => cg_count += 1,
+                '.' => {
+                    if cg_count > 0 {
+                        if Some(&cg_count) != cit.next() {
+                            return false;
+                        }
+                        cg_count = 0;
+                    }
+                }
+                _ => return false,
+            }
+        }
+
+        if cg_count > 0 && Some(&cg_count) != cit.next() {
+            return false;
+        }
+
+        // All constraints were matched?
+        cit.peek().is_none()
+    }
 }
 
+// cargo test --lib day_XX
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::util::utils::read_data_from_file;
+
+    #[test]
+    fn test() {
+        let test_data = read_data_from_file("input/2023/test/12.txt");
+        let queue = HotSprings::fro(&test_data);
+
+        assert_eq!(queue.silver(), TaskResult::Usize(21));
+        assert_eq!(queue.gold(), TaskResult::Usize(525152));
+    }
+
+    #[test]
+    fn real() {
+        let real_data = read_data_from_file("input/2023/real/12.txt");
+        let queue = HotSprings::fro(&real_data);
+
+        assert_eq!(queue.silver(), TaskResult::Usize(7460));
+        assert_eq!(queue.gold(), TaskResult::Usize(0));
+    }
+}

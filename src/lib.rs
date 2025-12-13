@@ -159,7 +159,7 @@ pub fn solve(year: &str, day: &str, input: &str) -> AocResult {
             "01" => run_solution::<y2023::day_01::Trebuchet>(input),
             "02" => run_solution::<y2023::day_02::CubeConundrum>(input),
             "03" => run_solution::<y2023::day_03::GearRatios>(input),
-            "04" => run_solution::<y2024::day_04::Scratchcards>(input),
+            "04" => run_solution::<y2023::day_04::Scratchcards>(input),
             "05" => run_solution::<y2023::day_05::IfYouGiveASeedAFertilizer>(input),
             "06" => run_solution::<y2023::day_06::WaitForIt>(input),
             "07" => run_solution::<y2023::day_07::CamelCards>(input),

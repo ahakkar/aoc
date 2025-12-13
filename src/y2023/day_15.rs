@@ -5,6 +5,8 @@
 **/
 use std::collections::BTreeMap;
 
+use crate::{Fro, Solution, TaskResult};
+
 struct Box {
     lenses: Vec<Lens>,
 }
@@ -14,123 +16,141 @@ struct Lens {
     label: String,
     deleted: bool,
 }
- 
-pub fn solve(data: Vec<String>) {
-    //println!("Silver: {}", silver(&vec![String::from("HASH")]));
-    println!("Silver: {}", silver(&data)); // 510801
-    println!("Gold: {}", gold(&data)); // 212763
+
+// Can add more shared vars here
+pub struct LensLibrary {
+    data: Vec<String>,
 }
 
-fn hash_str(str: &str) -> usize {
-    str.chars().fold(0, |acc, c| (acc + (c as usize)) * 17 % 256)
-}
- 
-fn silver(data: &[String]) -> usize {
-    data[0].split(',').map(hash_str).sum()
+// Can be used to implement fancier task-specific parsing
+impl Fro for LensLibrary {
+    fn fro(input: &str) -> Self {
+        Self {
+            data: input.split('\n').map(|line| line.to_string()).collect(),
+        }
+    }
 }
 
-fn gold(data: &[String]) -> usize {
-    let mut shelf: BTreeMap<usize, Box> = BTreeMap::new();   
-
-    for idx in 0..=255 {        
-        shelf.insert(idx, Box{lenses: Vec::new()});
+// Main solvers
+impl Solution for LensLibrary {
+    fn silver(&self) -> TaskResult {
+        data[0].split(',').map(hash_str).sum().into()
     }
 
-    for hash in data[0].split(',') {
-        let (label, op, fl) = tokenize(hash); 
-        match op {
-            '-' => subtract(&mut shelf, &label),
-            '=' => add(&mut shelf, &label, &fl),
-             _  => panic!("unsupported op"),
-        }      
-    } 
-    summarize(shelf)
+    fn gold(&self) -> TaskResult {
+        let mut shelf: BTreeMap<usize, Box> = BTreeMap::new();
+
+        for idx in 0..=255 {
+            shelf.insert(idx, Box { lenses: Vec::new() });
+        }
+
+        for hash in data[0].split(',') {
+            let (label, op, fl) = tokenize(hash);
+            match op {
+                '-' => subtract(&mut shelf, &label),
+                '=' => add(&mut shelf, &label, &fl),
+                _ => panic!("unsupported op"),
+            }
+        }
+        summarize(shelf).into()
+    }
 }
 
-fn subtract(shelf: &mut BTreeMap<usize, Box>, label: &str) {
-    if let Some(boxx) = shelf.get_mut(&hash_str(label)) {
-        for lens in boxx.lenses.iter_mut() {
-            if lens.label == label {       
-                lens.deleted = true;
+// For assisting functions
+impl LensLibrary {
+    fn hash_str(str: &str) -> usize {
+        str.chars()
+            .fold(0, |acc, c| (acc + (c as usize)) * 17 % 256)
+    }
+
+    fn subtract(shelf: &mut BTreeMap<usize, Box>, label: &str) {
+        if let Some(boxx) = shelf.get_mut(&hash_str(label)) {
+            for lens in boxx.lenses.iter_mut() {
+                if lens.label == label {
+                    lens.deleted = true;
+                }
             }
         }
     }
-}
 
-fn add(shelf: &mut BTreeMap<usize, Box>, label: &str, fl: &usize) {
-    if let Some(boxx) = shelf.get_mut(&hash_str(label)) {
-        let mut lens_found = false;
-        // check for existing lens
-        for lens in boxx.lenses.iter_mut() {
-            if lens.label == label && !lens.deleted {
-                lens.fl = *fl;
-                lens_found = true;
-                break;                        
+    fn add(shelf: &mut BTreeMap<usize, Box>, label: &str, fl: &usize) {
+        if let Some(boxx) = shelf.get_mut(&hash_str(label)) {
+            let mut lens_found = false;
+            // check for existing lens
+            for lens in boxx.lenses.iter_mut() {
+                if lens.label == label && !lens.deleted {
+                    lens.fl = *fl;
+                    lens_found = true;
+                    break;
+                }
+            }
+            // if not found, add a new one
+            if !lens_found {
+                boxx.lenses.push(Lens {
+                    fl: *fl,
+                    label: label.to_owned(),
+                    deleted: false,
+                });
             }
         }
-        // if not found, add a new one
-        if !lens_found {
-            boxx.lenses.push(Lens{fl: *fl, label: label.to_owned(), deleted: false});
-        }
-    }  
-}
-
-fn tokenize(hash: &str) -> (String, char, usize) {
-    let mut label:String = String::new();
-    let mut op:char = 'x';
-    let mut fl:usize = usize::MAX;
-
-    for c in hash.chars() { 
-        if c != '=' && c != '-' {
-            label.push(c);
-        } else if c == '='{
-            op = c;
-            fl = hash.chars().last().unwrap().to_digit(10).unwrap() as usize;
-            break;
-        } else {
-            op = c;
-        }
     }
-    (label, op, fl)
-}
 
-fn summarize(shelf: BTreeMap<usize, Box>) -> usize {
-    let mut sum: usize = 0; 
-    for boxx in shelf {
-        let mut slot = 1;
-        for lens in boxx.1.lenses {
-            match lens.deleted {
-                true => slot -= 1,
-                false => sum += (boxx.0+1) * slot * lens.fl,
-            }   
-            slot += 1;
+    fn tokenize(hash: &str) -> (String, char, usize) {
+        let mut label: String = String::new();
+        let mut op: char = 'x';
+        let mut fl: usize = usize::MAX;
+
+        for c in hash.chars() {
+            if c != '=' && c != '-' {
+                label.push(c);
+            } else if c == '=' {
+                op = c;
+                fl = hash.chars().last().unwrap().to_digit(10).unwrap() as usize;
+                break;
+            } else {
+                op = c;
+            }
         }
+        (label, op, fl)
     }
-    sum
+
+    fn summarize(shelf: BTreeMap<usize, Box>) -> usize {
+        let mut sum: usize = 0;
+        for boxx in shelf {
+            let mut slot = 1;
+            for lens in boxx.1.lenses {
+                match lens.deleted {
+                    true => slot -= 1,
+                    false => sum += (boxx.0 + 1) * slot * lens.fl,
+                }
+                slot += 1;
+            }
+        }
+        sum
+    }
 }
 
-// run these with cargo test --bin main -- day_13::tests
+// cargo test --lib day_XX
 #[cfg(test)]
 mod tests {
-    use crate::utils::read_data_from_file;
-    use super::*;   
+    use super::*;
+    use crate::util::utils::read_data_from_file;
 
     #[test]
-    fn test_test() {
-        let test_data:Vec<String> = read_data_from_file("input/test/15.txt");
-        assert_eq!(silver(&test_data), 1320);
-        assert_eq!(gold(&test_data), 145);
+    fn test() {
+        let test_data = read_data_from_file("input/2023/test/15.txt");
+        let queue = LensLibrary::fro(&test_data);
+
+        assert_eq!(queue.silver(), TaskResult::Usize(1320));
+        assert_eq!(queue.gold(), TaskResult::Usize(145));
     }
 
     #[test]
-    fn test_silver() {
-        let test_data:Vec<String> = read_data_from_file("input/real/15.txt");
-        assert_eq!(silver(&test_data), 510801);
-    }
+    fn real() {
+        let real_data = read_data_from_file("input/2023/real/15.txt");
+        let queue = LensLibrary::fro(&real_data);
 
-    #[test]
-    fn test_gold() {
-        let test_data:Vec<String> = read_data_from_file("input/real/15.txt");
-        assert_eq!(gold(&test_data), 212763);
+        assert_eq!(queue.silver(), TaskResult::Usize(510801));
+        assert_eq!(queue.gold(), TaskResult::Usize(212763));
     }
 }

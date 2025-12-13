@@ -69,7 +69,28 @@ impl Fro for CamelCards {
 // Main solvers
 impl Solution for CamelCards {
     fn silver(&self) -> TaskResult {
-        TaskResult::String("plii".to_string())
+        let mut score: BTreeSet<Hand> = BTreeSet::new();
+        for row in data {
+            let (a, b) = row.split_once(' ').unwrap();
+            let hand_str = a.parse::<String>().unwrap();
+            let bid = b.parse::<i16>().unwrap();
+
+            score.insert(Hand {
+                cards: map_card_to_int(&hand_str),
+                htype: calc_rank(&map_card_to_int(&hand_str)),
+                str: hand_str,
+                bid,
+            });
+        }
+
+        let mut sum: usize = 0;
+
+        for (i, hand) in score.iter().enumerate() {
+            println!("{} {} {} {}", i, hand.str, hand.htype, hand.bid);
+            sum += hand.bid as usize * (i + 1);
+        }
+
+        sum.into()
     }
 
     fn gold(&self) -> TaskResult {
@@ -81,7 +102,7 @@ impl Solution for CamelCards {
             let bid = b.parse::<usize>().unwrap();
 
             score.push(Hand {
-                cards: strtoivec(&hand_str),
+                cards: map_card_to_int(&hand_str),
                 htype: calc_htype(&strtoivec(&hand_str)),
                 str: hand_str,
                 bid,
@@ -103,7 +124,7 @@ impl Solution for CamelCards {
 // For assisting functions
 impl CamelCards {
     // Converts card symbols to int values for easier comparison
-    fn strtoivec(string: &str) -> Vec<i8> {
+    fn map_card_to_int(string: &str) -> Vec<i8> {
         string
             .chars()
             .map(|card| match card {

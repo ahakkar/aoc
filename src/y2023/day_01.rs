@@ -69,7 +69,7 @@ impl Solution for Trebuchet {
         let regex_second =
             Regex::new(r"(\d|eno|owt|eerht|ruof|evif|xis|neves|thgie|enin)").unwrap();
 
-        for row in data.iter() {
+        for row in self.data.iter() {
             //print!("{}: {:?}", i, row);
 
             // NOT SAFE BUT WHATEVER

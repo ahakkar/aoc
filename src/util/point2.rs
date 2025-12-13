@@ -82,8 +82,8 @@ impl Point2 {
     ///
     /// # Arguments
     ///
-    /// * `start` - A reference to a `Coord` representing the starting (top-left) point of the rectangle.
-    /// * `end` - A reference to a `Coord` representing the ending (bottom-right) point of the rectangle.
+    /// * `start` - A reference to a `Point2` representing the starting (top-left) point of the rectangle.
+    /// * `end` - A reference to a `Point2` representing the ending (bottom-right) point of the rectangle.
     ///
     /// # Returns
     ///
@@ -92,9 +92,9 @@ impl Point2 {
     /// # Examples
     ///
     ///
-    /// let point = Coord::new(3, 3);
-    /// let start = Coord::new(0, 0);
-    /// let end = Coord::new(5, 5);
+    /// let point = Point2::new(3, 3);
+    /// let start = Point2::new(0, 0);
+    /// let end = Point2::new(5, 5);
     /// assert_eq!(point.fits_bounds(&start, &end), true);
     ///
     pub fn fits_bounds(&self, start: &Point2, end: &Point2) -> bool {
