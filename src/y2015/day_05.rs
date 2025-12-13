@@ -18,6 +18,8 @@
 #![allow(clippy::useless_vec)]
 #![allow(clippy::collapsible_if)]
 
+use std::collections::HashMap;
+
 use crate::{Fro, Solution, TaskResult};
 
 // Can add more shared vars here
@@ -72,12 +74,58 @@ impl Solution for DoesntHeHaveInternElvesForThis {
                 sum += 1;
             }
         }
-        // 329 too high
+
         TaskResult::Usize(sum)
     }
 
     fn gold(&self) -> TaskResult {
-        TaskResult::String("plaa".to_string())
+        let mut sum = 0;
+
+        for x in &self.data {
+            let string = x.trim();
+            let chars: Vec<char> = string.chars().collect();
+
+            // Collect all char pairs
+            let mut seen: HashMap<(char, char), usize> = HashMap::new();
+            let mut pair_found = false;
+
+            for i in 0..chars.len() - 1 {
+                let pair = (chars[i], chars[i + 1]);
+
+                if let Some(&prev) = seen.get(&pair) {
+                    // Check via index that pairs dont overlap
+                    if i >= prev + 2 {
+                        pair_found = true;
+                        break;
+                    }
+                } else {
+                    seen.insert(pair, i);
+                }
+            }
+
+            if !pair_found {
+                continue;
+            }
+
+            let mut double_found = false;
+
+            for w in string.as_bytes().windows(3) {
+                let c1 = w[0] as char;
+                let c3 = w[2] as char;
+
+                if c1 == c3 {
+                    double_found = true;
+                    break;
+                }
+            }
+
+            if double_found {
+                sum += 1;
+            }
+            //println!("{:?}", pairs);
+        }
+
+        TaskResult::Usize(sum)
     }
 }
 
@@ -117,6 +165,6 @@ mod tests {
         let queue = DoesntHeHaveInternElvesForThis::fro(&real_data);
 
         assert_eq!(queue.silver(), TaskResult::Usize(236));
-        assert_eq!(queue.gold(), TaskResult::Usize(0));
+        assert_eq!(queue.gold(), TaskResult::Usize(51));
     }
 }
